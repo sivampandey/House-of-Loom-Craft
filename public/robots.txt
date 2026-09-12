@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /profile/*
+Disallow: /orders
+Disallow: /orders/*
+Disallow: /checkout
+Disallow: /order-success/*
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /api/
+
+Sitemap: https://potteryrugs.com/sitemap.xml
