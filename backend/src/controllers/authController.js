@@ -20,7 +20,7 @@ const sendTokenResponse = (user, statusCode, res, message = 'Authenticated succe
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/'
   };
 
@@ -30,6 +30,7 @@ const sendTokenResponse = (user, statusCode, res, message = 'Authenticated succe
     .json({
       success: true,
       message,
+      token,
       user: {
         _id: user._id,
         firstName: user.firstName,
@@ -124,7 +125,7 @@ export const logout = (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/'
   };
 

@@ -1,6 +1,11 @@
 // Centralized API client for POTTERY RUGS & HOME DECOR
 
-const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'production'
+    ? 'https://pottery-rugs-api.onrender.com/api'
+    : '/api')
+).replace(/\/$/, '');
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -13,8 +18,11 @@ class ApiError extends Error {
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
 
+  const token = typeof window !== 'undefined' ? localStorage.getItem('pottery_rugs_token') : null;
+
   const headers = {
     'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {})
   };
 
@@ -45,12 +53,38 @@ async function request(endpoint, options = {}) {
 
 // ==================== AUTHENTICATION ====================
 export const authAPI = {
-  register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
-  login: (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
+  register: async (payload) => {
+    const data = await request('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+    if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('pottery_rugs_token', data.token);
+    }
+    return data;
+  },
+  login: async (payload) => {
+    const data = await request('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
+    if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('pottery_rugs_token', data.token);
+    }
+    return data;
+  },
+  logout: async () => {
+    try {
+      await request('/auth/logout', { method: 'POST' });
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pottery_rugs_token');
+      }
+    }
+  },
   getMe: () => request('/auth/me'),
   forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
-  resetPassword: (payload) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
+  resetPassword: async (payload) => {
+    const data = await request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) });
+    if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('pottery_rugs_token', data.token);
+    }
+    return data;
+  },
   changePassword: (payload) => request('/auth/change-password', { method: 'PUT', body: JSON.stringify(payload) })
 };
 

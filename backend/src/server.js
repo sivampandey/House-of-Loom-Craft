@@ -82,6 +82,7 @@ const devLocalOrigins = [
 ];
 
 const defaultProductionOrigins = [
+  'https://pottery-rugs.vercel.app',
   'https://potteryrugs.com',
   'https://www.potteryrugs.com'
 ];

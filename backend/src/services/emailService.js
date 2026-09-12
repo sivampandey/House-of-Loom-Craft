@@ -2,14 +2,16 @@
 // Supports Resend, SendGrid, and Development Fallback
 
 export const sendPasswordResetEmail = async ({ toEmail, recipientName, resetToken }) => {
-  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const defaultFrontendUrl = isProduction ? 'https://pottery-rugs.vercel.app' : 'http://localhost:5173';
+  const frontendUrl = (process.env.FRONTEND_URL || defaultFrontendUrl).replace(/\/$/, '');
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-  const fromEmail = process.env.EMAIL_FROM || 'POTTERY RUGS Atelier <concierge@potteryrugs.com>';
+  const fromEmail = process.env.EMAIL_FROM || 'POTTERY RUGS <shivampandey66139@gmail.com>';
   const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
   const apiKey = process.env.EMAIL_API_KEY;
 
   const subject = 'Atelier Access: Password Recovery Request';
-  
+
   const textContent = `
 POTTERY RUGS & HOME DECOR — Bhadohi Atelier
 

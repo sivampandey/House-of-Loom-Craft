@@ -12,9 +12,16 @@ if (dns.getServers().includes('127.0.0.1')) {
 
 export const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pottery_rugs';
-    const conn = await mongoose.connect(mongoURI, {
-      autoIndex: true,
+    const isProduction = process.env.NODE_ENV === 'production';
+    const mongoURI = process.env.MONGODB_URI;
+
+    if (!mongoURI && isProduction) {
+      throw new Error('MONGODB_URI environment variable is required in production.');
+    }
+
+    const uriToConnect = mongoURI || 'mongodb://127.0.0.1:27017/pottery_rugs';
+    const conn = await mongoose.connect(uriToConnect, {
+      autoIndex: !isProduction,
     });
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
   } catch (error) {
