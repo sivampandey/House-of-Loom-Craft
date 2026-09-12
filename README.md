@@ -177,7 +177,7 @@ Ensure MongoDB is running, then populate initial products and demo accounts:
 ```bash
 npm run seed
 ```
-*Creates initial carpet masterworks, home decor items, demo client (`client@potteryrugs.com`), and atelier curator (`curator@potteryrugs.com`).*
+*Synchronizes 16 handcrafted carpets and home decor masterworks into the database. (Demo account seeding is disabled by default via `SEED_DEMO_USERS=false` to protect production user accounts).*
 
 ### Step 3: Run Local Servers
 **Terminal 1 — Backend API:**
@@ -217,14 +217,16 @@ npm run dev
    - `PORT`: `5000` (or host provided `$PORT`)
    - `FRONTEND_URL`: `https://potteryrugs.com` (your production frontend domain)
    - `BACKEND_URL`: `https://your-backend.railway.app`
-   - `MONGODB_URI`: `mongodb+srv://<username>:<password>@cluster.mongodb.net/pottery_rugs?retryWrites=true&w=majority`
+   - `MONGODB_URI`: `mongodb+srv://<username>:<password>@cluster0.slnhlei.mongodb.net/pottery_rugs?appName=Cluster0`
    - `JWT_SECRET`: A secure 64+ character random string
+   - `JWT_EXPIRES_IN`: `7d`
    - `RAZORPAY_KEY_ID`: `rzp_live_...`
    - `RAZORPAY_KEY_SECRET`: `your_live_razorpay_secret`
    - `RAZORPAY_SIMULATION`: `false`
    - `EMAIL_PROVIDER`: `resend` (or `sendgrid`)
    - `EMAIL_API_KEY`: `re_...` (Resend API key)
    - `EMAIL_FROM`: `POTTERY RUGS Atelier <concierge@potteryrugs.com>`
+   - `SEED_DEMO_USERS`: `false`
 
 ---
 
