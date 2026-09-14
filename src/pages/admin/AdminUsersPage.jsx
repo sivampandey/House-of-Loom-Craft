@@ -22,10 +22,11 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError(null);
       const res = await adminAPI.getUsers();
-      setUsers(res.data.users || []);
+      const userList = res?.users || res?.data?.users || (Array.isArray(res) ? res : []);
+      setUsers(userList);
     } catch (err) {
       console.error('Failed to load users:', err);
-      setError(err.response?.data?.message || 'Failed to retrieve users');
+      setError(err.message || err.data?.message || err.response?.data?.message || 'Failed to retrieve users');
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export default function AdminUsersPage() {
       setDeleteModal(prev => ({ 
         ...prev, 
         loading: false, 
-        error: err.response?.data?.message || 'Failed to delete user' 
+        error: err.message || err.data?.message || err.response?.data?.message || 'Failed to delete user' 
       }));
     }
   };

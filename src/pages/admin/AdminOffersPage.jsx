@@ -39,10 +39,11 @@ export default function AdminOffersPage() {
       setLoading(true);
       setError(null);
       const res = await adminAPI.getOffers();
-      setOffers(res.data.offers || []);
+      const offerList = res?.offers || res?.data?.offers || (Array.isArray(res) ? res : []);
+      setOffers(offerList);
     } catch (err) {
       console.error('Failed to load offers:', err);
-      setError(err.response?.data?.message || 'Failed to load promotional offers');
+      setError(err.message || err.data?.message || err.response?.data?.message || 'Failed to load promotional offers');
     } finally {
       setLoading(false);
     }
@@ -80,32 +81,37 @@ export default function AdminOffersPage() {
       description: offer.description || '',
       discountType: offer.discountType,
       discountValue: offer.discountValue,
-      minOrderAmount: offer.minOrderAmount || 0,
+      minOrderAmount: offer.minOrderAmount || '',
       maxDiscountAmount: offer.maxDiscountAmount || '',
-      validFrom: offer.validFrom ? new Date(offer.validFrom).toISOString().split('T')[0] : '',
-      validUntil: offer.validUntil ? new Date(offer.validUntil).toISOString().split('T')[0] : '',
-      usageLimit: offer.usageLimit || '',
+      validFrom: offer.validFrom ? new Date(offer.validFrom).toISOString().slice(0, 16) : '',
+      validUntil: offer.validUntil ? new Date(offer.validUntil).toISOString().slice(0, 16) : '',
+      usageLimit: offer.usageLimit !== null ? offer.usageLimit : '',
       perCustomerLimit: offer.perCustomerLimit || 1,
-      isActive: offer.isActive !== false
+      isActive: offer.isActive
     });
     setFormError(null);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    try {
-      setFormSubmitting(true);
-      setFormError(null);
+    setFormSubmitting(true);
+    setFormError(null);
 
+    try {
       const payload = {
-        ...formData,
+        code: formData.code.trim().toUpperCase(),
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        discountType: formData.discountType,
         discountValue: Number(formData.discountValue),
-        minOrderAmount: Number(formData.minOrderAmount) || 0,
+        minOrderAmount: formData.minOrderAmount ? Number(formData.minOrderAmount) : 0,
         maxDiscountAmount: formData.maxDiscountAmount ? Number(formData.maxDiscountAmount) : null,
+        validFrom: formData.validFrom ? new Date(formData.validFrom).toISOString() : new Date().toISOString(),
+        validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : null,
         usageLimit: formData.usageLimit ? Number(formData.usageLimit) : null,
-        perCustomerLimit: Number(formData.perCustomerLimit) || 1,
-        code: formData.code.trim().toUpperCase()
+        perCustomerLimit: formData.perCustomerLimit ? Number(formData.perCustomerLimit) : 1,
+        isActive: formData.isActive
       };
 
       if (editingOffer) {
@@ -117,7 +123,7 @@ export default function AdminOffersPage() {
       setModalOpen(false);
       fetchOffers();
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Failed to save offer');
+      setFormError(err.message || err.data?.message || err.response?.data?.message || 'Failed to save offer');
     } finally {
       setFormSubmitting(false);
     }
@@ -128,7 +134,7 @@ export default function AdminOffersPage() {
       await adminAPI.updateOffer(offer._id, { isActive: !offer.isActive });
       fetchOffers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update offer status');
+      alert(err.message || err.data?.message || err.response?.data?.message || 'Failed to update offer status');
     }
   };
 
@@ -140,7 +146,7 @@ export default function AdminOffersPage() {
       setDeleteModal({ open: false, offer: null, loading: false });
       fetchOffers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete offer');
+      alert(err.message || err.data?.message || err.response?.data?.message || 'Failed to delete offer');
       setDeleteModal(prev => ({ ...prev, loading: false }));
     }
   };

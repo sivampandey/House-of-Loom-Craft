@@ -16,7 +16,7 @@ export default function AdminSettingsPage() {
       try {
         setLoading(true);
         const res = await adminAPI.getDashboard();
-        setStats(res.data);
+        setStats(res?.stats ? res : (res?.data || res));
       } catch (err) {
         console.error('Failed to fetch status:', err);
       } finally {

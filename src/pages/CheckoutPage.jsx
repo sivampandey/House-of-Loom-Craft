@@ -80,15 +80,16 @@ export default function CheckoutPage({ onShowToast }) {
         quantity: item.quantity || 1
       }));
       const res = await offersAPI.validateOffer(couponInput.trim(), subtotal, itemsPayload);
-      if (res.data?.valid) {
-        setAppliedOffer(res.data);
+      const offerData = res?.data || res;
+      if (offerData?.valid) {
+        setAppliedOffer(offerData);
         if (onShowToast) {
-          onShowToast('success', 'Coupon Applied', `${res.data.code} applied! Saved ₹${res.data.discountAmount}`);
+          onShowToast('success', 'Coupon Applied', `${offerData.code} applied! Saved ₹${offerData.discountAmount}`);
         }
       }
     } catch (err) {
       setAppliedOffer(null);
-      setCouponError(err.response?.data?.message || 'Invalid or expired promotional code.');
+      setCouponError(err.message || err.data?.message || err.response?.data?.message || 'Invalid or expired promotional code.');
     } finally {
       setCouponLoading(false);
     }
