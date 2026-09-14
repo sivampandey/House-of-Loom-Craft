@@ -1,10 +1,8 @@
 // Centralized API client for POTTERY RUGS & HOME DECOR
 
-const API_BASE = (
+export const API_BASE = (
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.MODE === 'production'
-    ? 'https://pottery-rugs-api.onrender.com/api'
-    : '/api')
+  'https://pottery-rugs-api.onrender.com/api'
 ).replace(/\/$/, '');
 
 class ApiError extends Error {

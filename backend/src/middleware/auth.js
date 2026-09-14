@@ -17,7 +17,7 @@ export const protect = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Atelier session expired or not authenticated. Please log in.'
+        message: 'Session expired or not authenticated. Please log in.'
       });
     }
 

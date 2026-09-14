@@ -63,7 +63,12 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Parse configured origins from environment
 const configuredOrigins = [];
 if (process.env.FRONTEND_URL) {
-  configuredOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
+  process.env.FRONTEND_URL.split(',').forEach(o => {
+    const trimmed = o.trim().replace(/\/$/, '');
+    if (trimmed && !configuredOrigins.includes(trimmed)) {
+      configuredOrigins.push(trimmed);
+    }
+  });
 }
 if (process.env.ALLOWED_ORIGINS) {
   process.env.ALLOWED_ORIGINS.split(',').forEach(o => {
@@ -74,7 +79,7 @@ if (process.env.ALLOWED_ORIGINS) {
   });
 }
 
-// Development local origins (strictly permitted ONLY in development mode)
+// Development local origins
 const devLocalOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -84,14 +89,14 @@ const devLocalOrigins = [
 ];
 
 const defaultProductionOrigins = [
-  'https://pottery-rugs.vercel.app',
-  'https://potteryrugs.com',
-  'https://www.potteryrugs.com'
+  'https://pottery-rugs.vercel.app'
 ];
 
-const allowedOrigins = isProduction
-  ? Array.from(new Set([...defaultProductionOrigins, ...configuredOrigins]))
-  : Array.from(new Set([...configuredOrigins, ...devLocalOrigins, ...defaultProductionOrigins]));
+const allowedOrigins = Array.from(new Set([
+  ...defaultProductionOrigins,
+  ...configuredOrigins,
+  ...devLocalOrigins
+]));
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -101,17 +106,18 @@ app.use(cors({
     }
 
     const cleanOrigin = origin.replace(/\/$/, '');
-    if (allowedOrigins.includes(cleanOrigin) || cleanOrigin.endsWith('.vercel.app')) {
+    if (
+      allowedOrigins.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.vercel.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1')
+    ) {
       return callback(null, true);
     }
 
     if (isProduction) {
       return callback(new Error(`CORS blocked for untrusted origin: ${origin}`));
     } else {
-      // In development, allow localhost or 127.0.0.1
-      if (cleanOrigin.includes('localhost') || cleanOrigin.includes('127.0.0.1')) {
-        return callback(null, true);
-      }
       return callback(new Error(`CORS blocked for origin: ${origin}`));
     }
   },

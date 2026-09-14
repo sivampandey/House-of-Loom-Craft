@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { adminAPI } from '../../services/api';
+import { adminAPI, API_BASE } from '../../services/api';
 import { 
   Settings, ShieldCheck, Database, Server, Mail, Phone, 
   MapPin, Globe, CheckCircle, RefreshCw, AlertCircle
@@ -62,14 +62,16 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">API Server Host:</span>
-            <span className="font-mono text-[#1E261B] font-medium bg-[#FAF7F2] px-2 py-1 rounded inline-block">
-              http://localhost:5000 / /api
+            <span className="font-mono text-[#1E261B] font-medium bg-[#FAF7F2] px-2 py-1 rounded inline-block break-all">
+              {API_BASE}
             </span>
           </div>
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">Catalog Collection Count:</span>
             <span className="text-[#1E261B] font-medium">
-              {stats ? `${stats.stats?.totalProducts || 0} active products in catalog` : 'Loading...'}
+              {loading
+                ? 'Loading...'
+                : `${stats?.stats?.totalProducts || stats?.totalProducts || 0} active products in catalog`}
             </span>
           </div>
           <div>
