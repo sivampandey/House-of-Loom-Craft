@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 // Providers
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { WishlistProvider, useWishlist } from './context/WishlistContext';
+import { prewarmBackend } from './services/api';
 
 // Common UI & Layout
 import CustomCursor from './components/common/CustomCursor';
@@ -21,43 +22,62 @@ import SearchModal from './components/drawers/SearchModal';
 import QuickViewModal from './components/drawers/QuickViewModal';
 import ConsultationModal from './components/drawers/ConsultationModal';
 
-// Pages
+// Fast critical-path Landing Page
 import HomePage from './pages/HomePage';
-import CarpetsPage from './pages/CarpetsPage';
-import CollectionsPage from './pages/CollectionsPage';
-import StudioPage from './pages/StudioPage';
-import HomeDecorPage from './pages/HomeDecorPage';
-import OurStoryPage from './pages/OurStoryPage';
-import ContactPage from './pages/ContactPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import SearchPage from './pages/SearchPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import ProfilePage from './pages/ProfilePage';
-import OrdersPage from './pages/OrdersPage';
-import OrderDetailPage from './pages/OrderDetailPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderSuccessPage from './pages/OrderSuccessPage';
-import NotFoundPage from './pages/NotFoundPage';
 
-// Admin Portal Components & Pages
-import AdminRoute from './components/admin/AdminRoute';
-import AdminLayout from './components/admin/AdminLayout';
-import AdminLoginPage from './pages/admin/AdminLoginPage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminProductsPage from './pages/admin/AdminProductsPage';
-import AdminProductFormPage from './pages/admin/AdminProductFormPage';
-import AdminOrdersPage from './pages/admin/AdminOrdersPage';
-import AdminOrderDetailPage from './pages/admin/AdminOrderDetailPage';
-import AdminUsersPage from './pages/admin/AdminUsersPage';
-import AdminOffersPage from './pages/admin/AdminOffersPage';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+// Lazy-loaded Customer Pages (Splits bundle for ultra-fast initial paint)
+const CarpetsPage = lazy(() => import('./pages/CarpetsPage'));
+const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const StudioPage = lazy(() => import('./pages/StudioPage'));
+const HomeDecorPage = lazy(() => import('./pages/HomeDecorPage'));
+const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// Lazy-loaded Admin Portal Pages (Admin bundle completely isolated from customer bundle)
+const AdminRoute = lazy(() => import('./components/admin/AdminRoute'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
+const AdminProductFormPage = lazy(() => import('./pages/admin/AdminProductFormPage'));
+const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage'));
+const AdminOrderDetailPage = lazy(() => import('./pages/admin/AdminOrderDetailPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminOffersPage = lazy(() => import('./pages/admin/AdminOffersPage'));
+const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+
+// Elegant Minimalist Page Transition Fallback
+function PageLoader() {
+  return (
+    <div className="min-h-[55vh] flex flex-col items-center justify-center bg-[#FAF7F2]">
+      <div className="w-7 h-7 border-2 border-[#45563D]/20 border-t-[#45563D] rounded-full animate-spin"></div>
+      <span className="mt-3 text-[11px] tracking-widest uppercase font-serif text-[#1E261B]/60">
+        Loading...
+      </span>
+    </div>
+  );
+}
 
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Pre-warm backend API upon initial site load to prevent Render cold-sleep latency
+  useEffect(() => {
+    prewarmBackend();
+  }, []);
 
   const {
     cartItems,
@@ -156,7 +176,8 @@ function AppContent() {
       )}
 
       {/* Dynamic Route Pages */}
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         {/* Public Storefront Routes */}
         <Route
           path="/"
@@ -353,6 +374,7 @@ function AppContent() {
         {/* 404 Catch All */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
 
       {/* Global Dark Earthy Luxury Footer - only on public storefront */}
       {!isAdminRoute && (

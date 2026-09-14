@@ -13,8 +13,28 @@ class ApiError extends Error {
   }
 }
 
+// In-memory cache for fast, zero-delay subsequent reads (TTL: 90 seconds)
+const apiCache = new Map();
+const CACHE_TTL = 90 * 1000;
+
+export const prewarmBackend = () => {
+  try {
+    fetch(`${API_BASE}/health`, { method: 'GET', keepalive: true }).catch(() => {});
+  } catch (_) {}
+};
+
 async function request(endpoint, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
   const url = `${API_BASE}${endpoint}`;
+  const isGet = method === 'GET';
+
+  // Check cache for GET requests (exclude admin and user auth endpoints)
+  if (isGet && !endpoint.includes('/auth/') && !endpoint.includes('/admin/')) {
+    const cached = apiCache.get(url);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
+  }
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('pottery_rugs_token') : null;
 
@@ -40,6 +60,10 @@ async function request(endpoint, options = {}) {
         response.status,
         data
       );
+    }
+
+    if (isGet && !endpoint.includes('/auth/') && !endpoint.includes('/admin/')) {
+      apiCache.set(url, { data, timestamp: Date.now() });
     }
 
     return data;
