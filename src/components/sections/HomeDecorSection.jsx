@@ -52,7 +52,7 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* Left Column: Large Atmospheric Interior Still Life (5 cols) */}
           <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-6 order-2 lg:order-1">
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-[#DACDB3] relative group bg-[#EFE8D8] aspect-[4/3] lg:aspect-auto lg:h-[430px]">
+            <div className="rounded-2xl overflow-hidden shadow-lg border border-[#DACDB3] relative group bg-[#EFE8D8] aspect-[16/9] sm:aspect-[4/3] lg:aspect-auto lg:h-[430px]">
               <img
                 src="/images/decor-editorial.jpg"
                 alt="Atmospheric luxury home decor styling"
@@ -63,9 +63,9 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
               <div className="absolute inset-0 bg-gradient-to-t from-[#364430]/90 via-[#364430]/30 to-transparent pointer-events-none" />
               <div className="absolute bottom-5 sm:bottom-6 left-5 sm:left-6 right-5 sm:right-6 text-[#FAF7F0]">
                 <span className="text-[10px] uppercase tracking-widest text-[#D4BC9F] font-sans font-bold block mb-1">
-                  ATELIER EDITORIAL
+                  EDITORIAL CURATION
                 </span>
-                <h3 className="font-serif text-2xl font-light leading-snug">
+                <h3 className="font-serif text-xl sm:text-2xl font-light leading-snug">
                   The Tactile Dimension
                 </h3>
                 <p className="text-xs text-[#FAF7F0]/90 mt-1 font-sans font-normal leading-relaxed">
@@ -85,21 +85,21 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
             </div>
           </div>
 
-          {/* Right Column: Unified Cohesive Cards Grid (7 cols) */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6 order-1 lg:order-2">
+          {/* Right Column: Unified Cohesive Cards Grid (7 cols on desktop, 2-cols on mobile) */}
+          <div className="lg:col-span-7 grid grid-cols-2 gap-3 sm:gap-6 order-1 lg:order-2">
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className="group bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-500 card-hover-lift cursor-pointer"
+                className="group bg-[#EFE8D8] rounded-xl sm:rounded-2xl border border-[#DACDB3] p-3 sm:p-5 md:p-6 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-500 card-hover-lift cursor-pointer"
               >
                 <div>
                   {/* Category & Badge Row */}
-                  <div className="flex items-center justify-between gap-2 mb-3 min-h-[26px]">
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-[#55694A] font-sans font-bold truncate">
+                  <div className="flex items-center justify-between gap-1 sm:gap-2 mb-2 sm:mb-3 min-h-[20px] sm:min-h-[26px]">
+                    <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.15em] text-[#55694A] font-sans font-bold truncate">
                       {item.category === 'Cashmere Throws' ? 'Throws & Blankets' : item.category}
                     </span>
                     {item.badge && (
-                      <span className="text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#55694A] text-[#FAF7F0] font-bold shadow-sm whitespace-nowrap">
+                      <span className="text-[8.5px] sm:text-[9.5px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#55694A] text-[#FAF7F0] font-bold shadow-sm whitespace-nowrap hidden sm:inline-block">
                         {item.badge}
                       </span>
                     )}
@@ -108,7 +108,7 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
                   {/* Uniform Aspect-Ratio Image Container */}
                   <div 
                     onClick={() => onQuickView(item)}
-                    className="aspect-[4/3] rounded-xl bg-[#E5DDCB]/70 p-3 sm:p-4 flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-[#E0D7C4] transition-colors relative"
+                    className="aspect-square sm:aspect-[4/3] rounded-lg sm:rounded-xl bg-[#E5DDCB]/70 p-2 sm:p-4 flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-[#E0D7C4] transition-colors relative"
                   >
                     <img
                       src={item.image}
@@ -120,47 +120,50 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
                   </div>
 
                   {/* Structured Title & Description */}
-                  <div className="mt-4 space-y-1.5">
+                  <div className="mt-2 sm:mt-4 space-y-1">
                     <h4 
                       onClick={() => onQuickView(item)}
-                      className="font-serif text-lg sm:text-xl text-[#362B21] hover:text-[#55694A] cursor-pointer transition-colors font-medium leading-snug line-clamp-2 min-h-[48px] sm:min-h-[52px]"
+                      className="font-serif text-xs sm:text-lg md:text-xl text-[#362B21] hover:text-[#55694A] cursor-pointer transition-colors font-medium leading-snug line-clamp-1 sm:line-clamp-2 min-h-0 sm:min-h-[48px]"
                       title={item.name}
                     >
                       {item.name}
                     </h4>
-                    <p className="text-xs text-[#4E3C2B] font-sans font-normal leading-relaxed line-clamp-2 min-h-[36px]">
+                    <p className="text-xs text-[#4E3C2B] font-sans font-normal leading-relaxed line-clamp-2 hidden sm:block min-h-[36px]">
                       {item.description}
                     </p>
                   </div>
                 </div>
 
                 {/* Aligned Price & Action Row */}
-                <div className="mt-5 pt-3.5 border-t border-[#DACDB3]/70 flex items-center justify-between">
+                <div className="mt-2 sm:mt-5 pt-2 sm:pt-3.5 border-t border-[#DACDB3]/70 flex items-center justify-between gap-1">
                   <div>
-                    <span className="text-[9.5px] uppercase tracking-wider text-[#55694A] block font-sans font-semibold">
+                    <span className="text-[8px] sm:text-[9.5px] uppercase tracking-wider text-[#55694A] block font-sans font-semibold">
                       PRICE
                     </span>
-                    <span className="font-sans font-bold text-lg text-[#362B21]">
+                    <span className="font-sans font-bold text-xs sm:text-base md:text-lg text-[#362B21]">
                       {item.formattedPrice}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <button
                       onClick={() => onQuickView(item)}
-                      className="text-xs text-[#55694A] hover:text-[#362B21] font-sans flex items-center gap-1 font-bold py-1.5 px-2.5 rounded hover:bg-[#DACDB3]/40 transition-colors"
+                      className="text-xs text-[#55694A] hover:text-[#362B21] font-sans hidden sm:flex items-center gap-1 font-bold py-1.5 px-2.5 rounded hover:bg-[#DACDB3]/40 transition-colors"
                       title="View Details"
                     >
                       <span>View Details</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => onAddToCart(item)}
-                      className="p-2.5 rounded-full bg-[#55694A] text-[#FAF7F0] hover:bg-[#657C58] active:scale-95 transition-all shadow-md flex items-center justify-center min-w-[38px] min-h-[38px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToCart(item);
+                      }}
+                      className="p-2 sm:p-2.5 rounded-full bg-[#55694A] text-[#FAF7F0] hover:bg-[#657C58] active:scale-95 transition-all shadow-md flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[38px] sm:min-h-[38px]"
                       title="Add to Bag"
                       aria-label={`Add ${item.name} to Bag`}
                     >
-                      <ShoppingBag className="w-4 h-4" />
+                      <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>

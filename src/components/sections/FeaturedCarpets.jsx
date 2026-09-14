@@ -48,8 +48,8 @@ export default function FeaturedCarpets({
           </div>
         </div>
 
-        {/* Asymmetric Editorial Product Grid with Resilient Fallbacks */}
-        <div className="mt-12 sm:mt-14 space-y-12 sm:space-y-16">
+        {/* Asymmetric Editorial Product Grid for Laptop / Desktop (>= lg) */}
+        <div className="mt-12 sm:mt-14 space-y-12 sm:space-y-16 hidden lg:block">
           {/* Case 1: Single Masterpiece in collection */}
           {filteredCarpets.length === 1 && (
             <div className="max-w-4xl mx-auto bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] p-6 sm:p-10 md:p-12 shadow-lg card-hover-lift">
@@ -390,12 +390,152 @@ export default function FeaturedCarpets({
                       </p>
                     </div>
                     <div className="pt-6 border-t border-[#6D7F62]/40 text-xs text-[#D4BC9F] font-sans font-medium">
-                      Atelier Architectural Manifesto &bull; 2026
+                      Architectural Design Manifesto &bull; 2026
                     </div>
                   </div>
                 </div>
               )}
             </>
+          )}
+        </div>
+
+        {/* Mobile & Small Screen 2-Column Responsive Grid (< lg) */}
+        <div className="mt-8 lg:hidden">
+          {filteredCarpets.length === 1 ? (
+            <div className="bg-[#EFE8D8] rounded-xl border border-[#DACDB3] p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-wider text-[#55694A] font-sans font-bold">
+                  {filteredCarpets[0].collectionName || filteredCarpets[0].category}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleWishlist(filteredCarpets[0]);
+                  }}
+                  className={`p-1.5 rounded-full border transition-colors ${
+                    wishlistIds.includes(filteredCarpets[0].id)
+                      ? 'bg-[#55694A] text-[#FAF7F0] border-[#55694A]'
+                      : 'border-[#55694A]/30 text-[#362B21] hover:border-[#55694A]'
+                  }`}
+                  aria-label="Save to Wishlist"
+                >
+                  <Heart className={`w-3.5 h-3.5 ${wishlistIds.includes(filteredCarpets[0].id) ? 'fill-current' : ''}`} />
+                </button>
+              </div>
+              <div
+                onClick={() => onQuickView(filteredCarpets[0])}
+                className="my-2 cursor-pointer overflow-hidden rounded-lg bg-[#E2D8C3] p-3 aspect-[4/3] flex items-center justify-center"
+              >
+                <img
+                  src={filteredCarpets[0].image}
+                  alt={filteredCarpets[0].name}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div className="pt-2 border-t border-[#DACDB3] flex items-center justify-between">
+                <div>
+                  <h4 onClick={() => onQuickView(filteredCarpets[0])} className="font-serif text-sm text-[#362B21] font-medium line-clamp-1">
+                    {filteredCarpets[0].name}
+                  </h4>
+                  <p className="text-[10px] text-[#4E3C2B] font-sans">{filteredCarpets[0].dimensions}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-sans font-bold text-xs text-[#362B21]">{filteredCarpets[0].formattedPrice}</span>
+                  <button
+                    onClick={() => onQuickView(filteredCarpets[0])}
+                    className="bg-[#55694A] text-[#FAF7F0] px-2.5 py-1 rounded text-[10px] uppercase tracking-wider font-sans font-medium flex items-center gap-1"
+                  >
+                    <span>View</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {filteredCarpets.map((carpet, idx) => (
+                <React.Fragment key={carpet.id}>
+                  <div
+                    onClick={() => onQuickView(carpet)}
+                    className="group bg-[#EFE8D8] rounded-xl border border-[#DACDB3] p-3 sm:p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all cursor-pointer card-hover-lift"
+                  >
+                    <div>
+                      {/* Top Row: Category & Wishlist */}
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#55694A] font-sans font-bold truncate">
+                          {carpet.category || carpet.collectionName}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleWishlist(carpet);
+                          }}
+                          className={`p-1.5 rounded-full border transition-colors shrink-0 ${
+                            wishlistIds.includes(carpet.id)
+                              ? 'bg-[#55694A] text-[#FAF7F0] border-[#55694A]'
+                              : 'border-[#55694A]/30 text-[#362B21] hover:border-[#55694A]'
+                          }`}
+                          aria-label="Save to Wishlist"
+                        >
+                          <Heart className={`w-3 h-3 ${wishlistIds.includes(carpet.id) ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Compact Image Container */}
+                      <div className="my-1.5 cursor-pointer overflow-hidden rounded-lg bg-[#E2D8C3] p-2 aspect-[4/3] flex items-center justify-center">
+                        <img
+                          src={carpet.image}
+                          alt={carpet.name}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+
+                      {/* Title & Specs */}
+                      <div className="mt-1.5 space-y-0.5">
+                        <h4 className="font-serif text-xs sm:text-sm text-[#362B21] font-medium leading-snug line-clamp-1">
+                          {carpet.name}
+                        </h4>
+                        <p className="text-[10px] text-[#4E3C2B] font-sans truncate">
+                          {carpet.knotDensity || carpet.material || carpet.dimensions}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Price & Action */}
+                    <div className="mt-2.5 pt-2 border-t border-[#DACDB3]/70 flex items-center justify-between gap-1">
+                      <span className="font-sans font-bold text-xs sm:text-sm text-[#362B21]">
+                        {carpet.formattedPrice}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onQuickView(carpet);
+                        }}
+                        className="bg-[#55694A] text-[#FAF7F0] px-2 py-1 rounded text-[10px] uppercase tracking-wider font-sans font-medium flex items-center gap-0.5 shadow-sm shrink-0"
+                      >
+                        <span>View</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Architectural Quote Card on Mobile after 4 items */}
+                  {idx === 3 && (
+                    <div className="col-span-2 bg-[#4C5D41] text-[#FAF7F0] rounded-xl p-4 sm:p-5 shadow-sm border border-[#6D7F62]/50 my-1">
+                      <span className="text-[9px] uppercase tracking-[0.25em] text-[#D4BC9F] font-sans font-bold block mb-1">
+                        ARCHITECTURAL PRINCIPLE
+                      </span>
+                      <p className="font-serif text-sm sm:text-base leading-snug text-[#FAF7F0] font-light italic">
+                        "A room without a handcrafted carpet is merely an enclosure. The carpet gives it acoustic soul, tactile warmth, and an enduring center."
+                      </p>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -109,11 +109,11 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
         </div>
 
         {/* Video 2 Showroom Experience Container */}
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Video 2 Section (7 columns on desktop) */}
           <div 
             ref={containerRef}
-            className="lg:col-span-7 relative rounded-2xl overflow-hidden shadow-2xl border border-[#DACDB3] group bg-[#EFE8DC] min-h-[340px] sm:min-h-[440px] md:min-h-[520px] aspect-[4/3] sm:aspect-[16/10] md:aspect-auto card-hover-lift"
+            className="lg:col-span-7 relative rounded-2xl overflow-hidden shadow-2xl border border-[#DACDB3] group bg-[#EFE8DC] min-h-[380px] sm:min-h-[460px] md:min-h-[520px] card-hover-lift"
           >
             {isVideoLoaded ? (
               <video
@@ -124,7 +124,7 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
                 playsInline
                 preload="metadata"
                 poster="/images/room-after.jpg"
-                className="w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover object-center"
                 style={{
                   transform: 'translate3d(0, 0, 0)',
                   willChange: 'transform',
@@ -137,29 +137,29 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
               <img
                 src="/images/room-after.jpg"
                 alt="Pottery Rugs Showroom Collection"
-                className="w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover object-center"
                 loading="lazy"
                 decoding="async"
               />
             )}
 
-            {/* Video overlay badge */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#261E16]/90 via-[#261E16]/30 to-transparent pointer-events-none" />
+            {/* Transparent bottom gradient to ensure text readability while keeping full video completely visible */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
             
-            <div className="absolute top-5 sm:top-6 left-5 sm:left-6 flex items-center gap-2 bg-[#FAF7F0]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#DACDB3] text-xs text-[#362B21] shadow-md">
+            <div className="absolute top-5 sm:top-6 left-5 sm:left-6 flex items-center gap-2 bg-[#FAF7F0]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#DACDB3] text-xs text-[#362B21] shadow-md z-10">
               <Sparkles className="w-3.5 h-3.5 text-[#8F6E50]" />
-              <span className="uppercase tracking-wider text-[10px] font-sans font-semibold">Atelier Live Gallery</span>
+              <span className="uppercase tracking-wider text-[10px] font-sans font-semibold">Live Collection Showcase</span>
             </div>
 
-            <div className="absolute bottom-5 sm:bottom-6 left-5 sm:left-6 right-5 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#D4BC9F] block font-semibold">
+            <div className="absolute bottom-5 sm:bottom-6 left-5 sm:left-6 right-5 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 z-10">
+              <div className="drop-shadow-sm">
+                <span className="text-[10px] uppercase tracking-widest text-[#E8DFD1] block font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   Current Spotlight
                 </span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-[#FAF7F0] mt-1 font-light">
+                <h3 className="font-serif text-2xl sm:text-3xl text-[#FAF7F0] mt-1 font-light drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                   {currentCategory.title}
                 </h3>
-                <p className="text-xs text-[#FAF7F0]/85 max-w-md mt-1 hidden sm:block">
+                <p className="text-xs text-[#FAF7F0]/90 max-w-md mt-1 hidden sm:block drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                   {currentCategory.focusText}
                 </p>
               </div>
