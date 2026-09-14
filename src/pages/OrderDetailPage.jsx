@@ -39,14 +39,14 @@ export default function OrderDetailPage({ onShowToast }) {
   }, [orderId]);
 
   const handleCancelOrder = async () => {
-    if (!window.confirm('Are you certain you wish to cancel this acquisition?')) return;
+    if (!window.confirm('Are you certain you wish to cancel this order?')) return;
     setCancelling(true);
     try {
       const res = await ordersAPI.cancelOrder(order.orderNumber || order._id, 'Cancelled by client request');
       if (res.success && res.order) {
         setOrder(res.order);
         if (onShowToast) {
-          onShowToast('cart', 'Order Cancelled', 'Your acquisition cancellation has been logged.');
+          onShowToast('cart', 'Order Cancelled', 'Your order cancellation has been processed.');
         }
       }
     } catch (err) {
@@ -91,7 +91,7 @@ export default function OrderDetailPage({ onShowToast }) {
 
   // Timeline Steps Calculation
   const timelineSteps = [
-    { key: 'confirmed', title: 'Order Confirmed', desc: 'Acquisition validated & logged at Bhadohi atelier' },
+    { key: 'confirmed', title: 'Order Confirmed', desc: 'Order confirmed and registered at Bhadohi workshop' },
     { key: 'processing', title: 'Crafting / Preparation', desc: 'Heirloom quality inspection & white-glove wrapping' },
     { key: 'shipped', title: 'Dispatched from Atelier', desc: 'En route with insured art freight logistics' },
     { key: 'out_for_delivery', title: 'Out for White-Glove Delivery', desc: 'Scheduled courier courier arrival' },
@@ -245,9 +245,9 @@ export default function OrderDetailPage({ onShowToast }) {
             <div className="pt-6 flex items-center gap-3 text-red-900 bg-red-900/10 p-4 rounded-2xl border border-red-800/20">
               <XCircle className="w-6 h-6 flex-shrink-0" />
               <div>
-                <h3 className="font-serif text-lg font-bold">Acquisition Cancelled</h3>
+                <h3 className="font-serif text-lg font-bold">Order Cancelled</h3>
                 <p className="text-xs text-red-950/80">
-                  This order was cancelled on client request. Restored pieces have been returned to the atelier repertoire.
+                  This order was cancelled on client request. Restored pieces have been returned to available inventory.
                 </p>
               </div>
             </div>
@@ -301,7 +301,7 @@ export default function OrderDetailPage({ onShowToast }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Items Purchased (7 cols) */}
           <div className="lg:col-span-7 bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] p-6 sm:p-8 space-y-6">
-            <h3 className="font-serif text-2xl text-[#362B21] font-light">Acquired Masterpieces</h3>
+            <h3 className="font-serif text-2xl text-[#362B21] font-light">Ordered Items</h3>
 
             <div className="divide-y divide-[#DACDB3]/60">
               {order.items?.map((item, idx) => (

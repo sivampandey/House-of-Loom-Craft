@@ -123,7 +123,7 @@ export default function CheckoutPage({ onShowToast }) {
           amount: razorpayOrderRes.amount,
           currency: razorpayOrderRes.currency || 'INR',
           name: 'POTTERY RUGS & HOME DECOR',
-          description: `Atelier Acquisition (${itemsPayload.length} Pieces)`,
+          description: `Order (${itemsPayload.length} Pieces)`,
           image: '/images/pottery-logo.jpg',
           order_id: razorpayOrderRes.orderId,
           handler: async function (response) {
@@ -211,7 +211,7 @@ export default function CheckoutPage({ onShowToast }) {
 
         <div className="pb-8 border-b border-[#DACDB3] mb-10">
           <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold block">
-            ATELIER ACQUISITION PROCESS
+            CHECKOUT & ORDER VERIFICATION
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl text-[#362B21] font-light mt-1">
             White-Glove Checkout
@@ -468,7 +468,7 @@ export default function CheckoutPage({ onShowToast }) {
           {/* Right Column: Order Summary & Placement (5 cols) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
             <div className="bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] p-8 space-y-6 shadow-sm">
-              <h3 className="font-serif text-2xl text-[#362B21] font-light">Acquisition Summary</h3>
+              <h3 className="font-serif text-2xl text-[#362B21] font-light">Order Summary</h3>
 
               {/* Items List */}
               <div className="divide-y divide-[#DACDB3]/60 max-h-72 overflow-y-auto pr-1">
@@ -497,7 +497,7 @@ export default function CheckoutPage({ onShowToast }) {
               {/* Financial Ledger */}
               <div className="pt-4 border-t border-[#DACDB3] space-y-2 text-xs">
                 <div className="flex justify-between text-[#4E3C2B]">
-                  <span>Atelier Subtotal</span>
+                  <span>Subtotal</span>
                   <span className="font-bold text-[#362B21]">₹{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-[#55694A]">
@@ -520,13 +520,13 @@ export default function CheckoutPage({ onShowToast }) {
                 disabled={processing}
                 className="w-full bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-4 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
               >
-                <span>{processing ? 'Confirming Acquisition...' : paymentMethod === 'online' ? 'Proceed to Online Payment' : 'Confirm Order (COD)'}</span>
+                <span>{processing ? 'Confirming Order...' : paymentMethod === 'online' ? 'Proceed to Online Payment' : 'Confirm Order (COD)'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="text-center pt-2">
                 <span className="text-[10px] text-[#4E3C2B]/70 block">
-                  Encrypted 256-Bit SSL Atelier Checkout
+                  Encrypted 256-Bit SSL Secure Checkout
                 </span>
               </div>
             </div>

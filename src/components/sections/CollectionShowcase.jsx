@@ -3,15 +3,34 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
   const [activeCategory, setActiveCategory] = useState('hand-knotted');
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const containerRef = useRef(null);
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.muted = true;
-      video.defaultMuted = true;
-      video.play().catch(() => {});
-    }
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVideoLoaded(true);
+            if (videoRef.current) {
+              videoRef.current.play().catch(() => {});
+            }
+          } else {
+            if (videoRef.current) {
+              videoRef.current.pause();
+            }
+          }
+        });
+      },
+      { rootMargin: '200px 0px', threshold: 0.1 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   const categories = [
@@ -92,34 +111,47 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
         {/* Video 2 Showroom Experience Container */}
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Video 2 Section (7 columns on desktop) */}
-          <div className="lg:col-span-7 relative rounded-2xl overflow-hidden shadow-2xl border border-[#DACDB3] group bg-[#EFE8DC] min-h-[380px] sm:min-h-[460px] md:min-h-[540px] card-hover-lift">
-            <video
-              ref={videoRef}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              poster="/images/room-after.jpg"
-              className="w-full h-full object-cover object-center"
-              style={{
-                transform: 'translate3d(0, 0, 0)',
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
-              }}
-            >
-              <source src="/videos/showroom-collection.mp4" type="video/mp4" />
-            </video>
+          <div 
+            ref={containerRef}
+            className="lg:col-span-7 relative rounded-2xl overflow-hidden shadow-2xl border border-[#DACDB3] group bg-[#EFE8DC] min-h-[340px] sm:min-h-[440px] md:min-h-[520px] aspect-[4/3] sm:aspect-[16/10] md:aspect-auto card-hover-lift"
+          >
+            {isVideoLoaded ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                poster="/images/room-after.jpg"
+                className="w-full h-full object-cover object-center"
+                style={{
+                  transform: 'translate3d(0, 0, 0)',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                }}
+              >
+                <source src="/videos/showroom-collection.mp4" type="video/mp4" />
+              </video>
+            ) : (
+              <img
+                src="/images/room-after.jpg"
+                alt="Pottery Rugs Showroom Collection"
+                className="w-full h-full object-cover object-center"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
 
             {/* Video overlay badge */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#261E16]/90 via-[#261E16]/30 to-transparent pointer-events-none" />
             
-            <div className="absolute top-6 left-6 flex items-center gap-2 bg-[#FAF7F0]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#DACDB3] text-xs text-[#362B21] shadow-md">
+            <div className="absolute top-5 sm:top-6 left-5 sm:left-6 flex items-center gap-2 bg-[#FAF7F0]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#DACDB3] text-xs text-[#362B21] shadow-md">
               <Sparkles className="w-3.5 h-3.5 text-[#8F6E50]" />
               <span className="uppercase tracking-wider text-[10px] font-sans font-semibold">Atelier Live Gallery</span>
             </div>
 
-            <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+            <div className="absolute bottom-5 sm:bottom-6 left-5 sm:left-6 right-5 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
                 <span className="text-[10px] uppercase tracking-widest text-[#D4BC9F] block font-semibold">
                   Current Spotlight
@@ -134,7 +166,7 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
 
               <button
                 onClick={() => onSelectCategory(activeCategory)}
-                className="hidden sm:flex items-center gap-2 bg-[#BA9977] hover:bg-[#A38361] text-[#FAF7F0] font-medium text-xs uppercase tracking-wider px-4 py-2.5 rounded transition-colors flex-shrink-0 border border-[#D4BC9F]/60 shadow-lg"
+                className="inline-flex self-start sm:self-auto items-center gap-2 bg-[#BA9977] hover:bg-[#A38361] text-[#FAF7F0] font-medium text-xs uppercase tracking-wider px-4 py-2.5 rounded transition-colors flex-shrink-0 border border-[#D4BC9F]/60 shadow-lg min-h-[40px]"
               >
                 <span>View Pieces</span>
                 <ArrowRight className="w-3.5 h-3.5" />

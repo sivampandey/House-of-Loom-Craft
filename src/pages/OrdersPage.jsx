@@ -48,7 +48,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Atelier Acquisitions & Orders | Pottery Rugs & Home Decor"
+        title="Orders & History | Pottery Rugs & Home Decor"
         description="View your order history, delivery timeline, and master loom tracking for Pottery Rugs & Home Decor."
         path="/orders"
       />
@@ -61,13 +61,13 @@ export default function OrdersPage() {
             Client Atelier Profile
           </Link>
           <span className="text-[#DACDB3]">/</span>
-          <span className="text-[#362B21]">Acquisitions</span>
+          <span className="text-[#362B21]">Orders</span>
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-[#DACDB3] mb-10">
           <div className="space-y-2">
             <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold block">
-              ACQUISITION ARCHIVE
+              ORDER HISTORY
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl text-[#362B21] font-light">
               Order History
@@ -95,7 +95,7 @@ export default function OrdersPage() {
             <Package className="w-12 h-12 text-[#55694A] mx-auto opacity-60" />
             <h2 className="font-serif text-3xl text-[#362B21] font-light">No Order History Yet</h2>
             <p className="text-xs text-[#4E3C2B] max-w-md mx-auto leading-relaxed">
-              You haven't commissioned or acquired any pieces yet. Explore our handcrafted heirloom rugs to begin your private collection.
+              You haven't placed any orders yet. Explore our handcrafted heirloom rugs to begin your private collection.
             </p>
             <Link
               to="/collections"
@@ -123,13 +123,13 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#4E3C2B]">
-                      Acquisition Date: {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      Order Date: {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
 
                   <div className="sm:text-right">
                     <span className="text-[10px] uppercase tracking-wider text-[#4E3C2B]/70 block">
-                      Total Investment
+                      Total Price
                     </span>
                     <span className="font-sans text-xl sm:text-2xl font-bold text-[#362B21]">
                       ₹{(order.total || 0).toLocaleString()}

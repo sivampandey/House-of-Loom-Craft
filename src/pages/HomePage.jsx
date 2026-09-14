@@ -36,7 +36,7 @@ export default function HomePage({
     try {
       await addToCart(product);
       if (onShowToast) {
-        onShowToast('cart', 'Acquisition Added', `${product.name} placed in your Atelier Bag.`);
+        onShowToast('cart', 'Added to Bag', `${product.name} placed in your shopping bag.`);
       }
     } catch (err) {
       if (onShowToast) {

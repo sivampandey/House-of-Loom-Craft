@@ -170,10 +170,12 @@ export default function SearchPage({ onShowToast }) {
                     onClick={() => navigate(`/products/${product.slug || pId}`)}
                     className="group bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] flex flex-col justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer p-4"
                   >
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#3C4A34] mb-3 relative">
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#E8E2D4] mb-3 relative">
                       <img
                         src={product.thumbnail || (product.images && product.images[0]) || product.texture}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <button

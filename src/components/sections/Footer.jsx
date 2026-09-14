@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, Mail, Phone, ShieldCheck, MessageSquare } from 'lucide-react';
 import { companyInfo } from '../../data/carpets';
 
@@ -33,7 +34,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-16 border-b border-[#5B6E51]/60 items-center">
           <div className="lg:col-span-6 space-y-3">
             <span className="text-[10px] uppercase tracking-[0.3em] text-[#D4BC9F] font-sans font-bold">
-              THE ATELIER PRIVATE DISPATCH
+              PRIVATE DISPATCH & PREVIEWS
             </span>
             <h3 className="font-serif text-3xl md:text-4xl text-[#FAF7F0] font-light">
               Receive Private Preview Editions
@@ -47,7 +48,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
             {subscribed ? (
               <div className="p-4 rounded-xl bg-[#48593F] border border-[#6D8262] text-[#FAF7F0] text-xs font-sans flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-[#D4BC9F] flex-shrink-0" />
-                <span>You are now inscribed into our Private Atelier Gazette. Welcome.</span>
+                <span>You are now subscribed to our private dispatch. Welcome.</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
@@ -72,9 +73,9 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
         </div>
 
         {/* Main Footer Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-10 text-xs font-sans">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10 text-xs font-sans">
           {/* Column 1: Brand & Atelier Presence */}
-          <div className="col-span-2 space-y-4">
+          <div className="col-span-1 sm:col-span-2 space-y-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-1 shadow-md flex-shrink-0">
                 <img src={companyInfo.logo} alt="Pottery Rugs & Home Decor Logo" className="w-full h-full object-contain" />
@@ -135,14 +136,14 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
 
           {/* Column 2: Product Details & Categories */}
           <div className="space-y-3">
-            <h4 className="font-serif text-base text-[#FAF7F0] tracking-wide font-medium">Product Details</h4>
+            <h4 className="font-serif text-base text-[#FAF7F0] tracking-wide font-medium">Carpets & Rugs</h4>
             <ul className="space-y-2 text-[#FAF7F0]/80 font-medium">
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Hand Tufted Rugs</a></li>
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Hand Knotted Rugs</a></li>
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Hand Woven Rugs</a></li>
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Handloom Rugs</a></li>
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Custom Rugs</a></li>
-              <li><a href="#featured" onClick={(e) => onNavigate(e, '#featured')} className="hover:text-[#D4BC9F] transition-colors">Special Shape Rugs</a></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Hand Tufted Rugs</Link></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Hand Knotted Rugs</Link></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Hand Woven Rugs</Link></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Handloom Rugs</Link></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Custom Rugs</Link></li>
+              <li><Link to="/carpets" className="hover:text-[#D4BC9F] transition-colors">Special Shape Rugs</Link></li>
             </ul>
           </div>
 
@@ -150,12 +151,12 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
           <div className="space-y-3">
             <h4 className="font-serif text-base text-[#FAF7F0] tracking-wide font-medium">Home Decor</h4>
             <ul className="space-y-2 text-[#FAF7F0]/80 font-medium">
-              <li><a href="#home-decor" onClick={(e) => onNavigate(e, '#home-decor')} className="hover:text-[#D4BC9F] transition-colors">Hand-Embroidered Cushions</a></li>
-              <li><a href="#home-decor" onClick={(e) => onNavigate(e, '#home-decor')} className="hover:text-[#D8B693] transition-colors">Cashmere & Pashmina Throws</a></li>
-              <li><a href="#home-decor" onClick={(e) => onNavigate(e, '#home-decor')} className="hover:text-[#D8B693] transition-colors">Sculpted Bouclé Poufs</a></li>
-              <li><a href="#home-decor" onClick={(e) => onNavigate(e, '#home-decor')} className="hover:text-[#D8B693] transition-colors">Antique Hand-Beaten Brass</a></li>
-              <li><a href="#home-decor" onClick={(e) => onNavigate(e, '#home-decor')} className="hover:text-[#D8B693] transition-colors">Monolith Travertine Tables</a></li>
-              <li><button onClick={onOpenConsultation} className="text-[#D4BC9F] hover:underline font-bold">Custom Rug Commission</button></li>
+              <li><Link to="/home-decor" className="hover:text-[#D4BC9F] transition-colors">Hand-Embroidered Cushions</Link></li>
+              <li><Link to="/home-decor" className="hover:text-[#D8B693] transition-colors">Cashmere & Pashmina Throws</Link></li>
+              <li><Link to="/home-decor" className="hover:text-[#D8B693] transition-colors">Sculpted Bouclé Poufs</Link></li>
+              <li><Link to="/home-decor" className="hover:text-[#D8B693] transition-colors">Antique Hand-Beaten Brass</Link></li>
+              <li><Link to="/home-decor" className="hover:text-[#D8B693] transition-colors">Monolith Travertine Tables</Link></li>
+              <li><Link to="/contact" className="text-[#D4BC9F] hover:underline font-bold">Custom Rug Commission</Link></li>
             </ul>
           </div>
 
@@ -163,9 +164,9 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
           <div className="space-y-3">
             <h4 className="font-serif text-base text-[#FAF7F0] tracking-wide font-medium">Client Concierge</h4>
             <ul className="space-y-2 text-[#FAF7F0]/80 font-medium">
-              <li><a href="#story" onClick={(e) => onNavigate(e, '#story')} className="hover:text-[#D4BC9F] transition-colors">Our Story & Heritage</a></li>
-              <li><span className="hover:text-[#D4BC9F] cursor-pointer">Online Payment & COD Accepted</span></li>
-              <li><span className="hover:text-[#D4BC9F] cursor-pointer">White-Glove In-Home Trial</span></li>
+              <li><Link to="/our-story" className="hover:text-[#D4BC9F] transition-colors">Our Story & Heritage</Link></li>
+              <li><Link to="/studio" className="hover:text-[#D4BC9F] transition-colors">Studio & Craft Process</Link></li>
+              <li><Link to="/contact" className="hover:text-[#D4BC9F] transition-colors">Contact Workshop</Link></li>
               <li><span className="hover:text-[#D4BC9F] cursor-pointer">Insured Nationwide Shipping</span></li>
               <li><span className="hover:text-[#D4BC9F] cursor-pointer">Carpet Care & Restoration</span></li>
               <li><span className="hover:text-[#D4BC9F] cursor-pointer">Certificate of Authenticity</span></li>

@@ -57,19 +57,23 @@ export default function BrandStory({ onOpenConsultation }) {
           </div>
 
           {/* Right Dual Images Showcase (5 cols) */}
-          <div className="lg:col-span-5 relative space-y-6">
+          <div className="lg:col-span-5 relative pb-8 sm:pb-10">
             <div className="rounded-2xl overflow-hidden shadow-2xl border border-[#DACDB3] aspect-[4/3] bg-[#EFE8DC]">
               <img
                 src="/images/craft-weaving.jpg"
                 alt="Artisan at traditional vertical carpet loom"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                loading="lazy"
+                decoding="async"
               />
             </div>
-            <div className="hidden sm:block absolute -bottom-10 -left-12 w-3/5 rounded-xl overflow-hidden shadow-2xl border border-[#DACDB3] aspect-square bg-[#EFE8DC]">
+            <div className="hidden sm:block absolute -bottom-4 sm:-bottom-6 left-2 sm:-left-4 md:-left-6 lg:-left-8 w-1/2 sm:w-[55%] rounded-xl overflow-hidden shadow-2xl border border-[#DACDB3] aspect-square bg-[#EFE8DC]">
               <img
                 src="/images/craft-yarn.jpg"
                 alt="Sunlit naturally dyed yarn skeins"
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

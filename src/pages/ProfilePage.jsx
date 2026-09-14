@@ -253,7 +253,7 @@ export default function ProfilePage({ onShowToast }) {
               Atelier Account
             </h1>
             <p className="text-xs text-[#4E3C2B]">
-              Welcome, <strong className="text-[#362B21]">{user?.firstName} {user?.lastName}</strong>. Manage your heirloom acquisitions and residences.
+              Welcome, <strong className="text-[#362B21]">{user?.firstName} {user?.lastName}</strong>. Manage your orders and saved addresses.
             </p>
           </div>
 
@@ -375,13 +375,13 @@ export default function ProfilePage({ onShowToast }) {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-6 rounded-2xl bg-[#FAF7F0] border border-[#DACDB3] space-y-1">
                     <span className="text-xs uppercase tracking-wider text-[#4E3C2B]/70 block font-sans">
-                      Total Acquisitions
+                      Total Orders
                     </span>
                     <span className="font-serif text-3xl text-[#362B21] font-medium block">
                       {recentOrders.length}
                     </span>
                     <Link to="/orders" className="text-[11px] text-[#55694A] hover:underline font-bold inline-block pt-1">
-                      View Order Archive →
+                      View Order History →
                     </Link>
                   </div>
 
@@ -448,7 +448,7 @@ export default function ProfilePage({ onShowToast }) {
                 {/* Recent Orders Snippet */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-serif text-2xl text-[#362B21] font-light">Recent Acquisitions</h3>
+                    <h3 className="font-serif text-2xl text-[#362B21] font-light">Recent Orders</h3>
                     <Link to="/orders" className="text-xs uppercase tracking-wider text-[#55694A] font-bold hover:underline">
                       View All
                     </Link>
@@ -456,10 +456,10 @@ export default function ProfilePage({ onShowToast }) {
 
                   {recentOrders.length === 0 ? (
                     <div className="p-8 text-center bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] space-y-2">
-                      <p className="font-serif text-lg text-[#362B21]">No acquisitions placed yet</p>
-                      <p className="text-xs text-[#4E3C2B]">When you acquire an heirloom piece, your white-glove dispatch status will be visible here.</p>
+                      <p className="font-serif text-lg text-[#362B21]">No orders placed yet</p>
+                      <p className="text-xs text-[#4E3C2B]">When you place an order, your delivery status will be visible here.</p>
                       <Link to="/collections" className="inline-block mt-2 text-xs uppercase tracking-widest font-bold text-[#55694A] underline">
-                        Explore Atelier Catalog
+                        Explore Collections
                       </Link>
                     </div>
                   ) : (
@@ -502,7 +502,7 @@ export default function ProfilePage({ onShowToast }) {
                       DELIVERY DESTINATIONS
                     </span>
                     <h2 className="font-serif text-3xl text-[#362B21] font-light mt-1">
-                      Saved Residences
+                      Saved Addresses
                     </h2>
                   </div>
                   <button
@@ -510,16 +510,16 @@ export default function ProfilePage({ onShowToast }) {
                     className="px-5 py-2.5 bg-[#55694A] text-[#FAF7F0] rounded-full text-xs uppercase tracking-wider font-sans font-bold flex items-center gap-1.5 shadow-sm hover:bg-[#6D8262] transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Residence
+                    Add Address
                   </button>
                 </div>
 
                 {addresses.length === 0 ? (
                   <div className="p-12 text-center bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] space-y-3">
                     <MapPin className="w-8 h-8 text-[#55694A] mx-auto opacity-70" />
-                    <p className="font-serif text-xl text-[#362B21]">No Residences on File</p>
+                    <p className="font-serif text-xl text-[#362B21]">No Addresses on File</p>
                     <p className="text-xs text-[#4E3C2B] max-w-sm mx-auto">
-                      Add your primary living residence or villa address to ensure seamless white-glove delivery upon checkout.
+                      Add your primary delivery address to ensure seamless shipping upon checkout.
                     </p>
                     <button
                       onClick={openAddAddress}

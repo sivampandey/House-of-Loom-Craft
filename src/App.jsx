@@ -8,6 +8,7 @@ import { WishlistProvider, useWishlist } from './context/WishlistContext';
 
 // Common UI & Layout
 import CustomCursor from './components/common/CustomCursor';
+import ScrollToTop from './components/common/ScrollToTop';
 import Navbar from './components/common/Navbar';
 import Toast from './components/common/Toast';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -22,7 +23,12 @@ import ConsultationModal from './components/drawers/ConsultationModal';
 
 // Pages
 import HomePage from './pages/HomePage';
+import CarpetsPage from './pages/CarpetsPage';
 import CollectionsPage from './pages/CollectionsPage';
+import StudioPage from './pages/StudioPage';
+import HomeDecorPage from './pages/HomeDecorPage';
+import OurStoryPage from './pages/OurStoryPage';
+import ContactPage from './pages/ContactPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import SearchPage from './pages/SearchPage';
 import LoginPage from './pages/LoginPage';
@@ -88,7 +94,7 @@ function AppContent() {
   const moveToCartFromWishlist = (product) => {
     addToCart(product, 1);
     removeFromWishlist(product.slug || product.id || product._id);
-    showToast('cart', 'Acquisition Added', `${product.name} moved to your Atelier Bag.`);
+    showToast('cart', 'Added to Bag', `${product.name} moved to your shopping bag.`);
   };
 
   const handleNavigate = (e, href) => {
@@ -115,6 +121,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#1E261B] relative overflow-x-hidden selection:bg-[#43533D]/30 selection:text-[#1E261B]">
+      {/* Route Scroll Restoration to Top */}
+      <ScrollToTop />
+
       {/* Desktop Custom Cursor */}
       <CustomCursor />
 
@@ -142,6 +151,15 @@ function AppContent() {
           }
         />
         <Route
+          path="/carpets"
+          element={
+            <CarpetsPage
+              onOpenQuickView={setQuickViewProduct}
+              onShowToast={showToast}
+            />
+          }
+        />
+        <Route
           path="/collections"
           element={
             <CollectionsPage
@@ -158,6 +176,27 @@ function AppContent() {
               onShowToast={showToast}
             />
           }
+        />
+        <Route
+          path="/studio"
+          element={<StudioPage />}
+        />
+        <Route
+          path="/home-decor"
+          element={
+            <HomeDecorPage
+              onOpenQuickView={setQuickViewProduct}
+              onShowToast={showToast}
+            />
+          }
+        />
+        <Route
+          path="/our-story"
+          element={<OurStoryPage />}
+        />
+        <Route
+          path="/contact"
+          element={<ContactPage onShowToast={showToast} />}
         />
         <Route
           path="/products/:slug"
@@ -309,7 +348,7 @@ function AppContent() {
         onClose={() => setQuickViewProduct(null)}
         onAddToCart={(p) => {
           addToCart(p, 1);
-          showToast('cart', 'Acquisition Added', `${p.name} placed in your Atelier Bag.`);
+          showToast('cart', 'Added to Bag', `${p.name} placed in your shopping bag.`);
         }}
         onBuyNow={handleBuyNow}
         onToggleWishlist={async (p) => {

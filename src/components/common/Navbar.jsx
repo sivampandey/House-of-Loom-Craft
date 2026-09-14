@@ -48,25 +48,18 @@ export default function Navbar({
   }, []);
 
   const navLinks = [
-    { name: 'Carpets', href: '/#featured' },
+    { name: 'Carpets', href: '/carpets' },
     { name: 'Collections', href: '/collections' },
-    { name: 'Studio', href: '/#studio' },
-    { name: 'Home Decor', href: '/#home-decor' },
-    { name: 'Our Story', href: '/#story' },
-    { name: 'Contact', href: '/#consultation' },
+    { name: 'Studio', href: '/studio' },
+    { name: 'Home Decor', href: '/home-decor' },
+    { name: 'Our Story', href: '/our-story' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   const handleNavClick = (e, href) => {
-    if (href.startsWith('/#')) {
-      const hash = href.replace('/', '');
-      if (location.pathname === '/') {
-        if (e) e.preventDefault();
-        const el = document.querySelector(hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        // Navigate to home and then scroll
-        navigate(href);
-      }
+    if (e) e.preventDefault();
+    if (location.pathname === href) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     } else {
       navigate(href);
     }
@@ -90,7 +83,7 @@ export default function Navbar({
           {/* Brand Logo - POTTERY RUGS & HOME DECOR */}
           <Link
             to="/"
-            onClick={(e) => handleNavClick(e, '/#hero')}
+            onClick={(e) => handleNavClick(e, '/')}
             className="flex items-center gap-2.5 sm:gap-3 group pr-2"
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-0.5 shadow-md flex-shrink-0 group-hover:scale-105 transition-transform">
@@ -112,35 +105,44 @@ export default function Navbar({
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-3.5 xl:space-x-5">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className="text-[11px] uppercase tracking-[0.18em] text-[#FAF7F0]/90 hover:text-[#D4BC9F] font-sans font-medium transition-colors relative group py-1 whitespace-nowrap"
-              >
-                <span>{link.name}</span>
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#D4BC9F] transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.href || (link.href === '/collections' && location.pathname.startsWith('/collections'));
+              return (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className={`text-[11px] uppercase tracking-[0.18em] font-sans font-medium transition-colors relative group py-1 whitespace-nowrap ${
+                    isActive ? 'text-[#D4BC9F]' : 'text-[#FAF7F0]/90 hover:text-[#D4BC9F]'
+                  }`}
+                >
+                  <span>{link.name}</span>
+                  <span
+                    className={`absolute bottom-0 left-0 h-[2px] bg-[#D4BC9F] transition-all duration-300 ${
+                      isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                    }`}
+                  />
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right Action Icons */}
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 pr-1">
-            {/* Direct Call Helplines */}
+          <div className="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0 pr-1">
+            {/* Direct Call Helplines - Tablet/Desktop */}
             <a
               href={`tel:${companyInfo.phone1}`}
-              className="p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors hidden sm:flex items-center justify-center"
-              title={`Call Atelier: ${companyInfo.phoneDisplay}`}
-              aria-label="Call Atelier"
+              className="p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors hidden md:flex items-center justify-center min-w-[36px] min-h-[36px]"
+              title={`Call Helpline: ${companyInfo.phoneDisplay}`}
+              aria-label="Call Helpline"
             >
               <Phone className="w-4 h-4" />
             </a>
 
-            {/* Wishlist */}
+            {/* Wishlist - Visible on sm and up; on xs mobile accessible via menu */}
             <button
               onClick={onOpenWishlist}
-              className="p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors relative flex items-center justify-center"
+              className="p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors relative hidden sm:flex items-center justify-center min-w-[36px] min-h-[36px]"
               title="Saved Pieces"
               aria-label="Wishlist"
             >
@@ -152,26 +154,26 @@ export default function Navbar({
               )}
             </button>
 
-            {/* Cart / Bag */}
+            {/* Cart / Bag - Always Visible with prominent counter */}
             <button
               onClick={onOpenCart}
-              className="p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors relative flex items-center justify-center"
-              title="Atelier Bag"
-              aria-label="Cart"
+              className="p-2 sm:p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] active:scale-95 transition-all relative flex items-center justify-center min-w-[38px] min-h-[38px]"
+              title="Shopping Bag"
+              aria-label="Shopping Bag"
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 sm:w-4 sm:h-4" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#D4BC9F] text-[#362B21] text-[8px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#D4BC9F] text-[#362B21] text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* Client Account Trigger */}
-            <div className="relative" ref={accountRef}>
+            {/* Client Account Trigger - Visible on sm and up */}
+            <div className="relative hidden sm:block" ref={accountRef}>
               <button
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                className={`p-1.5 rounded-full transition-all flex items-center justify-center ${isAuthenticated
+                className={`p-1.5 rounded-full transition-all flex items-center justify-center min-w-[36px] min-h-[36px] ${isAuthenticated
                   ? 'text-[#FAF7F0] bg-[#789069] border border-[#96AE87]'
                   : 'text-[#FAF7F0] hover:text-[#D4BC9F]'
                   }`}
@@ -199,7 +201,7 @@ export default function Navbar({
                         className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider font-sans font-bold hover:bg-[#576D4B] hover:text-[#D4BC9F] rounded-xl transition-colors"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-[#D4BC9F]" />
-                        <span>Private Profile</span>
+                        <span>My Profile</span>
                       </Link>
 
                       <Link
@@ -208,7 +210,7 @@ export default function Navbar({
                         className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider font-sans font-bold hover:bg-[#576D4B] hover:text-[#D4BC9F] rounded-xl transition-colors"
                       >
                         <Package className="w-3.5 h-3.5 text-[#D4BC9F]" />
-                        <span>Acquisitions</span>
+                        <span>My Orders</span>
                       </Link>
 
                       <Link
@@ -216,7 +218,7 @@ export default function Navbar({
                         onClick={() => setAccountMenuOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider font-sans font-bold hover:bg-[#576D4B] hover:text-[#D4BC9F] rounded-xl transition-colors"
                       >
-                        <span>Saved Residences</span>
+                        <span>Saved Addresses</span>
                       </Link>
 
                       <button
@@ -261,7 +263,7 @@ export default function Navbar({
             {/* Mobile Menu Trigger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 text-[#FAF7F0] hover:text-[#D4BC9F] transition-colors flex items-center justify-center"
+              className="lg:hidden p-2 text-[#FAF7F0] hover:text-[#D4BC9F] active:scale-95 transition-all flex items-center justify-center min-w-[38px] min-h-[38px]"
               aria-label="Open mobile menu"
             >
               <Menu className="w-5 h-5" />
@@ -276,6 +278,8 @@ export default function Navbar({
         onClose={() => setMobileMenuOpen(false)}
         onNavigate={handleNavClick}
         onOpenConsultation={onOpenConsultation}
+        onOpenWishlist={onOpenWishlist}
+        wishlistCount={wishlistCount}
       />
     </>
   );

@@ -95,7 +95,7 @@ export default function ProductDetailPage({ onShowToast }) {
     try {
       await addToCart(product, quantity);
       if (onShowToast) {
-        onShowToast('cart', 'Acquisition Added', `${quantity}x ${product.name} placed in your Atelier Bag.`);
+        onShowToast('cart', 'Added to Bag', `${quantity}x ${product.name} placed in your shopping bag.`);
       }
     } catch (err) {
       if (onShowToast) {
@@ -176,10 +176,11 @@ export default function ProductDetailPage({ onShowToast }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left Column: Atmospheric Large Image & Gallery (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#3C4A34] border border-[#DACDB3] shadow-lg group">
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#E8E2D4] border border-[#DACDB3] shadow-lg group">
               <img
                 src={selectedImage}
                 alt={product.name}
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
 
@@ -227,7 +228,7 @@ export default function ProductDetailPage({ onShowToast }) {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#55694A]" />
                 <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-                  BHADOHI MASTER ATELIER
+                  BHADOHI CRAFTSMANSHIP
                 </span>
               </div>
               <h3 className="font-serif text-2xl text-[#362B21] font-medium">Artisanal Provenance & Weave</h3>
@@ -262,8 +263,8 @@ export default function ProductDetailPage({ onShowToast }) {
             {/* Pricing Section */}
             <div className="p-6 rounded-2xl bg-[#EFE8D8] border border-[#DACDB3] flex items-baseline justify-between">
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 block font-sans">
-                  Investment Value (Inclusive of all duties)
+                <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 block font-sans font-semibold">
+                  PRICE (Inclusive of all duties)
                 </span>
                 <div className="flex items-baseline gap-3 mt-1">
                   <span className="font-sans text-3xl font-bold text-[#362B21]">
@@ -280,7 +281,7 @@ export default function ProductDetailPage({ onShowToast }) {
               <div className="text-right">
                 <span className="text-xs text-[#55694A] font-sans font-bold flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-[#55694A] inline-block animate-pulse" />
-                  {product.stock > 0 ? 'Available for Acquisition' : 'Made to Order'}
+                  {product.stock > 0 ? 'Available' : 'Made to Order'}
                 </span>
                 <span className="text-[10px] text-[#4E3C2B]/80 block font-mono mt-0.5">
                   {product.leadTime || 'Dispatches in 24-48 Hours'}
@@ -316,7 +317,7 @@ export default function ProductDetailPage({ onShowToast }) {
               )}
               {product.origin && (
                 <div className="py-2.5 flex justify-between">
-                  <span className="text-[#4E3C2B] font-medium">Atelier Origin</span>
+                  <span className="text-[#4E3C2B] font-medium">Craft Origin</span>
                   <span className="text-[#362B21] text-right">{product.origin}</span>
                 </div>
               )}
@@ -348,7 +349,7 @@ export default function ProductDetailPage({ onShowToast }) {
                   className="flex-1 bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>{isAdding ? 'Placing in Bag...' : 'Add to Atelier Bag'}</span>
+                  <span>{isAdding ? 'Placing in Bag...' : 'Add to Bag'}</span>
                 </button>
               </div>
 
@@ -356,7 +357,7 @@ export default function ProductDetailPage({ onShowToast }) {
                 onClick={handleBuyNow}
                 className="w-full bg-[#362B21] hover:bg-[#4E3C2B] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg"
               >
-                <span>Acquire Now (Direct Checkout)</span>
+                <span>Purchase Now</span>
               </button>
             </div>
 
@@ -401,7 +402,7 @@ export default function ProductDetailPage({ onShowToast }) {
                 to="/collections"
                 className="text-xs uppercase tracking-widest text-[#55694A] hover:text-[#362B21] font-sans font-bold border-b border-[#55694A] pb-0.5 transition-colors"
               >
-                View Full Atelier
+                View All Collections
               </Link>
             </div>
 
@@ -414,10 +415,12 @@ export default function ProductDetailPage({ onShowToast }) {
                     to={`/products/${rSlug}`}
                     className="group bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] p-5 block shadow-sm hover:shadow-lg transition-all card-hover-lift"
                   >
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#3C4A34] mb-4">
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#E8E2D4] mb-4">
                       <img
                         src={rel.thumbnail || (rel.images && rel.images[0]) || rel.texture || rel.image}
                         alt={rel.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>

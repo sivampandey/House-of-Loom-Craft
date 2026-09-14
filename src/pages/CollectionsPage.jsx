@@ -90,7 +90,7 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
     try {
       await addToCart(product);
       if (onShowToast) {
-        onShowToast('cart', 'Acquisition Added', `${product.name} placed in your Atelier Bag.`);
+        onShowToast('cart', 'Added to Bag', `${product.name} placed in your shopping bag.`);
       }
     } catch (err) {
       if (onShowToast) {
@@ -242,10 +242,12 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
                   onClick={() => navigate(`/products/${product.slug || pId}`)}
                   className="group bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer card-hover-lift"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[#3C4A34]">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#E8E2D4]">
                     <img
                       src={cardImage}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -311,21 +313,30 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
 
                     <div className="pt-4 border-t border-[#DACDB3]/60 flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] uppercase tracking-wider text-[#4E3C2B]/70 block">
-                          Atelier Price
+                        <span className="text-[10px] uppercase tracking-wider text-[#55694A] block font-sans font-semibold">
+                          PRICE
                         </span>
                         <span className="font-sans text-lg font-bold text-[#362B21]">
                           ₹{(product.price || 0).toLocaleString()}
                         </span>
                       </div>
 
-                      <button
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] px-4 py-2 rounded-full text-xs uppercase tracking-widest font-sans font-bold transition-colors flex items-center gap-1.5 shadow-sm"
-                      >
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>Acquire</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/products/${product.slug || product.id}`}
+                          className="bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] px-4 py-2 rounded-lg text-xs uppercase tracking-widest font-sans font-bold transition-colors shadow-sm"
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={(e) => handleAddToCart(product, e)}
+                          className="p-2 rounded-lg bg-[#362B21] hover:bg-[#4E3C2B] text-[#FAF7F0] transition-colors shadow-sm"
+                          title="Add to Bag"
+                          aria-label={`Add ${product.name} to Bag`}
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

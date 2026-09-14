@@ -83,7 +83,7 @@ export default function CraftsmanshipStory() {
         </div>
 
         {/* Step Progression Tabs */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 border-b border-[#DACDB3] pb-8 mb-12">
+        <div className="flex items-stretch overflow-x-auto gap-3 border-b border-[#DACDB3] pb-6 sm:pb-8 mb-8 sm:mb-12 scrollbar-none md:grid md:grid-cols-5">
           {steps.map((step) => {
             const Icon = step.icon;
             const isActive = activeStep === step.id;
@@ -91,9 +91,9 @@ export default function CraftsmanshipStory() {
               <button
                 key={step.id}
                 onClick={() => setActiveStep(step.id)}
-                className={`p-4 rounded-xl text-left transition-all duration-300 relative group border ${
+                className={`p-3.5 sm:p-4 rounded-xl text-left transition-all duration-300 relative group border min-w-[160px] sm:min-w-[180px] md:min-w-0 flex-shrink-0 md:flex-shrink ${
                   isActive
-                    ? 'bg-[#FAF7F0] border-[#BA9977] shadow-xl -translate-y-1'
+                    ? 'bg-[#FAF7F0] border-[#BA9977] shadow-xl -translate-y-0.5'
                     : 'bg-[#FAF7F0]/60 border-[#DACDB3]/70 hover:border-[#BA9977]/60 hover:bg-[#FAF7F0]'
                 }`}
               >
@@ -111,7 +111,7 @@ export default function CraftsmanshipStory() {
                 </p>
 
                 {isActive && (
-                  <span className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-4 h-4 bg-[#FAF7F0] rotate-45 border-r border-b border-[#BA9977]" />
+                  <span className="hidden md:block absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-4 h-4 bg-[#FAF7F0] rotate-45 border-r border-b border-[#BA9977]" />
                 )}
               </button>
             );
@@ -119,13 +119,15 @@ export default function CraftsmanshipStory() {
         </div>
 
         {/* Active Step Detailed Stage */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] p-6 sm:p-10 md:p-14 shadow-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] p-5 sm:p-10 md:p-14 shadow-2xl">
           {/* Step Image */}
-          <div className="lg:col-span-7 rounded-xl overflow-hidden shadow-2xl border border-[#DACDB3] max-h-[480px] bg-[#EFE8DC]">
+          <div className="lg:col-span-7 rounded-xl overflow-hidden shadow-2xl border border-[#DACDB3] max-h-[480px] aspect-[4/3] bg-[#EFE8DC]">
             <img
               src={current.image}
               alt={current.headline}
               className="w-full h-full object-cover object-center scale-[1.01] hover:scale-105 transition-transform duration-700"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 

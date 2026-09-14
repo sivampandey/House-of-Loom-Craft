@@ -20,7 +20,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
           <div className="px-6 py-6 border-b border-[#6D7F62]/60 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <ShoppingBag className="w-5 h-5 text-[#D4BC9F]" />
-              <h2 className="font-serif text-2xl tracking-wide font-medium">Your Atelier Bag</h2>
+              <h2 className="font-serif text-2xl tracking-wide font-medium">Shopping Bag</h2>
               <span className="text-xs bg-[#5D7053] text-[#FAF7F0] px-2.5 py-0.5 rounded-full font-bold">
                 {items.length} {items.length === 1 ? 'item' : 'items'}
               </span>
@@ -116,7 +116,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
               </div>
 
               <div className="pt-2 border-t border-[#6D7F62]/50 flex justify-between text-base text-[#FAF7F0]">
-                <span className="font-serif tracking-wider font-medium">Total Investment</span>
+                <span className="font-serif tracking-wider font-medium">Total Price</span>
                 <span className="font-sans font-bold text-xl text-[#D4BC9F]">₹{subtotal.toLocaleString()}</span>
               </div>
 
@@ -133,7 +133,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                   <ShieldCheck className="w-3.5 h-3.5 text-[#D4BC9F]" />
                   <span>Online Payment (UPI/Cards) & Cash on Delivery Available</span>
                 </div>
-                <span className="text-[#FAF7F0]/70 text-[10px]">Free Insured Express Delivery from Bhadohi Atelier</span>
+                <span className="text-[#FAF7F0]/70 text-[10px]">Free Insured Express Delivery from Bhadohi Workshop</span>
               </div>
             </div>
           )}

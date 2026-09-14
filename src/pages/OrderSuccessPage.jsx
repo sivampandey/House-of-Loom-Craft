@@ -44,8 +44,8 @@ export default function OrderSuccessPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-36 pb-24 flex items-center justify-center px-4">
       <SEO
-        title="Acquisition Confirmed | Pottery Rugs & Home Decor"
-        description="Your handcrafted rug acquisition has been confirmed at Pottery Rugs & Home Decor."
+        title="Order Confirmed | Pottery Rugs & Home Decor"
+        description="Your handcrafted rug order has been confirmed at Pottery Rugs & Home Decor."
         path={`/order-success/${orderId}`}
       />
 
@@ -56,13 +56,13 @@ export default function OrderSuccessPage() {
 
         <div className="space-y-2">
           <span className="text-xs uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-            ACQUISITION LOGGED
+            ORDER CONFIRMED
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl text-[#362B21] font-light">
-            Thank You for Your Patronage
+            Thank You for Your Order
           </h1>
           <p className="text-xs sm:text-sm text-[#4E3C2B] max-w-md mx-auto leading-relaxed">
-            Your order has been registered at our Bhadohi master atelier. Our artisans and dispatch team have initiated white-glove packaging.
+            Your order has been registered at our Bhadohi workshop. Our artisans and dispatch team have initiated white-glove packaging.
           </p>
         </div>
 

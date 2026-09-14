@@ -187,11 +187,11 @@ export default function Interactive3DSection({ onOpenQuickView }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main High-Resolution Image Box (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
-            <div className="bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] overflow-hidden shadow-xl relative h-[420px] sm:h-[500px] md:h-[580px] flex items-center justify-center p-4 card-hover-lift">
+            <div className="bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] overflow-hidden shadow-xl relative h-[360px] sm:h-[480px] md:h-[580px] flex items-center justify-center p-3 sm:p-4 card-hover-lift">
               {/* Top Controls Bar */}
-              <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-20 flex items-center justify-between pointer-events-none">
                 {/* View Mode Indicator */}
-                <div className="bg-[#362B21]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D4BC9F]/40 text-xs text-[#FAF7F0] flex items-center gap-2 pointer-events-auto shadow-md">
+                <div className="bg-[#362B21]/90 backdrop-blur-md px-3 sm:px-3.5 py-1.5 rounded-full border border-[#D4BC9F]/40 text-[11px] sm:text-xs text-[#FAF7F0] flex items-center gap-1.5 sm:gap-2 pointer-events-auto shadow-md">
                   <Sparkles className="w-3.5 h-3.5 text-[#D4BC9F]" />
                   <span className="font-sans font-medium">{viewModes.find(v => v.id === activeViewMode)?.label}</span>
                 </div>
@@ -199,7 +199,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                 {/* Zoom Toggle Button */}
                 <button
                   onClick={toggleZoom}
-                  className="bg-[#362B21]/90 hover:bg-[#55694A] text-[#FAF7F0] backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D4BC9F]/40 text-xs flex items-center gap-1.5 transition-colors pointer-events-auto shadow-md"
+                  className="bg-[#362B21]/90 hover:bg-[#55694A] text-[#FAF7F0] backdrop-blur-md px-3 sm:px-3.5 py-1.5 rounded-full border border-[#D4BC9F]/40 text-[11px] sm:text-xs flex items-center gap-1.5 transition-colors pointer-events-auto shadow-md min-h-[34px]"
                   title="Click to zoom image"
                 >
                   {zoomLevel > 1 ? <ZoomOut className="w-3.5 h-3.5 text-[#D4BC9F]" /> : <ZoomIn className="w-3.5 h-3.5 text-[#D4BC9F]" />}
@@ -217,12 +217,14 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                   alt={`${currentCarpet.name} inspection`}
                   className="max-h-full w-auto max-w-full object-contain transition-transform duration-700 ease-out"
                   style={{ transform: `scale(${zoomLevel})` }}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
               {/* Bottom Angle/Perspective Switcher Tabs */}
-              <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-center gap-2 bg-[#362B21]/95 backdrop-blur-md p-2.5 rounded-xl border border-[#D4BC9F]/30 shadow-lg">
-                <span className="text-[11px] uppercase tracking-wider text-[#D4BC9F] font-sans font-semibold hidden md:inline mr-1">
+              <div className="absolute bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-20 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 bg-[#362B21]/95 backdrop-blur-md p-2 sm:p-2.5 rounded-xl border border-[#D4BC9F]/30 shadow-lg overflow-x-auto scrollbar-none">
+                <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#D4BC9F] font-sans font-semibold hidden lg:inline mr-1 whitespace-nowrap">
                   Perspective:
                 </span>
                 {viewModes.map(vm => (
@@ -232,7 +234,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                       setActiveViewMode(vm.id);
                       setZoomLevel(1);
                     }}
-                    className={`px-3 py-1.5 rounded text-xs uppercase tracking-wider font-sans transition-all duration-200 ${
+                    className={`px-2.5 sm:px-3 py-1.5 rounded text-[10.5px] sm:text-xs uppercase tracking-wider font-sans transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                       activeViewMode === vm.id
                         ? 'bg-[#55694A] text-[#FAF7F0] font-bold shadow-md border border-[#85977A]'
                         : 'text-[#FAF7F0]/80 hover:text-[#FAF7F0] hover:bg-white/10'
@@ -245,7 +247,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
             </div>
 
             {/* Carpet Model Selector Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#EFE8D8] p-4 rounded-xl border border-[#DACDB3] shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#EFE8D8] p-3.5 sm:p-4 rounded-xl border border-[#DACDB3] shadow-sm">
               <span className="text-xs uppercase tracking-widest text-[#55694A] font-sans font-bold">
                 Select Piece to Examine:
               </span>
@@ -258,14 +260,14 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                       setActiveViewMode('full');
                       setZoomLevel(1);
                     }}
-                    className={`px-3.5 py-2 rounded-lg text-xs uppercase tracking-wider font-sans transition-all duration-200 flex items-center gap-2 ${
+                    className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-[11px] sm:text-xs uppercase tracking-wider font-sans transition-all duration-200 flex items-center gap-1.5 sm:gap-2 min-h-[36px] ${
                       selectedTextureKey === c.id
                         ? 'bg-[#55694A] text-[#FAF7F0] font-bold shadow-md border border-[#85977A]'
                         : 'bg-[#F5F0E6] text-[#362B21] hover:bg-[#E2D8C3] border border-[#DACDB3]'
                     }`}
                   >
                     <span 
-                      className="w-2.5 h-2.5 rounded-full" 
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
                       style={{ 
                         backgroundColor: c.color || (c.id === 'crimson' ? '#9E3838' : c.id === 'emerald' ? '#476342' : '#B8860B')
                       }} 
@@ -378,7 +380,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                 className="w-full bg-[#55694A] hover:bg-[#657C58] text-[#FAF7F0] font-sans font-semibold py-3.5 rounded-lg text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md border border-[#6D7F62]"
               >
                 <Eye className="w-4 h-4" />
-                <span>Acquire or View Complete Specs</span>
+                <span>View Details & Specifications</span>
                 <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
