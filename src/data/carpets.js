@@ -14,7 +14,7 @@ export const companyInfo = {
 };
 
 export const collectionsList = [
-  { id: 'all', name: 'All Masterpieces', get count() { return carpetsData.length; } },
+  { id: 'all', name: 'All Collections', get count() { return carpetsData.length; } },
   { id: 'hand-knotted', name: 'Hand Knotted Rugs', subtitle: 'Generational single-knot heirlooms on master looms', get count() { return carpetsData.filter(c => c.collection === 'hand-knotted').length; } },
   { id: 'hand-tufted', name: 'Hand Tufted Rugs', subtitle: 'Sculpted high-low pile architectural luxury', get count() { return carpetsData.filter(c => c.collection === 'hand-tufted').length; } },
   { id: 'hand-woven', name: 'Hand Woven Rugs', subtitle: 'Artisanal organic flatweaves and fine kilims', get count() { return carpetsData.filter(c => c.collection === 'hand-woven').length; } },
@@ -46,13 +46,13 @@ export const carpetsData = [
       '/images/carpets/royal-ivory-medallion-detail.jpg'
     ],
     thumbnail: '/images/carpets/royal-ivory-medallion.jpg',
-    badge: 'Masterpiece Crown',
+    badge: 'Heirloom Edition',
     description: 'A magnificent jewel of Indian master knotting, displaying an intricate 16-point gilded central medallion set against an antique ivory floral field. Framed by ornate corner spandrels (lachak-toranj) and multi-tiered borders with woven fringe tassels. Hand-knotted with pure silk highlights that illuminate under changing light.',
     details: [
       'Hand-knotted with 450 KPSI fine single knots in Bhadohi',
       'Lustrous pure mulberry silk inlay along flower petals and medallion core',
       'Naturally washed for a silky cashmere touch and generational longevity',
-      'Accompanied by Atelier Certificate of Origin & Authenticity'
+      'Accompanied by Certificate of Origin & Authenticity'
     ],
     inStock: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours'
@@ -164,7 +164,7 @@ export const carpetsData = [
     weaveTime: '12 Months',
     texture: '/textures/carpet-emerald.jpg',
     image: '/textures/carpet-emerald.jpg',
-    badge: 'Masterpiece',
+    badge: 'Heritage Choice',
     description: 'A serene jewel-toned tribute to alpine royal terraces. Hand-spun virgin wool dyed in deep forest emerald and light olive, framing a complex ivory medallion with touches of burnt umber and sapphire lapis. Cashmere-soft hand feel with remarkable durability.',
     details: [
       'Ultra-fine knotting density with velvety tactile pile',
@@ -307,7 +307,7 @@ export const carpetsData = [
     images: ['/images/carpets/bespoke-custom-architectural.jpg'],
     thumbnail: '/images/carpets/bespoke-custom-architectural.jpg',
     badge: 'Custom Commission',
-    description: 'Commission a completely unique masterpiece tailored to your interior floorplan. Select custom dimensions, color pantones, pile height, and shape directly with our Bhadohi master artisans.',
+    description: 'Commission a completely unique custom carpet tailored to your interior floorplan. Select custom dimensions, color pantones, pile height, and shape directly with our Bhadohi master artisans.',
     details: [
       'Direct coordination with master draftsmen and dye masters',
       'Complimentary yarn pom box and digital floor plan visualization',

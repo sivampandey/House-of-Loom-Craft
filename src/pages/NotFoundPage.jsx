@@ -7,27 +7,27 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] flex items-center justify-center px-6 pt-24 pb-20">
       <SEO
-        title="404 - Piece Not Found | Pottery Rugs & Home Decor"
-        description="The requested page could not be located in our atelier catalog."
+        title="404 - Page Not Found | Pottery Rugs & Home Decor"
+        description="The requested page could not be found."
         path="/404"
       />
 
       <div className="text-center space-y-6 max-w-lg p-10 bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] shadow-xl">
         <span className="text-xs uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-          404 ARCHIVE NOTICE
+          ERROR 404
         </span>
         <h1 className="font-serif text-5xl sm:text-6xl text-[#362B21] font-light">
-          Page Not Located
+          Page Not Found
         </h1>
         <p className="text-xs sm:text-sm text-[#4E3C2B] leading-relaxed">
-          The atelier address you navigated to does not exist or has been relocated within our private collection.
+          The page you are looking for does not exist or may have been moved.
         </p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] text-xs uppercase tracking-widest font-sans font-bold rounded-full transition-colors shadow-md"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Return to Atelier Home</span>
+          <span>Return to Home</span>
         </Link>
       </div>
     </div>

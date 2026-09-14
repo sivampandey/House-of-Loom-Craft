@@ -22,7 +22,7 @@ export default function FeaturedCarpets({
             <div className="flex items-center gap-3">
               <span className="w-8 h-[2px] bg-[#6D7F62]" />
               <span className="text-[11px] uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-                CURATED ATELIER REPERTOIRE
+                CURATED COLLECTIONS
               </span>
             </div>
             <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl text-[#362B21] font-light">
@@ -50,7 +50,7 @@ export default function FeaturedCarpets({
 
         {/* Asymmetric Editorial Product Grid for Laptop / Desktop (>= lg) */}
         <div className="mt-12 sm:mt-14 space-y-12 sm:space-y-16 hidden lg:block">
-          {/* Case 1: Single Masterpiece in collection */}
+          {/* Case 1: Single product in collection */}
           {filteredCarpets.length === 1 && (
             <div className="max-w-4xl mx-auto bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] p-6 sm:p-10 md:p-12 shadow-lg card-hover-lift">
               <div className="flex items-center justify-between mb-4">
@@ -116,7 +116,7 @@ export default function FeaturedCarpets({
             </div>
           )}
 
-          {/* Case 2: Exactly 2 Masterpieces */}
+          {/* Case 2: Exactly 2 products */}
           {filteredCarpets.length === 2 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
               {filteredCarpets.map((carpet) => (

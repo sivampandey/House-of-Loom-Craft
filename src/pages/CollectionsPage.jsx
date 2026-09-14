@@ -114,15 +114,15 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
   };
 
   const currentCollectionInfo = collectionsList.find(c => c.id === activeCollection) || {
-    name: 'All Masterpieces',
+    name: 'All Collections',
     subtitle: 'Heirloom carpets and architectural floor coverings handcrafted in Bhadohi.'
   };
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title={`${currentCollectionInfo.name} | Atelier Collections`}
-        description={`Explore our luxury collection of ${currentCollectionInfo.name}. Handcrafted with high knot density, organic dyes, and generational master craftsmanship.`}
+        title={`${currentCollectionInfo.name} | Pottery Rugs & Home Decor`}
+        description={`Explore our collection of ${currentCollectionInfo.name}. Handcrafted with high knot density, organic dyes, and generational craftsmanship.`}
         path={activeCollection === 'all' ? '/collections' : `/collections/${activeCollection}`}
         breadcrumbs={[
           { name: 'Home', url: '/' },
@@ -154,7 +154,7 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
             <div className="flex items-center gap-2">
               <span className="w-8 h-[2px] bg-[#6D7F62]" />
               <span className="text-[11px] uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-                ATELIER CURATION
+                HANDCRAFTED COLLECTIONS
               </span>
             </div>
             <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-[#362B21] font-light">
@@ -173,7 +173,7 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
               onChange={(e) => setSortBy(e.target.value)}
               className="bg-[#EFE8D8] border border-[#DACDB3] text-xs uppercase tracking-wider font-sans font-medium text-[#362B21] px-4 py-2 rounded-full focus:outline-none focus:border-[#6D7F62]"
             >
-              <option value="featured">Featured Curations</option>
+              <option value="featured">Featured Collections</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
               <option value="name-asc">Alphabetical</option>
@@ -202,19 +202,19 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
         {loading ? (
           <div className="py-24 text-center space-y-4">
             <div className="w-10 h-10 border-2 border-[#55694A] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Unfolding Atelier Pieces...</p>
+            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Loading Products...</p>
           </div>
         ) : products.length === 0 ? (
           <div className="py-20 text-center space-y-4 bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-12">
-            <p className="font-serif text-2xl text-[#362B21]">No Pieces Found in this Category</p>
+            <p className="font-serif text-2xl text-[#362B21]">No Products Found in this Category</p>
             <p className="text-xs text-[#4E3C2B] max-w-md mx-auto">
-              Please choose another collection tab or request a bespoke commission through our private atelier.
+              Please choose another collection tab or request a bespoke commission.
             </p>
             <button
               onClick={() => handleCollectionChange('all')}
               className="mt-4 px-6 py-2.5 bg-[#55694A] text-[#FAF7F0] text-xs uppercase tracking-widest font-sans font-bold rounded-full"
             >
-              View All Masterpieces
+              View All Collections
             </button>
           </div>
         ) : (

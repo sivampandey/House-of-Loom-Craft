@@ -94,7 +94,7 @@ export default function ProfilePage({ onShowToast }) {
     try {
       await updateProfile(profileForm);
       if (onShowToast) {
-        onShowToast('cart', 'Profile Updated', 'Personal details saved to atelier records.');
+        onShowToast('cart', 'Profile Updated', 'Personal details saved successfully.');
       }
     } catch (err) {
       if (onShowToast) {
@@ -149,7 +149,7 @@ export default function ProfilePage({ onShowToast }) {
           setAddresses(res.addresses);
           setShowAddressModal(false);
           await refreshUser();
-          if (onShowToast) onShowToast('cart', 'Address Saved', 'Residence record updated.');
+          if (onShowToast) onShowToast('cart', 'Address Saved', 'Address updated successfully.');
         }
       } else {
         const res = await usersAPI.addAddress(addressForm);
@@ -157,7 +157,7 @@ export default function ProfilePage({ onShowToast }) {
           setAddresses(res.addresses);
           setShowAddressModal(false);
           await refreshUser();
-          if (onShowToast) onShowToast('cart', 'Address Added', 'New delivery address placed on file.');
+          if (onShowToast) onShowToast('cart', 'Address Added', 'Address added successfully.');
         }
       }
     } catch (err) {
@@ -168,13 +168,13 @@ export default function ProfilePage({ onShowToast }) {
   };
 
   const handleDeleteAddress = async (id) => {
-    if (!window.confirm('Remove this residence from your atelier profile?')) return;
+    if (!window.confirm('Remove this address from your profile?')) return;
     try {
       const res = await usersAPI.deleteAddress(id);
       if (res.success) {
         setAddresses(res.addresses);
         await refreshUser();
-        if (onShowToast) onShowToast('cart', 'Address Removed', 'Residence record removed.');
+        if (onShowToast) onShowToast('cart', 'Address Removed', 'Address removed successfully.');
       }
     } catch (err) {
       if (onShowToast) onShowToast('error', 'Error', err.message);
@@ -234,8 +234,8 @@ export default function ProfilePage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Private Atelier Profile | Pottery Rugs & Home Decor"
-        description="Private client atelier account for Pottery Rugs & Home Decor."
+        title="My Profile | Pottery Rugs & Home Decor"
+        description="Manage your account, orders, and saved addresses."
         path="/profile"
       />
 
@@ -246,11 +246,11 @@ export default function ProfilePage({ onShowToast }) {
             <div className="flex items-center gap-2">
               <span className="w-8 h-[2px] bg-[#6D7F62]" />
               <span className="text-[11px] uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-                PRIVATE PORTAL
+                MY ACCOUNT
               </span>
             </div>
             <h1 className="font-serif text-4xl sm:text-5xl text-[#362B21] font-light">
-              Atelier Account
+              My Profile
             </h1>
             <p className="text-xs text-[#4E3C2B]">
               Welcome, <strong className="text-[#362B21]">{user?.firstName} {user?.lastName}</strong>. Manage your orders and saved addresses.
@@ -260,7 +260,7 @@ export default function ProfilePage({ onShowToast }) {
           <div className="flex items-center gap-3">
             <span className="text-xs uppercase tracking-widest px-4 py-1.5 rounded-full bg-[#45563D] text-[#FAF7F0] font-sans font-bold border border-[#85977A]/40 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#D4BC9F]" />
-              Atelier Patron
+              Verified Customer
             </span>
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function ProfilePage({ onShowToast }) {
               >
                 <span className="flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4" />
-                  Atelier Overview
+                  Account Overview
                 </span>
               </button>
 
@@ -317,7 +317,7 @@ export default function ProfilePage({ onShowToast }) {
               >
                 <span className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4" />
-                  Saved Residences ({addresses.length})
+                  Saved Addresses ({addresses.length})
                 </span>
               </button>
 
@@ -343,17 +343,19 @@ export default function ProfilePage({ onShowToast }) {
               >
                 <span className="flex items-center gap-2.5">
                   <Shield className="w-4 h-4" />
-                  Security & Access
+                  Security & Password
                 </span>
               </button>
 
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-3 rounded-xl transition-colors flex items-center gap-2.5 text-red-900/80 hover:bg-red-900/10 hover:text-red-950 mt-4 border-t border-[#DACDB3]/50"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out from Session
-              </button>
+              <div className="pt-4 border-t border-[#DACDB3]/70 mt-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-3 rounded-xl text-red-900 hover:bg-red-900/10 transition-colors flex items-center gap-2.5"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
             </nav>
           </aside>
 
@@ -367,7 +369,7 @@ export default function ProfilePage({ onShowToast }) {
                     SUMMARY
                   </span>
                   <h2 className="font-serif text-3xl text-[#362B21] font-light mt-1">
-                    Atelier Overview
+                    Account Overview
                   </h2>
                 </div>
 
@@ -387,7 +389,7 @@ export default function ProfilePage({ onShowToast }) {
 
                   <div className="p-6 rounded-2xl bg-[#FAF7F0] border border-[#DACDB3] space-y-1">
                     <span className="text-xs uppercase tracking-wider text-[#4E3C2B]/70 block font-sans">
-                      Saved Residences
+                      Saved Addresses
                     </span>
                     <span className="font-serif text-3xl text-[#362B21] font-medium block">
                       {addresses.length}
@@ -399,13 +401,13 @@ export default function ProfilePage({ onShowToast }) {
 
                   <div className="p-6 rounded-2xl bg-[#FAF7F0] border border-[#DACDB3] space-y-1">
                     <span className="text-xs uppercase tracking-wider text-[#4E3C2B]/70 block font-sans">
-                      Client Standing
+                      Account Status
                     </span>
                     <span className="font-serif text-xl text-[#55694A] font-medium block pt-1">
-                      White-Glove Active
+                      Active Customer
                     </span>
                     <span className="text-[10px] text-[#4E3C2B]/70 block">
-                      Insured freight guaranteed
+                      Insured shipping included
                     </span>
                   </div>
                 </div>
@@ -415,7 +417,7 @@ export default function ProfilePage({ onShowToast }) {
                   <div className="flex items-center justify-between">
                     <h3 className="font-serif text-xl text-[#362B21] font-medium flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-[#55694A]" />
-                      Primary Delivery Residence
+                      Default Shipping Address
                     </h3>
                     <button
                       onClick={() => setTab('addresses')}
@@ -434,12 +436,12 @@ export default function ProfilePage({ onShowToast }) {
                     </div>
                   ) : (
                     <div className="py-4 text-center">
-                      <p className="text-xs text-[#4E3C2B] mb-2">No delivery residence saved on file yet.</p>
+                      <p className="text-xs text-[#4E3C2B] mb-2">No delivery address saved yet.</p>
                       <button
                         onClick={openAddAddress}
                         className="text-xs uppercase tracking-widest font-bold text-[#55694A] underline"
                       >
-                        Add Primary Residence
+                        Add Default Address
                       </button>
                     </div>
                   )}
@@ -594,13 +596,13 @@ export default function ProfilePage({ onShowToast }) {
               <div className="space-y-6 max-w-xl">
                 <div>
                   <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-                    ATELIER IDENTITY
+                    ACCOUNT DETAILS
                   </span>
                   <h2 className="font-serif text-3xl text-[#362B21] font-light mt-1">
                     Personal Information
                   </h2>
                   <p className="text-xs text-[#4E3C2B] mt-1">
-                    Update your client profile details. Registered email address is permanently tied to provenance records.
+                    Update your profile information. Your email address is linked to your order history.
                   </p>
                 </div>
 
@@ -643,7 +645,7 @@ export default function ProfilePage({ onShowToast }) {
                       className="w-full bg-[#E5DCB8]/40 border border-[#DACDB3] rounded-xl py-3 px-3.5 text-xs sm:text-sm text-[#4E3C2B] opacity-80 cursor-not-allowed"
                     />
                     <span className="text-[10px] text-[#55694A] block mt-1">
-                      To alter your registered email, please contact our Bhadohi atelier concierge.
+                      To change your email address, please contact customer support.
                     </span>
                   </div>
 
@@ -676,24 +678,29 @@ export default function ProfilePage({ onShowToast }) {
               <div className="space-y-6 max-w-xl">
                 <div>
                   <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-                    AUTHENTICATION SAFETY
+                    PASSWORD & SECURITY
                   </span>
                   <h2 className="font-serif text-3xl text-[#362B21] font-light mt-1">
                     Security & Password
                   </h2>
                   <p className="text-xs text-[#4E3C2B] mt-1">
-                    Modify your private atelier account password and verify session integrity.
+                    Update your password to keep your account secure.
                   </p>
                 </div>
 
                 {securityMessage.text && (
                   <div
-                    className={`p-3.5 rounded-xl border text-xs leading-relaxed ${securityMessage.type === 'success'
-                      ? 'bg-[#55694A]/10 border-[#55694A]/30 text-[#362B21]'
-                      : 'bg-red-900/10 border-red-800/30 text-red-900'
+                    className={`p-4 rounded-xl text-xs flex items-center gap-2 ${securityMessage.type === 'success'
+                      ? 'bg-[#55694A]/10 text-[#55694A] border border-[#55694A]/30'
+                      : 'bg-red-900/10 text-red-900 border border-red-800/30'
                       }`}
                   >
-                    {securityMessage.text}
+                    {securityMessage.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    )}
+                    <span>{securityMessage.text}</span>
                   </div>
                 )}
 
@@ -707,7 +714,6 @@ export default function ProfilePage({ onShowToast }) {
                       required
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                      placeholder="••••••••"
                       className="w-full bg-[#FAF7F0] border border-[#DACDB3] focus:border-[#55694A] rounded-xl py-3 px-3.5 text-xs sm:text-sm text-[#362B21] focus:outline-none"
                     />
                   </div>
@@ -721,7 +727,6 @@ export default function ProfilePage({ onShowToast }) {
                       required
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                      placeholder="••••••••"
                       className="w-full bg-[#FAF7F0] border border-[#DACDB3] focus:border-[#55694A] rounded-xl py-3 px-3.5 text-xs sm:text-sm text-[#362B21] focus:outline-none"
                     />
                   </div>
@@ -735,7 +740,6 @@ export default function ProfilePage({ onShowToast }) {
                       required
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="••••••••"
                       className="w-full bg-[#FAF7F0] border border-[#DACDB3] focus:border-[#55694A] rounded-xl py-3 px-3.5 text-xs sm:text-sm text-[#362B21] focus:outline-none"
                     />
                   </div>
@@ -745,20 +749,20 @@ export default function ProfilePage({ onShowToast }) {
                     disabled={passwordSaving}
                     className="px-8 py-3.5 bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold rounded-xl text-xs uppercase tracking-widest shadow-md transition-all mt-2 disabled:opacity-50"
                   >
-                    {passwordSaving ? 'Updating...' : 'Update Password'}
+                    {passwordSaving ? 'Updating Password...' : 'Update Password'}
                   </button>
                 </form>
 
-                <div className="pt-6 border-t border-[#DACDB3]/70 space-y-3">
-                  <h4 className="font-serif text-lg text-[#362B21] font-medium">Active Session</h4>
-                  <p className="text-xs text-[#4E3C2B]">
-                    Your session is protected via an encrypted httpOnly cookie. Ending your session invalidates the current authorization token.
+                <div className="pt-6 border-t border-[#DACDB3]/70">
+                  <h4 className="font-serif text-lg text-[#362B21] mb-2">Account Session</h4>
+                  <p className="text-xs text-[#4E3C2B] mb-4">
+                    Sign out of your account on this device.
                   </p>
                   <button
                     onClick={handleLogout}
-                    className="px-5 py-2.5 border border-red-800/40 text-red-900 hover:bg-red-900/10 rounded-xl text-xs uppercase tracking-wider font-bold transition-colors"
+                    className="px-6 py-2.5 rounded-xl border border-red-800/40 text-red-900 hover:bg-red-900/10 text-xs font-bold uppercase tracking-wider transition-colors"
                   >
-                    Terminate Current Session
+                    Sign Out
                   </button>
                 </div>
               </div>
@@ -773,7 +777,7 @@ export default function ProfilePage({ onShowToast }) {
           <div className="bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] p-8 max-w-lg w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#DACDB3]/70 pb-4">
               <h3 className="font-serif text-2xl text-[#362B21]">
-                {editingAddressId ? 'Edit Residence Record' : 'Add Delivery Residence'}
+                {editingAddressId ? 'Edit Address' : 'Add New Address'}
               </h3>
               <button
                 onClick={() => setShowAddressModal(false)}
@@ -893,7 +897,7 @@ export default function ProfilePage({ onShowToast }) {
                     onChange={(e) => setAddressForm(prev => ({ ...prev, isDefault: e.target.checked }))}
                     className="rounded text-[#55694A] focus:ring-0"
                   />
-                  <span className="font-bold uppercase tracking-wider text-[11px]">Set as primary default delivery residence</span>
+                  <span className="font-bold uppercase tracking-wider text-[11px]">Set as default shipping address</span>
                 </label>
               </div>
 
@@ -910,7 +914,7 @@ export default function ProfilePage({ onShowToast }) {
                   disabled={addressSaving}
                   className="px-6 py-2.5 rounded-xl bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-bold uppercase tracking-wider shadow-sm disabled:opacity-50"
                 >
-                  {addressSaving ? 'Saving...' : 'Save Residence'}
+                  {addressSaving ? 'Saving...' : 'Save Address'}
                 </button>
               </div>
             </form>

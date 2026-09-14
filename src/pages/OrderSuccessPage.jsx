@@ -38,7 +38,7 @@ export default function OrderSuccessPage() {
   }, [orderId]);
 
   const whatsappConfirmMsg = order ? encodeURIComponent(
-    `*NEW ORDER CONFIRMATION - POTTERY RUGS & HOME DECOR*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total Investment:* ₹${order.total?.toLocaleString()}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with white-glove packaging and atelier dispatch.`
+    `*NEW ORDER CONFIRMATION - POTTERY RUGS & HOME DECOR*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total:* ₹${order.total?.toLocaleString()}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with order verification and delivery packaging.`
   ) : '';
 
   return (
@@ -62,21 +62,21 @@ export default function OrderSuccessPage() {
             Thank You for Your Order
           </h1>
           <p className="text-xs sm:text-sm text-[#4E3C2B] max-w-md mx-auto leading-relaxed">
-            Your order has been registered at our Bhadohi workshop. Our artisans and dispatch team have initiated white-glove packaging.
+            Your order has been placed successfully. Our team in Bhadohi has initiated packaging and preparation for delivery.
           </p>
         </div>
 
         {/* Order Reference Badge */}
         <div className="p-6 rounded-2xl bg-[#FAF7F0] border border-[#DACDB3] max-w-md mx-auto space-y-2">
           <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 font-sans block">
-            Atelier Order Number
+            Order Number
           </span>
           <span className="font-mono text-xl sm:text-2xl font-bold text-[#55694A] block">
             {order?.orderNumber || orderId}
           </span>
           {order && (
             <p className="text-xs text-[#4E3C2B]">
-              Total Investment: <strong className="text-[#362B21]">₹{order.total?.toLocaleString()}</strong> · Method: <span className="capitalize">{order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</span>
+              Total: <strong className="text-[#362B21]">₹{order.total?.toLocaleString()}</strong> · Method: <span className="capitalize">{order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</span>
             </p>
           )}
         </div>
@@ -87,7 +87,7 @@ export default function OrderSuccessPage() {
             to={`/orders/${order?.orderNumber || orderId}`}
             className="w-full sm:w-auto px-6 py-3.5 bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] text-xs uppercase tracking-widest font-sans font-bold rounded-full transition-colors shadow-md flex items-center justify-center gap-2"
           >
-            <span>View Order Timeline</span>
+            <span>View Order Details</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 
@@ -95,7 +95,7 @@ export default function OrderSuccessPage() {
             to="/collections"
             className="w-full sm:w-auto px-6 py-3.5 bg-[#FAF7F0] hover:bg-[#EFE8D8] text-[#362B21] border border-[#DACDB3] text-xs uppercase tracking-widest font-sans font-bold rounded-full transition-colors"
           >
-            Continue Exploring
+            Continue Shopping
           </Link>
         </div>
 
@@ -109,7 +109,7 @@ export default function OrderSuccessPage() {
               className="inline-flex items-center gap-2 text-xs font-sans font-bold text-[#55694A] hover:underline"
             >
               <MessageSquare className="w-4 h-4 text-[#25D366]" />
-              <span>Send confirmation to Atelier WhatsApp</span>
+              <span>Send order confirmation via WhatsApp</span>
             </a>
           </div>
         )}

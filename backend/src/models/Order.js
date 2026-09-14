@@ -89,6 +89,11 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],
     default: 'confirmed'
   },
+  trackingNumber: { type: String, default: '' },
+  carrier: { type: String, default: '' },
+  shippingNote: { type: String, default: '' },
+  couponCode: { type: String, default: '' },
+  couponDiscount: { type: Number, default: 0 },
   statusHistory: [statusHistorySchema]
 }, { timestamps: true });
 

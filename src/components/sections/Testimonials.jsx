@@ -51,7 +51,7 @@ export default function Testimonials() {
             {t.role} &bull; <span className="text-[#55694A] font-bold">{t.location}</span>
           </p>
           <span className="text-xs uppercase tracking-widest text-[#4E3C2B] font-sans font-bold block pt-1">
-            Acquisition: {t.carpet}
+            Purchased: {t.carpet}
           </span>
         </div>
 

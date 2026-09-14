@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   ShieldCheck, Truck, CreditCard, Banknote, 
-  MapPin, ArrowRight, ArrowLeft, Check, Lock, Sparkles 
+  MapPin, ArrowRight, ArrowLeft, Check, Lock, Sparkles, Tag, X
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ordersAPI, paymentsAPI, usersAPI } from '../services/api';
+import { ordersAPI, paymentsAPI, usersAPI, offersAPI } from '../services/api';
 import { companyInfo } from '../data/carpets';
 
 export default function CheckoutPage({ onShowToast }) {
@@ -45,6 +45,12 @@ export default function CheckoutPage({ onShowToast }) {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
 
+  // Coupon / Promotional Offers
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedOffer, setAppliedOffer] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
   // Prefill primary address
   useEffect(() => {
     if (user?.addresses?.length) {
@@ -61,6 +67,41 @@ export default function CheckoutPage({ onShowToast }) {
     }
     return addressForm;
   };
+
+  const handleApplyCoupon = async (e) => {
+    if (e) e.preventDefault();
+    if (!couponInput.trim()) return;
+    try {
+      setCouponLoading(true);
+      setCouponError('');
+      const itemsPayload = cartItems.map(item => ({
+        productId: item.productId || item._id,
+        price: item.price,
+        quantity: item.quantity || 1
+      }));
+      const res = await offersAPI.validateOffer(couponInput.trim(), subtotal, itemsPayload);
+      if (res.data?.valid) {
+        setAppliedOffer(res.data);
+        if (onShowToast) {
+          onShowToast('success', 'Coupon Applied', `${res.data.code} applied! Saved ₹${res.data.discountAmount}`);
+        }
+      }
+    } catch (err) {
+      setAppliedOffer(null);
+      setCouponError(err.response?.data?.message || 'Invalid or expired promotional code.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedOffer(null);
+    setCouponInput('');
+    setCouponError('');
+  };
+
+  const discountAmount = appliedOffer ? appliedOffer.discountAmount : 0;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -87,8 +128,8 @@ export default function CheckoutPage({ onShowToast }) {
 
       // ================= PAYMENT FLOW =================
       if (paymentMethod === 'online') {
-        // Step 1: Create Razorpay Order via Backend
-        const razorpayOrderRes = await paymentsAPI.createOrder(itemsPayload);
+        // Step 1: Create Razorpay Order via Backend with coupon code
+        const razorpayOrderRes = await paymentsAPI.createOrder(itemsPayload, appliedOffer?.code);
 
         if (!razorpayOrderRes.success) {
           throw new Error(razorpayOrderRes.message || 'Unable to initiate online payment.');
@@ -101,7 +142,8 @@ export default function CheckoutPage({ onShowToast }) {
             razorpayPaymentId: `pay_sim_${Date.now()}`,
             razorpaySignature: 'simulated_signature',
             items: itemsPayload,
-            shippingAddress: chosenAddress
+            shippingAddress: chosenAddress,
+            couponCode: appliedOffer?.code
           });
 
           if (verifyRes.success && verifyRes.order) {
@@ -133,7 +175,8 @@ export default function CheckoutPage({ onShowToast }) {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
                 items: itemsPayload,
-                shippingAddress: chosenAddress
+                shippingAddress: chosenAddress,
+                couponCode: appliedOffer?.code
               });
 
               if (verifyRes.success && verifyRes.order) {
@@ -174,7 +217,8 @@ export default function CheckoutPage({ onShowToast }) {
         const orderRes = await ordersAPI.createOrder({
           items: itemsPayload,
           shippingAddress: chosenAddress,
-          paymentMethod: 'cod'
+          paymentMethod: 'cod',
+          couponCode: appliedOffer?.code
         });
 
         if (orderRes.success && orderRes.order) {
@@ -194,7 +238,7 @@ export default function CheckoutPage({ onShowToast }) {
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
         title="Secure Checkout | Pottery Rugs & Home Decor"
-        description="Complete your handcrafted heirloom acquisition with insured white-glove shipping and verified checkout."
+        description="Complete your handcrafted rug order with insured shipping and verified checkout."
         path="/checkout"
       />
 
@@ -206,7 +250,7 @@ export default function CheckoutPage({ onShowToast }) {
             Continue Browsing
           </Link>
           <span className="text-[#DACDB3]">/</span>
-          <span className="text-[#362B21]">Atelier Checkout</span>
+          <span className="text-[#362B21]">Checkout</span>
         </div>
 
         <div className="pb-8 border-b border-[#DACDB3] mb-10">
@@ -214,7 +258,7 @@ export default function CheckoutPage({ onShowToast }) {
             CHECKOUT & ORDER VERIFICATION
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl text-[#362B21] font-light mt-1">
-            White-Glove Checkout
+            Checkout
           </h1>
         </div>
 
@@ -227,14 +271,14 @@ export default function CheckoutPage({ onShowToast }) {
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* Left Column: Form & Payment (7 cols) */}
           <div className="lg:col-span-7 space-y-8">
-            {/* Step 1: Delivery Residence */}
+            {/* Step 1: Delivery Address */}
             <div className="bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] p-8 space-y-6">
               <div className="flex items-center justify-between border-b border-[#DACDB3]/70 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#55694A] text-[#FAF7F0] flex items-center justify-center font-bold text-xs">
                     1
                   </div>
-                  <h2 className="font-serif text-2xl text-[#362B21] font-medium">Delivery Residence</h2>
+                  <h2 className="font-serif text-2xl text-[#362B21] font-medium">Delivery Address</h2>
                 </div>
 
                 {savedAddresses.length > 0 && (
@@ -243,7 +287,7 @@ export default function CheckoutPage({ onShowToast }) {
                     onClick={() => setUseNewAddress(!useNewAddress)}
                     className="text-xs font-bold text-[#55694A] hover:underline"
                   >
-                    {useNewAddress ? 'Select Saved Residence' : '+ Enter New Address'}
+                    {useNewAddress ? 'Select Saved Address' : '+ Enter New Address'}
                   </button>
                 )}
               </div>
@@ -395,7 +439,7 @@ export default function CheckoutPage({ onShowToast }) {
                 <div className="w-8 h-8 rounded-full bg-[#55694A] text-[#FAF7F0] flex items-center justify-center font-bold text-xs">
                   2
                 </div>
-                <h2 className="font-serif text-2xl text-[#362B21] font-medium">Payment Protocol</h2>
+                <h2 className="font-serif text-2xl text-[#362B21] font-medium">Payment Method</h2>
               </div>
 
               <div className="space-y-3">
@@ -444,7 +488,7 @@ export default function CheckoutPage({ onShowToast }) {
                         Cash on Delivery (COD)
                       </p>
                       <p className="text-xs text-[#4E3C2B] mt-0.5">
-                        Inspect piece upon arrival. Payment collected at your residence.
+                        Inspect piece upon arrival. Payment collected upon delivery.
                       </p>
                     </div>
                   </div>
@@ -460,7 +504,7 @@ export default function CheckoutPage({ onShowToast }) {
 
               <div className="flex items-center gap-2 text-xs text-[#55694A] pt-2">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Zero Risk: Authentic provenance and return inspection guarantee.</span>
+                <span>Secure Checkout: Authentic craftsmanship and quality guarantee.</span>
               </div>
             </div>
           </div>
@@ -494,12 +538,78 @@ export default function CheckoutPage({ onShowToast }) {
                 ))}
               </div>
 
+              {/* Promotional Coupon Box */}
+              <div className="pt-4 border-t border-[#DACDB3]">
+                {appliedOffer ? (
+                  <div className="bg-[#FAF7F0] border border-[#55694A]/30 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-[#55694A]" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-xs text-[#55694A] uppercase tracking-wider">
+                            {appliedOffer.code}
+                          </span>
+                          <span className="text-[10px] bg-[#55694A]/10 text-[#55694A] px-1.5 py-0.5 rounded font-medium">
+                            Applied
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#4E3C2B]">
+                          Saved ₹{appliedOffer.discountAmount.toLocaleString()} ({appliedOffer.discountType === 'percentage' ? `${appliedOffer.discountValue}% OFF` : 'Flat Discount'})
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="p-1 text-[#4E3C2B]/50 hover:text-red-600 transition-colors"
+                      title="Remove coupon"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#362B21]/40" />
+                        <input
+                          type="text"
+                          placeholder="Promotional code..."
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                          className="w-full pl-8 pr-2 py-2 text-xs border border-[#DACDB3] rounded-lg bg-[#FAF7F0] font-mono uppercase focus:outline-none focus:border-[#55694A]"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-4 py-2 text-xs bg-[#55694A] text-[#FAF7F0] font-sans font-bold rounded-lg uppercase tracking-wider hover:bg-[#435339] transition-colors disabled:opacity-50"
+                      >
+                        {couponLoading ? 'Checking...' : 'Apply'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-[11px] text-red-600 mt-1 pl-1">
+                        {couponError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Financial Ledger */}
               <div className="pt-4 border-t border-[#DACDB3] space-y-2 text-xs">
                 <div className="flex justify-between text-[#4E3C2B]">
                   <span>Subtotal</span>
                   <span className="font-bold text-[#362B21]">₹{subtotal.toLocaleString()}</span>
                 </div>
+                {appliedOffer && (
+                  <div className="flex justify-between text-[#55694A] font-medium">
+                    <span>Promotional Discount ({appliedOffer.code})</span>
+                    <span className="font-bold">-₹{appliedOffer.discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-[#55694A]">
                   <span>Insured White-Glove Shipping</span>
                   <span className="uppercase font-bold tracking-wider">Complimentary</span>
@@ -511,7 +621,7 @@ export default function CheckoutPage({ onShowToast }) {
 
                 <div className="pt-3 border-t border-[#DACDB3] flex justify-between text-lg font-bold text-[#362B21]">
                   <span className="font-serif">Grand Total</span>
-                  <span className="font-sans text-2xl">₹{subtotal.toLocaleString()}</span>
+                  <span className="font-sans text-2xl text-[#362B21]">₹{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
 

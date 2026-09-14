@@ -11,7 +11,7 @@ export default function BrandStory({ onOpenConsultation }) {
             <div className="inline-flex items-center gap-3">
               <span className="w-8 h-[2px] bg-[#BA9977]" />
               <span className="text-[10px] uppercase tracking-[0.3em] text-[#8F6E50] font-sans font-semibold">
-                THE ATELIER MANIFESTO
+                OUR STORY & PHILOSOPHY
               </span>
             </div>
 

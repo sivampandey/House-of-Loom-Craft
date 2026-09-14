@@ -87,6 +87,15 @@ export default function MobileMenu({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin/dashboard"
+                  onClick={onClose}
+                  className="text-[10px] uppercase tracking-wider font-bold bg-[#BA9977] px-3 py-1.5 rounded-full text-[#1E261B] shadow-sm"
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 to="/profile"
                 onClick={onClose}

@@ -64,7 +64,7 @@ export default function SearchPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Search Atelier Heirlooms | Pottery Rugs & Home Decor"
+        title="Search Handcrafted Rugs | Pottery Rugs & Home Decor"
         description="Search our handcrafted carpets, flatweaves, and home decor by collection, material, knot density, and dimension."
         path="/search"
       />
@@ -73,13 +73,13 @@ export default function SearchPage({ onShowToast }) {
         {/* Search Header */}
         <div className="text-center space-y-4 max-w-2xl mx-auto mb-10">
           <span className="text-xs uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-            ARCHIVE SEARCH
+            SEARCH
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl text-[#362B21] font-light">
-            Locate a Masterpiece
+            Search Our Collections
           </h1>
           <p className="text-xs sm:text-sm text-[#4E3C2B]">
-            Query by heirloom name, artisan weave type, fiber composition, or room dimension.
+            Find rugs by name, collection, material, weave type, or room dimension.
           </p>
         </div>
 
@@ -138,25 +138,25 @@ export default function SearchPage({ onShowToast }) {
         {loading ? (
           <div className="py-16 text-center space-y-4">
             <div className="w-8 h-8 border-2 border-[#55694A] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Consulting Atelier Catalog...</p>
+            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Searching Catalog...</p>
           </div>
         ) : searched && results.length === 0 ? (
           <div className="text-center py-16 bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-10 space-y-4">
-            <h3 className="font-serif text-2xl text-[#362B21]">No Pieces Match "{query}"</h3>
+            <h3 className="font-serif text-2xl text-[#362B21]">No Products Match "{query}"</h3>
             <p className="text-xs text-[#4E3C2B] max-w-md mx-auto leading-relaxed">
-              We could not find an exact match for your inquiry. Our master draftsmen can create custom commissions tailored to your specific size and color palette.
+              We could not find an exact match for your search. Browse our collections or contact us for custom rug options.
             </p>
             <Link
               to="/collections"
               className="inline-block px-6 py-2.5 bg-[#55694A] text-[#FAF7F0] text-xs uppercase tracking-widest font-bold rounded-full mt-2"
             >
-              Browse Curated Collections
+              Browse All Collections
             </Link>
           </div>
         ) : results.length > 0 ? (
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-wider text-[#55694A] font-bold">
-              Found {results.length} Piece{results.length === 1 ? '' : 's'}
+              Found {results.length} Product{results.length === 1 ? '' : 's'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

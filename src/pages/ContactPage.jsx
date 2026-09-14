@@ -229,7 +229,7 @@ export default function ContactPage({ onShowToast }) {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. name@residence.com"
+                      placeholder="e.g. name@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-[#EFE8D8] border border-[#DACDB3] rounded-xl px-4 py-3 text-xs text-[#362B21] placeholder:text-[#4E3C2B]/50 focus:border-[#55694A] focus:outline-none font-sans"

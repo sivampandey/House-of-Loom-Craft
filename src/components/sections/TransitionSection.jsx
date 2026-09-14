@@ -10,7 +10,7 @@ export default function TransitionSection() {
         <div className="inline-flex items-center gap-3">
           <span className="w-10 h-[2px] bg-[#BA9977]" />
           <span className="text-[10px] uppercase tracking-[0.35em] text-[#8F6E50] font-sans font-semibold">
-            ATELIER PROVENANCE
+            HANDCRAFTED PROVENANCE
           </span>
           <span className="w-10 h-[2px] bg-[#BA9977]" />
         </div>

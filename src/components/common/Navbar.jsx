@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, ShoppingBag, Menu, Phone, User, LogOut, Package, Sparkles } from 'lucide-react';
+import { Heart, ShoppingBag, Menu, Phone, User, LogOut, Package, Sparkles, ShieldCheck } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import { companyInfo } from '../../data/carpets';
 import { useAuth } from '../../context/AuthContext';
@@ -194,6 +194,17 @@ export default function Navbar({
                         </p>
                         <p className="text-[10px] text-[#D4BC9F] font-mono truncate">{user.email}</p>
                       </div>
+
+                      {user?.role === 'admin' && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs uppercase tracking-wider font-sans font-bold bg-[#BA9977]/25 text-[#FAF7F0] hover:bg-[#BA9977]/40 rounded-xl transition-colors mb-1 border border-[#BA9977]/40"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#D4BC9F]" />
+                          <span>Admin Console</span>
+                        </Link>
+                      )}
 
                       <Link
                         to="/profile"

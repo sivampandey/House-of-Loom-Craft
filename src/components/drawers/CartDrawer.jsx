@@ -47,7 +47,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                   onClick={onClose}
                   className="text-xs uppercase tracking-widest text-[#D4BC9F] border-b border-[#D4BC9F] pb-1 transition-colors font-bold"
                 >
-                  Return to Collection
+                  Continue Shopping
                 </button>
               </div>
             ) : (
@@ -110,13 +110,13 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                   <span className="font-sans text-[#FAF7F0] font-bold">₹{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xs text-[#D4BC9F]">
-                  <span>Insured White-Glove Shipping</span>
+                  <span>Insured Shipping</span>
                   <span className="uppercase tracking-wider font-bold">Complimentary</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[#6D7F62]/50 flex justify-between text-base text-[#FAF7F0]">
-                <span className="font-serif tracking-wider font-medium">Total Price</span>
+                <span className="font-serif tracking-wider font-medium">Total</span>
                 <span className="font-sans font-bold text-xl text-[#D4BC9F]">₹{subtotal.toLocaleString()}</span>
               </div>
 

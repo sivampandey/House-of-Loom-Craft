@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }) {
       <div className="min-h-screen bg-[#F5F0E6] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-2 border-[#55694A] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="font-serif text-lg tracking-widest text-[#362B21] uppercase">Accessing Atelier Portal...</p>
+          <p className="font-serif text-lg tracking-widest text-[#362B21] uppercase">Loading Account...</p>
         </div>
       </div>
     );

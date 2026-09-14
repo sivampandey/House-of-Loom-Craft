@@ -105,7 +105,7 @@ export default function ConsultationModal({ isOpen, onClose }) {
                 <input
                   required
                   type="email"
-                  placeholder="client@residence.com"
+                  placeholder="client@example.com"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-[#3C4A34] border border-[#6D7F62]/50 rounded px-4 py-2.5 text-xs text-[#FAF7F0] placeholder:text-[#FAF7F0]/40 focus:border-[#D4BC9F] focus:outline-none"
@@ -194,7 +194,7 @@ export default function ConsultationModal({ isOpen, onClose }) {
 
             <div className="pt-2 border-t border-[#6D7F62]/40 text-center space-y-1 text-[11px] text-[#D4BC9F]">
               <p>
-                Direct Bhadohi Atelier Helplines: <a href="tel:9839116625" className="underline font-bold text-[#FAF7F0]">9839116625</a>, <a href="tel:7007879491" className="underline font-bold text-[#FAF7F0]">7007879491</a>
+                Direct Bhadohi Helplines: <a href="tel:9839116625" className="underline font-bold text-[#FAF7F0]">9839116625</a>, <a href="tel:7007879491" className="underline font-bold text-[#FAF7F0]">7007879491</a>
               </p>
               <p className="text-[#FAF7F0]/70">
                 POTTERY RUGS & HOME DECOR &bull; G.T. ROAD, GHOSIA, AURAI, BHADOHI 221301 U.P. (INDIA)

@@ -169,7 +169,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
           <div className="inline-flex items-center gap-3">
             <span className="w-8 h-[2px] bg-[#55694A]" />
             <span className="text-xs uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-              ATELIER INSPECTION STUDIO
+              3D INSPECTION STUDIO
             </span>
             <span className="w-8 h-[2px] bg-[#55694A]" />
           </div>
@@ -324,11 +324,11 @@ export default function Interactive3DSection({ onOpenQuickView }) {
               </div>
             </div>
 
-            {/* Atelier Specification Summary Card */}
+            {/* Carpet Specification Summary Card */}
             <div className="bg-[#EFE8D8] p-6 sm:p-7 rounded-2xl border border-[#DACDB3] shadow-md space-y-4 card-hover-lift">
               <div>
                 <span className="text-xs uppercase tracking-widest text-[#55694A] font-sans font-bold block mb-1">
-                  Inspected Masterpiece
+                  Selected Carpet
                 </span>
                 <h4 className="font-serif text-2xl text-[#362B21] font-medium leading-snug">
                   {currentCarpet.name}
@@ -375,7 +375,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                   origin: currentCarpet.origin,
                   knotDensity: currentCarpet.knotDensity,
                   weaveTime: currentCarpet.weaveTime,
-                  description: `Authentic handcrafted heirloom carpet. ${currentCarpet.material}. Examined in detail at our atelier studio.`
+                  description: `Authentic handcrafted heirloom carpet. ${currentCarpet.material}. Examined in detail.`
                 })}
                 className="w-full bg-[#55694A] hover:bg-[#657C58] text-[#FAF7F0] font-sans font-semibold py-3.5 rounded-lg text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md border border-[#6D7F62]"
               >

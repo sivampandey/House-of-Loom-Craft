@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 // Providers
 import { AuthProvider } from './context/AuthContext';
@@ -41,6 +41,19 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import NotFoundPage from './pages/NotFoundPage';
+
+// Admin Portal Components & Pages
+import AdminRoute from './components/admin/AdminRoute';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminProductsPage from './pages/admin/AdminProductsPage';
+import AdminProductFormPage from './pages/admin/AdminProductFormPage';
+import AdminOrdersPage from './pages/admin/AdminOrdersPage';
+import AdminOrderDetailPage from './pages/admin/AdminOrderDetailPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminOffersPage from './pages/admin/AdminOffersPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -119,27 +132,32 @@ function AppContent() {
     }
   };
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <div className="min-h-screen bg-[#F5F0E6] text-[#1E261B] relative overflow-x-hidden selection:bg-[#43533D]/30 selection:text-[#1E261B]">
+    <div className={`min-h-screen ${isAdminRoute ? 'bg-[#FAF7F2]' : 'bg-[#F5F0E6]'} text-[#1E261B] relative overflow-x-hidden selection:bg-[#43533D]/30 selection:text-[#1E261B]`}>
       {/* Route Scroll Restoration to Top */}
       <ScrollToTop />
 
-      {/* Desktop Custom Cursor */}
-      <CustomCursor />
+      {/* Desktop Custom Cursor - only on public storefront */}
+      {!isAdminRoute && <CustomCursor />}
 
-      {/* Floating Header */}
-      <Navbar
-        cartCount={totalCount}
-        wishlistCount={wishlistItems.length}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenSearch={() => setSearchOpen(true)}
-        onOpenConsultation={() => setConsultationOpen(true)}
-        onNavigate={handleNavigate}
-      />
+      {/* Floating Header - only on public storefront */}
+      {!isAdminRoute && (
+        <Navbar
+          cartCount={totalCount}
+          wishlistCount={wishlistItems.length}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenWishlist={() => setIsWishlistOpen(true)}
+          onOpenSearch={() => setSearchOpen(true)}
+          onOpenConsultation={() => setConsultationOpen(true)}
+          onNavigate={handleNavigate}
+        />
+      )}
 
       {/* Dynamic Route Pages */}
       <Routes>
+        {/* Public Storefront Routes */}
         <Route
           path="/"
           element={
@@ -305,65 +323,98 @@ function AppContent() {
           element={<OrderSuccessPage />}
         />
 
+        {/* Admin Portal Authentication */}
+        <Route
+          path="/admin/login"
+          element={<AdminLoginPage onShowToast={showToast} />}
+        />
+
+        {/* Protected Admin Console Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="products/new" element={<AdminProductFormPage />} />
+          <Route path="products/:id/edit" element={<AdminProductFormPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="offers" element={<AdminOffersPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+        </Route>
+
         {/* 404 Catch All */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* Global Dark Earthy Luxury Footer */}
-      <Footer
-        onNavigate={handleNavigate}
-        onOpenConsultation={() => setConsultationOpen(true)}
-      />
+      {/* Global Dark Earthy Luxury Footer - only on public storefront */}
+      {!isAdminRoute && (
+        <Footer
+          onNavigate={handleNavigate}
+          onOpenConsultation={() => setConsultationOpen(true)}
+        />
+      )}
 
-      {/* Drawers & Modals */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onRemove={removeFromCart}
-        onUpdateQty={updateQuantity}
-        onCheckout={handleCheckout}
-      />
+      {/* Drawers & Modals - only on public storefront */}
+      {!isAdminRoute && (
+        <>
+          <CartDrawer
+            isOpen={isCartOpen}
+            onClose={() => setIsCartOpen(false)}
+            items={cartItems}
+            onRemove={removeFromCart}
+            onUpdateQty={updateQuantity}
+            onCheckout={handleCheckout}
+          />
 
-      <WishlistDrawer
-        isOpen={isWishlistOpen}
-        onClose={() => setIsWishlistOpen(false)}
-        items={wishlistItems}
-        onRemove={removeFromWishlist}
-        onMoveToCart={moveToCartFromWishlist}
-      />
+          <WishlistDrawer
+            isOpen={isWishlistOpen}
+            onClose={() => setIsWishlistOpen(false)}
+            items={wishlistItems}
+            onRemove={removeFromWishlist}
+            onMoveToCart={moveToCartFromWishlist}
+          />
 
-      <SearchModal
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelectProduct={(item) => {
-          setSearchOpen(false);
-          navigate(`/products/${item.slug || item.id}`);
-        }}
-      />
+          <SearchModal
+            isOpen={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            onSelectProduct={(item) => {
+              setSearchOpen(false);
+              navigate(`/products/${item.slug || item.id}`);
+            }}
+          />
 
-      <QuickViewModal
-        product={quickViewProduct}
-        isOpen={!!quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-        onAddToCart={(p) => {
-          addToCart(p, 1);
-          showToast('cart', 'Added to Bag', `${p.name} placed in your shopping bag.`);
-        }}
-        onBuyNow={handleBuyNow}
-        onToggleWishlist={async (p) => {
-          const res = await toggleWishlist(p);
-          showToast('wishlist', res.saved ? 'Saved to Wishlist' : 'Removed from Wishlist', res.message);
-        }}
-        isWishlisted={quickViewProduct ? isWishlisted(quickViewProduct.slug || quickViewProduct.id || quickViewProduct._id) : false}
-      />
+          <QuickViewModal
+            product={quickViewProduct}
+            isOpen={!!quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
+            onAddToCart={(p) => {
+              addToCart(p, 1);
+              showToast('cart', 'Added to Bag', `${p.name} placed in your shopping bag.`);
+            }}
+            onBuyNow={handleBuyNow}
+            onToggleWishlist={async (p) => {
+              const res = await toggleWishlist(p);
+              showToast('wishlist', res.saved ? 'Saved to Wishlist' : 'Removed from Wishlist', res.message);
+            }}
+            isWishlisted={quickViewProduct ? isWishlisted(quickViewProduct.slug || quickViewProduct.id || quickViewProduct._id) : false}
+          />
 
-      <ConsultationModal
-        isOpen={consultationOpen}
-        onClose={() => setConsultationOpen(false)}
-      />
+          <ConsultationModal
+            isOpen={consultationOpen}
+            onClose={() => setConsultationOpen(false)}
+          />
+        </>
+      )}
 
-      {/* Toast Notification */}
+      {/* Toast Notification - available everywhere */}
       <Toast
         toast={toast}
         onClose={() => setToast(null)}

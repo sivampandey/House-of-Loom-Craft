@@ -1,6 +1,7 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { Cart } from '../models/Cart.js';
+import { Offer } from '../models/Offer.js';
 
 // Helper to atomically decrement stock for order items
 export const decrementStockSafely = async (items) => {
@@ -149,8 +150,37 @@ export const createOrder = async (req, res, next) => {
     const shippingFee = 0;
     // Taxes included in luxury listing prices
     const tax = 0;
-    const discount = 0;
-    const finalTotal = calculatedSubtotal + shippingFee + tax - discount;
+
+    // Server-side authoritative coupon calculation
+    let discount = 0;
+    let appliedCouponCode = '';
+    const { couponCode } = req.body;
+
+    if (couponCode && typeof couponCode === 'string' && couponCode.trim()) {
+      const cleanCode = couponCode.trim().toUpperCase();
+      const offer = await Offer.findOne({ code: cleanCode, isActive: true });
+      if (offer) {
+        const now = new Date();
+        const isDateValid = (!offer.startDate || now >= offer.startDate) && (!offer.endDate || now <= offer.endDate);
+        const isLimitValid = offer.usageLimit === null || offer.usedCount < offer.usageLimit;
+        const isMinValid = !offer.minOrderValue || calculatedSubtotal >= offer.minOrderValue;
+
+        if (isDateValid && isLimitValid && isMinValid) {
+          if (offer.discountType === 'percentage') {
+            discount = Math.round((calculatedSubtotal * offer.discountValue) / 100);
+            if (offer.maxDiscount && discount > offer.maxDiscount) {
+              discount = offer.maxDiscount;
+            }
+          } else if (offer.discountType === 'fixed') {
+            discount = Math.min(offer.discountValue, calculatedSubtotal);
+          }
+          appliedCouponCode = offer.code;
+        }
+      }
+    }
+
+    discount = Math.max(0, discount);
+    const finalTotal = Math.max(0, calculatedSubtotal + shippingFee + tax - discount);
 
     // Payment validation rules
     let paymentStatus = 'pending';
@@ -203,6 +233,8 @@ export const createOrder = async (req, res, next) => {
       tax,
       discount,
       total: finalTotal,
+      couponCode: appliedCouponCode,
+      couponDiscount: discount,
       paymentMethod: 'cod',
       paymentStatus: 'pending',
       razorpayOrderId: null,
@@ -213,10 +245,30 @@ export const createOrder = async (req, res, next) => {
         {
           status: 'confirmed',
           timestamp: new Date(),
-          note: 'Order placed with Cash on Delivery (COD)'
+          note: appliedCouponCode 
+            ? `Order placed with Cash on Delivery (COD). Coupon "${appliedCouponCode}" applied (₹${discount} discount).`
+            : 'Order placed with Cash on Delivery (COD)'
         }
       ]
     });
+
+    // Record coupon usage if coupon was applied
+    if (appliedCouponCode) {
+      await Offer.findOneAndUpdate(
+        { code: appliedCouponCode },
+        {
+          $inc: { usedCount: 1 },
+          $push: {
+            usedBy: {
+              userId: req.user._id,
+              orderNumber,
+              discountApplied: discount,
+              usedAt: new Date()
+            }
+          }
+        }
+      );
+    }
 
     // Clear cart if ordered items were in user's cart
     await Cart.findOneAndUpdate({ userId: req.user._id }, { items: [] });

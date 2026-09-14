@@ -53,7 +53,7 @@ export default function CraftsmanshipStory() {
       icon: Home,
       image: '/images/room-after.jpg',
       headline: 'Grounded Elegance Made to Outlive Us All',
-      desc: 'The finished heirloom is personally inspected, certified with an engraved brass provenance plaque, and transported with white-glove care directly into your private residence. Over decades of footfall, the wool fibers become softer and more radiant.'
+      desc: 'The finished heirloom is personally inspected, certified with an engraved brass provenance plaque, and transported with white-glove care directly into your home. Over decades of footfall, the wool fibers become softer and more radiant.'
     }
   ];
 
@@ -78,7 +78,7 @@ export default function CraftsmanshipStory() {
           </h2>
 
           <p className="font-sans text-sm md:text-base text-[#544131]/80 font-normal leading-relaxed">
-            Follow the meticulous five-chapter pilgrimage from design blueprinting to your residence.
+            Follow the meticulous five-chapter journey from design blueprinting to your home.
           </p>
         </div>
 

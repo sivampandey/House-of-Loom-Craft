@@ -75,7 +75,7 @@ export default function ProductDetailPage({ onShowToast }) {
       <div className="min-h-screen bg-[#F5F0E6] flex items-center justify-center pt-24">
         <div className="text-center space-y-4 max-w-md p-8 bg-[#EFE8D8] rounded-2xl border border-[#DACDB3]">
           <h2 className="font-serif text-3xl text-[#362B21]">Piece Not Located</h2>
-          <p className="text-sm text-[#4E3C2B]">This heirloom carpet may have been acquired or transferred in our atelier archive.</p>
+          <p className="text-sm text-[#4E3C2B]">This product may no longer be available or has been moved in our catalog.</p>
           <Link
             to="/collections"
             className="inline-block px-6 py-3 bg-[#55694A] text-[#FAF7F0] text-xs uppercase tracking-widest font-bold rounded-full"
@@ -138,7 +138,7 @@ export default function ProductDetailPage({ onShowToast }) {
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
   const whatsappConciergeMsg = encodeURIComponent(
-    `Hello Pottery Rugs & Home Decor Atelier,\n\nI am inquiring about the piece: *${product.name}* (Price: ₹${product.price?.toLocaleString()}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or white-glove dispatch?`
+    `Hello Pottery Rugs & Home Decor,\n\nI am inquiring about the piece: *${product.name}* (Price: ₹${product.price?.toLocaleString()}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
   );
 
   return (
@@ -249,7 +249,7 @@ export default function ProductDetailPage({ onShowToast }) {
             </div>
           </div>
 
-          {/* Right Column: Acquisition Panel & Specifications (5 cols) */}
+          {/* Right Column: Purchase Panel & Specifications (5 cols) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
             <div className="space-y-2">
               <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold block">
@@ -396,7 +396,7 @@ export default function ProductDetailPage({ onShowToast }) {
                 <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold block">
                   CURATED HARMONY
                 </span>
-                <h2 className="font-serif text-3xl text-[#362B21] font-light">Complementary Masterpieces</h2>
+                <h2 className="font-serif text-3xl text-[#362B21] font-light">Complementary Pieces</h2>
               </div>
               <Link
                 to="/collections"

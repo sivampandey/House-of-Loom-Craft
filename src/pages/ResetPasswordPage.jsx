@@ -53,14 +53,14 @@ export default function ResetPasswordPage({ onShowToast }) {
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-20 flex items-center justify-center px-4">
       <SEO
         title="Set New Password | Pottery Rugs & Home Decor"
-        description="Choose a new secure password for your atelier client account."
+        description="Choose a new secure password for your account."
         path="/reset-password"
       />
 
       <div className="w-full max-w-md bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] p-8 sm:p-10 shadow-xl space-y-6">
         <div>
           <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-            SECURITY RE-ENROLLMENT
+            ACCOUNT SECURITY
           </span>
           <h1 className="font-serif text-3xl text-[#362B21] font-light mt-1">
             New Password

@@ -12,7 +12,7 @@ export default function InspirationJournal() {
             <div className="flex items-center gap-3">
               <span className="w-8 h-[2px] bg-[#6D7F62]" />
               <span className="text-[11px] uppercase tracking-[0.3em] text-[#55694A] font-sans font-bold">
-                THE ATELIER GAZETTE
+                DESIGN & CRAFT JOURNAL
               </span>
             </div>
             <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl text-[#362B21] font-light">

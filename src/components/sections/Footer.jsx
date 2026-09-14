@@ -48,14 +48,14 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
             {subscribed ? (
               <div className="p-4 rounded-xl bg-[#48593F] border border-[#6D8262] text-[#FAF7F0] text-xs font-sans flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-[#D4BC9F] flex-shrink-0" />
-                <span>You are now subscribed to our private dispatch. Welcome.</span>
+                <span>You are now subscribed to our newsletter. Welcome.</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="email"
                   required
-                  placeholder="Enter your residence email address"
+                  placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 bg-[#48593F] border border-[#657859] rounded-lg px-5 py-3.5 text-xs text-[#FAF7F0] placeholder:text-[#FAF7F0]/50 focus:border-[#D4BC9F] focus:outline-none font-sans"
@@ -64,7 +64,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
                   type="submit"
                   className="bg-[#5D7053] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold px-6 py-3.5 rounded-lg text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg flex-shrink-0 border border-[#7D9271]"
                 >
-                  <span>Inscribe</span>
+                  <span>Subscribe</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </form>
@@ -74,7 +74,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
 
         {/* Main Footer Links Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10 text-xs font-sans">
-          {/* Column 1: Brand & Atelier Presence */}
+          {/* Column 1: Brand Presence */}
           <div className="col-span-1 sm:col-span-2 space-y-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-1 shadow-md flex-shrink-0">

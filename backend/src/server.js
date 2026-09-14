@@ -17,6 +17,8 @@ import cartRoutes from './routes/cart.js';
 import wishlistRoutes from './routes/wishlist.js';
 import orderRoutes from './routes/orders.js';
 import paymentRoutes from './routes/payments.js';
+import adminRoutes from './routes/admin.js';
+import offerRoutes from './routes/offers.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -168,6 +170,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/offers', offerRoutes);
 
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {

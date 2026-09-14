@@ -177,7 +177,7 @@ export default function OurStoryPage() {
               DISCOVER THE CREATIONS
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-light leading-tight">
-              Bring Bhadohi Craftsmanship into Your Residence
+              Bring Bhadohi Craftsmanship into Your Home
             </h2>
             <p className="text-xs sm:text-sm text-[#FAF7F0]/85 font-sans leading-relaxed">
               Explore our hand-knotted heirlooms, modern tufted sculptures, and architectural accents—or speak with our team to commission a bespoke size.

@@ -25,7 +25,7 @@ export default function LoginPage({ onShowToast }) {
     try {
       const res = await login(email, password);
       if (onShowToast) {
-        onShowToast('cart', 'Welcome Back', res.message || `Logged into Atelier Portal.`);
+        onShowToast('cart', 'Welcome Back', res.message || 'Logged in successfully.');
       }
       navigate(redirectPath, { replace: true });
     } catch (err) {
@@ -38,8 +38,8 @@ export default function LoginPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6">
       <SEO
-        title="Client Sign In | Private Atelier Portal"
-        description="Sign in to your private Pottery Rugs & Home Decor atelier client account to view orders, saved curations, and bespoke commissions."
+        title="Sign In | Pottery Rugs & Home Decor"
+        description="Sign in to your Pottery Rugs & Home Decor account to view orders, saved items, and account details."
         path="/login"
       />
 
@@ -48,15 +48,15 @@ export default function LoginPage({ onShowToast }) {
         <div className="md:col-span-5 relative bg-[#3C4A34] min-h-[220px] md:min-h-[500px] overflow-hidden flex flex-col justify-between p-8 text-[#FAF7F0]">
           <img
             src="/images/craft-weaving.jpg"
-            alt="Atelier Craftsmanship"
+            alt="Handcrafted Weaving"
             className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#362B21]/95 via-[#45563D]/70 to-transparent" />
 
-          {/* Top Atelier Mark */}
+          {/* Top Mark */}
           <div className="relative z-10">
             <span className="text-[9px] uppercase tracking-[0.3em] text-[#D4BC9F] font-bold block">
-              BHADOHI PRIVATE CLIENTS
+              BHADOHI CRAFTSMANSHIP
             </span>
             <h2 className="font-serif text-2xl text-[#FAF7F0] mt-1 font-light">
               POTTERY RUGS
@@ -70,7 +70,7 @@ export default function LoginPage({ onShowToast }) {
             </p>
             <div className="flex items-center gap-2 text-[10px] text-[#D4BC9F] uppercase tracking-wider font-bold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Encrypted Atelier Security</span>
+              <span>Encrypted Secure Access</span>
             </div>
           </div>
         </div>
@@ -80,13 +80,13 @@ export default function LoginPage({ onShowToast }) {
           <div className="max-w-md w-full mx-auto space-y-6">
             <div>
               <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-                PORTAL
+                ACCOUNT
               </span>
               <h1 className="font-serif text-3xl sm:text-4xl text-[#362B21] font-light mt-1">
                 Welcome Back
               </h1>
               <p className="text-xs text-[#4E3C2B] mt-1 font-sans">
-                Enter your credentials to access your private curation and order archive.
+                Enter your credentials to access your account and order history.
               </p>
             </div>
 
@@ -144,7 +144,7 @@ export default function LoginPage({ onShowToast }) {
                 disabled={loading}
                 className="w-full bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md mt-2 disabled:opacity-50"
               >
-                <span>{loading ? 'Verifying Session...' : 'Sign In to Atelier'}</span>
+                <span>{loading ? 'Signing In...' : 'Sign In'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

@@ -355,7 +355,7 @@ export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
               BESPOKE ARCHITECTURAL SCALES
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#FAF7F0] font-light leading-tight">
-              Commission a Custom Rug Tailored to Your Residence
+              Commission a Custom Rug Tailored to Your Space
             </h2>
             <p className="text-xs sm:text-sm text-[#FAF7F0]/85 font-sans leading-relaxed">
               Work directly with our Bhadohi master draftsmen to specify exact room dimensions, knot densities, color palettes, and geometric silhouettes.

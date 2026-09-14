@@ -19,7 +19,7 @@ export default function FinalCTA({ onExploreCollection, onContactUs }) {
         <div className="inline-flex items-center gap-3 bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-lg">
           <span className="w-2 h-2 rounded-full bg-[#D4BC9F]" />
           <span className="text-[10px] uppercase tracking-[0.3em] text-white font-sans font-semibold">
-            ATELIER INVITATION
+            CRAFT & HERITAGE
           </span>
         </div>
 

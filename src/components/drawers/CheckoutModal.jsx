@@ -356,7 +356,7 @@ export default function CheckoutModal({
                       <span className="font-bold uppercase tracking-wider">FREE</span>
                     </div>
                     <div className="flex justify-between text-[#FAF7F0]/80">
-                      <span>Direct Atelier Price</span>
+                      <span>Price</span>
                       <span>Manufacturer Direct</span>
                     </div>
                     <div className="pt-2 border-t border-[#6D7F62]/40 flex justify-between text-base font-serif text-[#FAF7F0] font-medium">
@@ -569,7 +569,7 @@ export default function CheckoutModal({
                       <span>Cash On Delivery (COD) Policy</span>
                     </div>
                     <ul className="text-xs text-[#FAF7F0]/85 space-y-1.5 list-disc list-inside">
-                      <li>Pay directly to the courier agent when your rug arrives at your residence.</li>
+                      <li>Pay directly to the courier agent when your rug arrives at your doorstep.</li>
                       <li>Payment accepted in <strong>Cash or via QR Code / UPI</strong> at the time of delivery.</li>
                       <li>Free in-home inspection before final handover.</li>
                       <li>No advance prepayment required.</li>
@@ -585,7 +585,7 @@ export default function CheckoutModal({
                   className="w-full bg-[#5D7053] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-4 px-6 rounded-lg text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group shadow-xl border border-[#85997A]/60"
                 >
                   {isProcessing ? (
-                    <span>Securing Your Acquisition...</span>
+                    <span>Placing Your Order...</span>
                   ) : paymentMethod === 'online' ? (
                     <>
                       <Lock className="w-4 h-4" />
@@ -650,7 +650,7 @@ export default function CheckoutModal({
                   Thank You for Your Order
                 </h3>
                 <p className="text-xs sm:text-sm font-sans text-[#FAF7F0]/85 max-w-lg mx-auto mt-2 leading-relaxed font-normal">
-                  Your piece is being prepared for insured dispatch from our master atelier in Bhadohi, Uttar Pradesh.
+                  Your piece is being prepared for insured dispatch from our workshop in Bhadohi, Uttar Pradesh.
                 </p>
               </div>
 
@@ -678,7 +678,7 @@ export default function CheckoutModal({
                 </div>
 
                 <div className="pt-3 border-t border-[#6D7F62]/50 flex justify-between items-center font-bold text-sm">
-                  <span className="text-[#FAF7F0]">Total Investment:</span>
+                  <span className="text-[#FAF7F0]">Total Amount:</span>
                   <span className="font-sans text-lg text-[#D4BC9F]">₹{completedOrder.total.toLocaleString()}</span>
                 </div>
 
@@ -712,7 +712,7 @@ export default function CheckoutModal({
                   onClick={handleClose}
                   className="w-full sm:w-auto bg-[#5D7053] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-lg text-xs uppercase tracking-wider transition-all"
                 >
-                  <span>Continue Exploring</span>
+                  <span>Continue Shopping</span>
                 </button>
               </div>
 
@@ -720,7 +720,7 @@ export default function CheckoutModal({
               <div className="pt-4 border-t border-[#6D7F62]/40 text-xs text-[#D4BC9F] flex flex-wrap items-center justify-center gap-4 font-medium">
                 <span className="flex items-center gap-1.5">
                   <Phone className="w-4 h-4" />
-                  Direct Atelier Helplines: 
+                  Direct Helplines: 
                   <a href={`tel:${companyInfo.phone1}`} className="underline hover:text-white">{companyInfo.phone1}</a>, 
                   <a href={`tel:${companyInfo.phone2}`} className="underline hover:text-white">{companyInfo.phone2}</a>
                 </span>

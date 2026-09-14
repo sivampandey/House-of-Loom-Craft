@@ -3,6 +3,7 @@ import Razorpay from 'razorpay';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { Cart } from '../models/Cart.js';
+import { Offer } from '../models/Offer.js';
 import { decrementStockSafely, generateUniqueOrderNumber } from './orderController.js';
 
 // Lazily initialize Razorpay if keys are configured
@@ -22,7 +23,7 @@ const getRazorpayInstance = () => {
 
 export const createRazorpayOrder = async (req, res, next) => {
   try {
-    const { items = [] } = req.body;
+    const { items = [], couponCode } = req.body;
 
     if (!items.length) {
       return res.status(400).json({
@@ -32,7 +33,7 @@ export const createRazorpayOrder = async (req, res, next) => {
     }
 
     // Calculate server-side authoritative total strictly from MongoDB Product records
-    let total = 0;
+    let subtotal = 0;
     for (const item of items) {
       const pId = item.productId || item._id;
       const product = await Product.findOne({
@@ -58,11 +59,38 @@ export const createRazorpayOrder = async (req, res, next) => {
         });
       }
 
-      total += product.price * qty;
+      subtotal += product.price * qty;
     }
 
+    // Calculate coupon discount if applicable
+    let discount = 0;
+    let appliedCode = null;
+    if (couponCode && typeof couponCode === 'string') {
+      const offer = await Offer.findOne({
+        code: couponCode.trim().toUpperCase(),
+        isActive: true,
+        validFrom: { $lte: new Date() },
+        validUntil: { $gte: new Date() }
+      });
+
+      if (offer && subtotal >= (offer.minOrderAmount || 0)) {
+        if (offer.discountType === 'percentage') {
+          discount = (subtotal * offer.discountValue) / 100;
+          if (offer.maxDiscountAmount && discount > offer.maxDiscountAmount) {
+            discount = offer.maxDiscountAmount;
+          }
+        } else {
+          discount = Math.min(offer.discountValue, subtotal);
+        }
+        discount = Math.round(discount);
+        appliedCode = offer.code;
+      }
+    }
+
+    const finalPayable = Math.max(0, subtotal - discount);
+
     // Razorpay works in subunits (paise for INR, 1 INR = 100 paise)
-    const amountInPaise = Math.round(total * 100);
+    const amountInPaise = Math.round(finalPayable * 100);
     const receipt = `rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
     const razorpay = getRazorpayInstance();
@@ -86,7 +114,10 @@ export const createRazorpayOrder = async (req, res, next) => {
         amount: amountInPaise,
         currency: 'INR',
         keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_simulation',
-        total
+        total: finalPayable,
+        subtotal,
+        discount,
+        couponCode: appliedCode
       });
     }
 
@@ -105,7 +136,10 @@ export const createRazorpayOrder = async (req, res, next) => {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       keyId: process.env.RAZORPAY_KEY_ID,
-      total
+      total: finalPayable,
+      subtotal,
+      discount,
+      couponCode: appliedCode
     });
   } catch (error) {
     next(error);
@@ -119,7 +153,8 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       razorpayPaymentId,
       razorpaySignature,
       items = [],
-      shippingAddress
+      shippingAddress,
+      couponCode
     } = req.body;
 
     if (!razorpayOrderId || !razorpayPaymentId) {
@@ -187,7 +222,33 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       });
     }
 
-    const amountInPaise = Math.round(calculatedSubtotal * 100);
+    // Calculate coupon discount if applicable
+    let couponDiscount = 0;
+    let couponOffer = null;
+    if (couponCode && typeof couponCode === 'string') {
+      const offer = await Offer.findOne({
+        code: couponCode.trim().toUpperCase(),
+        isActive: true,
+        validFrom: { $lte: new Date() },
+        validUntil: { $gte: new Date() }
+      });
+
+      if (offer && calculatedSubtotal >= (offer.minOrderAmount || 0)) {
+        if (offer.discountType === 'percentage') {
+          couponDiscount = (calculatedSubtotal * offer.discountValue) / 100;
+          if (offer.maxDiscountAmount && couponDiscount > offer.maxDiscountAmount) {
+            couponDiscount = offer.maxDiscountAmount;
+          }
+        } else {
+          couponDiscount = Math.min(offer.discountValue, calculatedSubtotal);
+        }
+        couponDiscount = Math.round(couponDiscount);
+        couponOffer = offer;
+      }
+    }
+
+    const finalOrderTotal = Math.max(0, calculatedSubtotal - couponDiscount);
+    const amountInPaise = Math.round(finalOrderTotal * 100);
 
     // 3. Simulated Payment Security Guard
     const isSimulated = String(razorpayOrderId).startsWith('order_sim_') || String(razorpayPaymentId).startsWith('pay_sim_');
@@ -345,8 +406,10 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       subtotal: calculatedSubtotal,
       shippingFee: 0,
       tax: 0,
-      discount: 0,
-      total: calculatedSubtotal,
+      discount: couponDiscount,
+      couponCode: couponOffer ? couponOffer.code : undefined,
+      couponDiscount: couponDiscount,
+      total: finalOrderTotal,
       paymentMethod: 'online',
       paymentStatus: 'completed',
       razorpayOrderId,
@@ -357,10 +420,27 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
         {
           status: 'confirmed',
           timestamp: new Date(),
-          note: `Payment verified (${razorpayPaymentId}). Order confirmed.`
+          note: `Payment verified (${razorpayPaymentId}). Order confirmed.${couponOffer ? ` Applied coupon ${couponOffer.code} (₹${couponDiscount} discount).` : ''}`
         }
       ]
     });
+
+    // Record coupon usage if applicable
+    if (couponOffer) {
+      await Offer.updateOne(
+        { _id: couponOffer._id },
+        {
+          $inc: { usedCount: 1 },
+          $push: {
+            usedBy: {
+              userId: req.user._id,
+              orderId: order._id,
+              usedAt: new Date()
+            }
+          }
+        }
+      );
+    }
 
     // Clear cart
     await Cart.findOneAndUpdate({ userId: req.user._id }, { items: [] });

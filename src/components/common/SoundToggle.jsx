@@ -87,9 +87,9 @@ export default function SoundToggle() {
   return (
     <button
       onClick={toggleSound}
-      title={isPlaying ? "Mute Atelier Ambience" : "Play Atelier Ambience"}
+      title={isPlaying ? "Mute Loom Ambience" : "Play Loom Ambience"}
       className="p-2 text-luxury-ivory hover:text-luxury-gold transition-colors duration-300 relative group flex items-center gap-1.5 text-xs font-sans tracking-wider"
-      aria-label="Toggle atelier atmosphere"
+      aria-label="Toggle loom atmosphere"
     >
       {isPlaying ? (
         <>

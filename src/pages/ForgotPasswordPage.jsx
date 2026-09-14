@@ -33,8 +33,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-20 flex items-center justify-center px-4">
       <SEO
-        title="Password Recovery | Private Atelier"
-        description="Reset your client account access credentials for Pottery Rugs & Home Decor."
+        title="Password Recovery | Pottery Rugs & Home Decor"
+        description="Reset your account password for Pottery Rugs & Home Decor."
         path="/forgot-password"
       />
 
@@ -49,13 +49,13 @@ export default function ForgotPasswordPage() {
 
         <div>
           <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-            SECURITY ASSISTANCE
+            PASSWORD RECOVERY
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl text-[#362B21] font-light mt-1">
             Reset Password
           </h1>
           <p className="text-xs text-[#4E3C2B] mt-1">
-            Enter your registered email or phone to generate a secure reset authorization.
+            Enter your registered email address to receive password reset instructions.
           </p>
         </div>
 

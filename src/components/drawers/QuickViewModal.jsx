@@ -74,7 +74,7 @@ export default function QuickViewModal({
           <div className="p-8 lg:p-10 flex flex-col justify-between space-y-6">
             <div>
               <span className="text-xs uppercase tracking-widest text-[#D4BC9F] font-bold block mb-1">
-                {product.category || product.collectionName || 'Atelier Creation'}
+                {product.category || product.collectionName || 'Handcrafted Rug'}
               </span>
               <h2 className="font-serif text-3xl md:text-4xl text-[#FAF7F0] leading-tight font-light">
                 {product.name}
@@ -99,21 +99,25 @@ export default function QuickViewModal({
                 <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.material}</span>
               </div>
               <div>
-                <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Knot Density / Weave</span>
-                <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.knotDensity || 'Handcrafted Pile'}</span>
+                <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Craft Origin</span>
+                <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.origin || 'Bhadohi, India'}</span>
               </div>
-              <div>
-                <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Dimensions</span>
-                <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.dimensions}</span>
-              </div>
-              <div>
-                <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Origin & Craft</span>
-                <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.origin}</span>
-              </div>
+              {product.dimensions && (
+                <div>
+                  <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Dimensions</span>
+                  <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.dimensions}</span>
+                </div>
+              )}
+              {product.knotDensity && (
+                <div>
+                  <span className="text-[#D4BC9F] block text-[11px] uppercase tracking-wider font-bold">Knot Density</span>
+                  <span className="text-[#FAF7F0] font-medium mt-0.5 block">{product.knotDensity}</span>
+                </div>
+              )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3 pt-2">
+            {/* Actions */}
+            <div className="space-y-4 pt-2">
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleInstantBuy}
@@ -149,7 +153,7 @@ export default function QuickViewModal({
                         ? 'bg-[#5D7053] border-[#85997A] text-[#FAF7F0]'
                         : 'border-[#6D7F62] hover:border-[#D4BC9F] text-[#FAF7F0] bg-[#3C4A34]'
                     }`}
-                    title={isWishlisted ? "Remove from Saved" : "Save Piece"}
+                    title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
                   >
                     <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                   </button>

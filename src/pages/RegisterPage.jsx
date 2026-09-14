@@ -32,7 +32,7 @@ export default function RegisterPage({ onShowToast }) {
     setError('');
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters in length for atelier security.');
+      setError('Password must be at least 8 characters in length.');
       return;
     }
 
@@ -53,7 +53,7 @@ export default function RegisterPage({ onShowToast }) {
       });
 
       if (onShowToast) {
-        onShowToast('cart', 'Welcome to the Atelier', res.message || 'Client account created successfully.');
+        onShowToast('cart', 'Welcome', res.message || 'Account created successfully.');
       }
 
       navigate('/profile');
@@ -67,8 +67,8 @@ export default function RegisterPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6">
       <SEO
-        title="Register Client Profile | Pottery Rugs & Home Decor"
-        description="Register a client account to manage your carpet acquisitions, track bespoke loom commissions, and save private curated selections."
+        title="Create Account | Pottery Rugs & Home Decor"
+        description="Create an account to track your orders, manage shipping addresses, and save favorite rugs."
         path="/register"
       />
 
@@ -77,27 +77,27 @@ export default function RegisterPage({ onShowToast }) {
         <div className="md:col-span-5 relative bg-[#3C4A34] min-h-[220px] md:min-h-[560px] overflow-hidden flex flex-col justify-between p-8 text-[#FAF7F0]">
           <img
             src="/images/bespoke-atelier.jpg"
-            alt="Atelier Loom"
+            alt="Bhadohi Handcrafting"
             className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#362B21]/95 via-[#45563D]/70 to-transparent" />
 
           <div className="relative z-10">
             <span className="text-[9px] uppercase tracking-[0.3em] text-[#D4BC9F] font-bold block">
-              PRIVATE PRIVILEGES
+              ACCOUNT BENEFITS
             </span>
             <h2 className="font-serif text-2xl text-[#FAF7F0] mt-1 font-light">
-              Join the Atelier
+              Join Pottery Rugs
             </h2>
           </div>
 
           <div className="relative z-10 space-y-2">
             <p className="font-serif italic text-sm text-[#FAF7F0]/90 leading-relaxed">
-              "Enjoy complimentary white-glove delivery, bespoke master loom progress updates, and curated archival access."
+              "Enjoy insured shipping, order tracking updates, and curated collections for your home."
             </p>
             <div className="flex items-center gap-2 text-[10px] text-[#D4BC9F] uppercase tracking-wider font-bold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Privately Protected Customer Data</span>
+              <span>Securely Protected Customer Data</span>
             </div>
           </div>
         </div>
@@ -107,13 +107,13 @@ export default function RegisterPage({ onShowToast }) {
           <div className="max-w-md w-full mx-auto space-y-6">
             <div>
               <span className="text-xs uppercase tracking-[0.25em] text-[#55694A] font-sans font-bold">
-                NEW ENROLLMENT
+                SIGN UP
               </span>
               <h1 className="font-serif text-3xl sm:text-4xl text-[#362B21] font-light mt-1">
                 Create Account
               </h1>
               <p className="text-xs text-[#4E3C2B] mt-1 font-sans">
-                Register to track orders and save bespoke curations.
+                Register to track orders and save your favorite pieces.
               </p>
             </div>
 
@@ -179,7 +179,7 @@ export default function RegisterPage({ onShowToast }) {
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-[#362B21] font-bold mb-1.5">
-                  Contact Helpline / Phone
+                  Phone Number
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-[#55694A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -188,7 +188,7 @@ export default function RegisterPage({ onShowToast }) {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="Enter your number"
+                    placeholder="Enter your phone number"
                     className="w-full bg-[#FAF7F0] border border-[#DACDB3] focus:border-[#55694A] rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-[#362B21] focus:outline-none placeholder-[#4E3C2B]/50"
                   />
                 </div>
@@ -234,16 +234,16 @@ export default function RegisterPage({ onShowToast }) {
                 disabled={loading}
                 className="w-full bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md mt-4 disabled:opacity-50"
               >
-                <span>{loading ? 'Creating Client Account...' : 'Complete Enrollment'}</span>
+                <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
 
             <div className="pt-4 border-t border-[#DACDB3]/60 text-center">
               <p className="text-xs text-[#4E3C2B]">
-                Already enrolled with the Atelier?{' '}
+                Already have an account?{' '}
                 <Link to="/login" className="font-bold text-[#55694A] hover:underline">
-                  Sign In Here
+                  Sign In
                 </Link>
               </p>
             </div>

@@ -58,7 +58,7 @@ export default function OrdersPage() {
         <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-[#55694A] font-sans font-bold mb-8">
           <Link to="/profile" className="hover:text-[#362B21] transition-colors flex items-center gap-1.5">
             <ArrowLeft className="w-3.5 h-3.5" />
-            Client Atelier Profile
+            My Profile
           </Link>
           <span className="text-[#DACDB3]">/</span>
           <span className="text-[#362B21]">Orders</span>
@@ -73,7 +73,7 @@ export default function OrdersPage() {
               Order History
             </h1>
             <p className="text-xs text-[#4E3C2B]">
-              Review your dispatched carpets, bespoke commissions, and architectural home accents.
+              Review your past purchases, order statuses, and delivery tracking.
             </p>
           </div>
 
@@ -81,27 +81,27 @@ export default function OrdersPage() {
             to="/collections"
             className="px-6 py-2.5 rounded-full bg-[#55694A] text-[#FAF7F0] text-xs uppercase tracking-widest font-sans font-bold hover:bg-[#6D8262] transition-colors shadow-sm self-start md:self-auto"
           >
-            Explore Masterpieces
+            Explore Collections
           </Link>
         </div>
 
         {loading ? (
           <div className="py-24 text-center space-y-4">
             <div className="w-10 h-10 border-2 border-[#55694A] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Consulting Order Ledger...</p>
+            <p className="font-serif text-sm tracking-widest text-[#4E3C2B] uppercase">Loading Orders...</p>
           </div>
         ) : orders.length === 0 ? (
           <div className="p-16 text-center bg-[#EFE8D8] rounded-3xl border border-[#DACDB3] space-y-4">
             <Package className="w-12 h-12 text-[#55694A] mx-auto opacity-60" />
             <h2 className="font-serif text-3xl text-[#362B21] font-light">No Order History Yet</h2>
             <p className="text-xs text-[#4E3C2B] max-w-md mx-auto leading-relaxed">
-              You haven't placed any orders yet. Explore our handcrafted heirloom rugs to begin your private collection.
+              You haven't placed any orders yet. Explore our handcrafted rugs and home decor to find the perfect piece for your space.
             </p>
             <Link
               to="/collections"
               className="inline-block mt-4 px-8 py-3.5 bg-[#55694A] text-[#FAF7F0] text-xs uppercase tracking-widest font-bold rounded-full shadow-md"
             >
-              Discover Collections
+              Explore Collections
             </Link>
           </div>
         ) : (

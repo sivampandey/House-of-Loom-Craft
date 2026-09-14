@@ -38,7 +38,7 @@ async function request(endpoint, options = {}) {
 
     if (!response.ok) {
       throw new ApiError(
-        data.message || `Atelier request failed (${response.status})`,
+        data.message || `Request failed (${response.status})`,
         response.status,
         data
       );
@@ -47,7 +47,7 @@ async function request(endpoint, options = {}) {
     return data;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError(error.message || 'Unable to connect to the atelier service. Please verify your connection.', 0);
+    throw new ApiError(error.message || 'Unable to connect to server. Please verify your connection.', 0);
   }
 }
 
@@ -151,8 +151,67 @@ export const ordersAPI = {
 
 // ==================== PAYMENTS (RAZORPAY) ====================
 export const paymentsAPI = {
-  createOrder: (items) =>
-    request('/payments/create-order', { method: 'POST', body: JSON.stringify({ items }) }),
+  createOrder: (items, couponCode = null) =>
+    request('/payments/create-order', { method: 'POST', body: JSON.stringify({ items, couponCode }) }),
   verifyPayment: (payload) =>
     request('/payments/verify', { method: 'POST', body: JSON.stringify(payload) })
 };
+
+// ==================== OFFERS & COUPONS (CUSTOMER) ====================
+export const offersAPI = {
+  validateOffer: (code, subtotal, items = []) =>
+    request('/offers/validate', { method: 'POST', body: JSON.stringify({ code, subtotal, items }) })
+};
+
+// ==================== ADMIN PANEL APIs ====================
+export const adminAPI = {
+  // Dashboard Metrics
+  getDashboard: () => request('/admin/dashboard'),
+
+  // Products
+  getProducts: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/products${query ? `?${query}` : ''}`);
+  },
+  getProductById: (id) => request(`/admin/products/${id}`),
+  createProduct: (data) =>
+    request('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
+  updateProduct: (id, data) =>
+    request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteProduct: (id) =>
+    request(`/admin/products/${id}`, { method: 'DELETE' }),
+
+  // Users
+  getUsers: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/users${query ? `?${query}` : ''}`);
+  },
+  getUserById: (id) => request(`/admin/users/${id}`),
+  deleteUser: (id) =>
+    request(`/admin/users/${id}`, { method: 'DELETE' }),
+
+  // Orders
+  getOrders: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/orders${query ? `?${query}` : ''}`);
+  },
+  getOrderById: (id) => request(`/admin/orders/${id}`),
+  updateOrderStatus: (id, orderStatus, note = '') =>
+    request(`/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ orderStatus, note }) }),
+  updateOrderTracking: (id, trackingData) =>
+    request(`/admin/orders/${id}/tracking`, { method: 'PUT', body: JSON.stringify(trackingData) }),
+
+  // Offers & Coupons
+  getOffers: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/offers${query ? `?${query}` : ''}`);
+  },
+  getOfferById: (id) => request(`/admin/offers/${id}`),
+  createOffer: (data) =>
+    request('/admin/offers', { method: 'POST', body: JSON.stringify(data) }),
+  updateOffer: (id, data) =>
+    request(`/admin/offers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteOffer: (id) =>
+    request(`/admin/offers/${id}`, { method: 'DELETE' })
+};
+
