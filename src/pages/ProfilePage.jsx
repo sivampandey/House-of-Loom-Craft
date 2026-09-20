@@ -234,7 +234,7 @@ export default function ProfilePage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="My Profile | Pottery Rugs & Home Decor"
+        title="My Profile | House of Loom & Craft"
         description="Manage your account, orders, and saved addresses."
         path="/profile"
       />

@@ -80,7 +80,7 @@ export default function Navbar({
             : 'bg-[#6B825D]/90 backdrop-blur-md border border-[#88A279]/50 shadow-xl'
             }`}
         >
-          {/* Brand Logo - POTTERY RUGS & HOME DECOR */}
+          {/* Brand Logo - House of Loom & Craft */}
           <Link
             to="/"
             onClick={(e) => handleNavClick(e, '/')}
@@ -89,16 +89,16 @@ export default function Navbar({
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-0.5 shadow-md flex-shrink-0 group-hover:scale-105 transition-transform">
               <img
                 src={companyInfo.logo}
-                alt="Pottery Rugs & Home Decor Logo"
+                alt="House of Loom & Craft Logo"
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-base sm:text-lg tracking-[0.15em] text-[#FAF7F0] font-medium group-hover:text-[#D4BC9F] transition-colors leading-tight whitespace-nowrap">
-                POTTERY RUGS
+              <span className="font-serif text-base sm:text-lg tracking-[0.06em] text-[#FAF7F0] font-medium group-hover:text-[#D4BC9F] transition-colors leading-tight whitespace-nowrap">
+                House of Loom & Craft
               </span>
-              <span className="text-[7.5px] sm:text-[8.5px] uppercase tracking-[0.26em] text-[#D4BC9F] font-sans font-bold">
-                & HOME DECOR
+              <span className="text-[7.5px] sm:text-[8px] uppercase tracking-[0.2em] text-[#D4BC9F] font-sans font-medium">
+                Bhadohi Atelier
               </span>
             </div>
           </Link>

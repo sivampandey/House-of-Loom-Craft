@@ -52,7 +52,7 @@ export default function ResetPasswordPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-20 flex items-center justify-center px-4">
       <SEO
-        title="Set New Password | Pottery Rugs & Home Decor"
+        title="Set New Password | House of Loom & Craft"
         description="Choose a new secure password for your account."
         path="/reset-password"
       />

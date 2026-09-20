@@ -77,7 +77,7 @@ export default function AdminSettingsPage() {
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">Active Admin Account:</span>
             <span className="text-[#1E261B] font-medium font-mono">
-              {user?.email || 'potteryrug@admin.com'}
+              {user?.email || 'Potteryrugs@gmail.com'}
             </span>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function AdminSettingsPage() {
             <input
               type="text"
               readOnly
-              value="POTTERY RUGS & HOME DECOR"
+              value="House of Loom & Craft"
               className="w-full px-3 py-2 border border-[#1E261B]/15 rounded bg-[#FAF7F2] text-[#1E261B] font-medium"
             />
           </div>
@@ -119,7 +119,7 @@ export default function AdminSettingsPage() {
             <input
               type="text"
               readOnly
-              value="contact@potteryrugs.com"
+              value="Potteryrugs@gmail.com"
               className="w-full px-3 py-2 border border-[#1E261B]/15 rounded bg-[#FAF7F2] text-[#1E261B]"
             />
           </div>

@@ -7,7 +7,7 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] flex items-center justify-center px-6 pt-24 pb-20">
       <SEO
-        title="404 - Page Not Found | Pottery Rugs & Home Decor"
+        title="404 - Page Not Found | House of Loom & Craft"
         description="The requested page could not be found."
         path="/404"
       />

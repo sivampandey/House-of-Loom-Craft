@@ -136,7 +136,7 @@ export default function CollectionShowcase({ onSelectCategory, onExploreAll }) {
             ) : (
               <img
                 src="/images/room-after.jpg"
-                alt="Pottery Rugs Showroom Collection"
+                alt="House of Loom & Craft Showroom Collection"
                 className="absolute inset-0 w-full h-full object-cover object-center"
                 loading="lazy"
                 decoding="async"

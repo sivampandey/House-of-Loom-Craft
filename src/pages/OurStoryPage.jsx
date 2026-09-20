@@ -31,8 +31,8 @@ export default function OurStoryPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-20">
       <SEO
-        title="Our Story | Pottery Rugs & Home Decor"
-        description="Discover the heritage of Pottery Rugs & Home Decor, handcrafted carpets and architectural accents from Bhadohi, Uttar Pradesh, India."
+        title="Our Story | House of Loom & Craft"
+        description="Discover the heritage of House of Loom & Craft, handcrafted carpets and architectural accents from Bhadohi, Uttar Pradesh, India."
         path="/our-story"
         breadcrumbs={[
           { name: 'Home', url: '/' },
@@ -55,7 +55,7 @@ export default function OurStoryPage() {
               <span className="italic text-[#55694A] font-normal">Woven for Generations.</span>
             </h1>
             <p className="font-sans text-sm sm:text-base md:text-lg text-[#4E3C2B] font-medium leading-relaxed max-w-2xl">
-              POTTERY RUGS & HOME DECOR is a manufacturer and exporter of handcrafted luxury rugs, architectural floorings, and sculpted interior objects based in Bhadohi, Uttar Pradesh.
+              House of Loom & Craft is a manufacturer and exporter of handcrafted luxury rugs, architectural floorings, and sculpted interior objects based in Bhadohi, Uttar Pradesh.
             </p>
           </div>
 
@@ -88,7 +88,7 @@ export default function OurStoryPage() {
                   Bhadohi, nestled along the historic Grand Trunk Road in eastern Uttar Pradesh, is renowned as South Asia's principal seat of hand-knotted carpet weaving. For centuries, the rhythmic sound of timber looms and musical Talim chanting has echoed through this region.
                 </p>
                 <p>
-                  POTTERY RUGS & HOME DECOR was founded to connect this incomparable generational expertise with contemporary living spaces worldwide. Rather than mass manufacturing, we cultivate close, personal relationships with master knotters, tufters, and dyers.
+                  House of Loom & Craft was founded to connect this incomparable generational expertise with contemporary living spaces worldwide. Rather than mass manufacturing, we cultivate close, personal relationships with master knotters, tufters, and dyers.
                 </p>
                 <p>
                   Each piece that leaves our workshop is more than a floor covering—it is an authentic chronicle of human touch, patience, and artistic endurance.

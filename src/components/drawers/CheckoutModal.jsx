@@ -119,7 +119,7 @@ export default function CheckoutModal({
   const handleWhatsAppConfirm = () => {
     if (!completedOrder) return;
     const itemList = completedOrder.items.map(i => `• ${i.name} (Qty: ${i.quantity || 1}) - ₹${(i.price * (i.quantity || 1)).toLocaleString()}`).join('%0A');
-    const msg = `*NEW ORDER CONFIRMATION - POTTERY RUGS & HOME DECOR*%0A%0A*Order ID:* ${completedOrder.orderId}%0A*Customer Name:* ${completedOrder.customer.fullName}%0A*Phone:* ${completedOrder.customer.phone}%0A*Address:* ${completedOrder.customer.address}, ${completedOrder.customer.city} - ${completedOrder.customer.pincode}%0A*Payment Method:* ${completedOrder.paymentMethod}%0A*Total Amount:* ₹${completedOrder.total.toLocaleString()}%0A%0A*Items Ordered:*%0A${itemList}%0A%0APlease confirm and dispatch this order.`;
+    const msg = `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*%0A%0A*Order ID:* ${completedOrder.orderId}%0A*Customer Name:* ${completedOrder.customer.fullName}%0A*Phone:* ${completedOrder.customer.phone}%0A*Address:* ${completedOrder.customer.address}, ${completedOrder.customer.city} - ${completedOrder.customer.pincode}%0A*Payment Method:* ${completedOrder.paymentMethod}%0A*Total Amount:* ₹${completedOrder.total.toLocaleString()}%0A%0A*Items Ordered:*%0A${itemList}%0A%0APlease confirm and dispatch this order.`;
     window.open(`https://wa.me/${companyInfo.whatsappNumber}?text=${msg}`, '_blank');
   };
 
@@ -148,7 +148,7 @@ export default function CheckoutModal({
         <div className="px-6 py-4 border-b border-[#6D7F62]/60 flex items-center justify-between bg-[#3C4A34]">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#D4BC9F]/50 flex-shrink-0 bg-[#FAF7F0] p-0.5">
-              <img src={companyInfo.logo} alt="Pottery Rugs Logo" className="w-full h-full object-contain" />
+              <img src={companyInfo.logo} alt="House of Loom & Craft Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h2 className="font-serif text-xl sm:text-2xl text-[#FAF7F0] font-medium tracking-wide">

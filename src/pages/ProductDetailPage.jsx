@@ -138,13 +138,13 @@ export default function ProductDetailPage({ onShowToast }) {
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
   const whatsappConciergeMsg = encodeURIComponent(
-    `Hello Pottery Rugs & Home Decor,\n\nI am inquiring about the piece: *${product.name}* (Price: ₹${product.price?.toLocaleString()}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
+    `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Price: ₹${product.price?.toLocaleString()}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
   );
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title={product.seoTitle || `${product.name} | Pottery Rugs Bhadohi`}
+        title={product.seoTitle || `${product.name} | House of Loom & Craft Bhadohi`}
         description={product.seoDescription || product.shortDescription || product.description}
         path={`/products/${product.slug || pId}`}
         image={selectedImage}

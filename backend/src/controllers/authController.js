@@ -81,7 +81,7 @@ export const register = async (req, res, next) => {
       role: 'customer'
     });
 
-    sendTokenResponse(user, 201, res, 'Welcome to POTTERY RUGS & HOME DECOR Atelier.');
+    sendTokenResponse(user, 201, res, 'Welcome to House of Loom & Craft Atelier.');
   } catch (error) {
     next(error);
   }

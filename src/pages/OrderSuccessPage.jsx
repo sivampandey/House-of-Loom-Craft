@@ -38,14 +38,14 @@ export default function OrderSuccessPage() {
   }, [orderId]);
 
   const whatsappConfirmMsg = order ? encodeURIComponent(
-    `*NEW ORDER CONFIRMATION - POTTERY RUGS & HOME DECOR*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total:* ₹${order.total?.toLocaleString()}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with order verification and delivery packaging.`
+    `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total:* ₹${order.total?.toLocaleString()}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with order verification and delivery packaging.`
   ) : '';
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-36 pb-24 flex items-center justify-center px-4">
       <SEO
-        title="Order Confirmed | Pottery Rugs & Home Decor"
-        description="Your handcrafted rug order has been confirmed at Pottery Rugs & Home Decor."
+        title="Order Confirmed | House of Loom & Craft"
+        description="Your handcrafted rug order has been confirmed at House of Loom & Craft."
         path={`/order-success/${orderId}`}
       />
 

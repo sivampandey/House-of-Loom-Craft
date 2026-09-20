@@ -104,13 +104,13 @@ export default function OrderDetailPage({ onShowToast }) {
   const isCancellable = ['pending', 'confirmed'].includes(order.orderStatus);
 
   const whatsappInquiryMsg = encodeURIComponent(
-    `Hello Pottery Rugs,\n\nI am inquiring about my order *#${order.orderNumber}* placed on ${new Date(order.createdAt).toLocaleDateString('en-IN')}.\nCurrent Status: ${order.orderStatus}.\nPlease assist with tracking updates.`
+    `Hello House of Loom & Craft,\n\nI am inquiring about my order *#${order.orderNumber}* placed on ${new Date(order.createdAt).toLocaleDateString('en-IN')}.\nCurrent Status: ${order.orderStatus}.\nPlease assist with tracking updates.`
   );
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title={`Order #${order.orderNumber} | Pottery Rugs & Home Decor`}
+        title={`Order #${order.orderNumber} | House of Loom & Craft`}
         description={`Order details and delivery timeline for ${order.orderNumber}.`}
         path={`/orders/${order.orderNumber}`}
       />
@@ -119,9 +119,9 @@ export default function OrderDetailPage({ onShowToast }) {
       <div className="hidden print:block p-8 bg-white text-black max-w-4xl mx-auto font-serif">
         <div className="border-b-2 border-black pb-6 mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold tracking-widest uppercase">POTTERY RUGS & HOME DECOR</h1>
+            <h1 className="text-2xl font-bold tracking-widest uppercase">HOUSE OF LOOM & CRAFT</h1>
             <p className="text-xs uppercase tracking-wider font-sans mt-1">Manufacturer & Exporter · Bhadohi 221301 U.P. (India)</p>
-            <p className="text-xs font-sans">Helpline: +91 9839116625 · info@potteryrugs.com</p>
+            <p className="text-xs font-sans">Helpline: {companyInfo.phone} · {companyInfo.email}</p>
           </div>
           <div className="text-right font-sans text-xs">
             <p className="font-bold text-base font-serif">TAX INVOICE</p>

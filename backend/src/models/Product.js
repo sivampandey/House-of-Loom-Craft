@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
   dimensions: { type: String, default: '' },
   knotDensity: { type: String, default: '' },
   origin: { type: String, default: 'Bhadohi, U.P. (India)' },
-  manufacturer: { type: String, default: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)' },
+  manufacturer: { type: String, default: 'House of Loom & Craft (Manufacturer & Exporter)' },
   weaveTime: { type: String, default: '' },
   images: [{ type: String }],
   thumbnail: { type: String, default: '' },

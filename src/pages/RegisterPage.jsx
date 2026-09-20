@@ -67,7 +67,7 @@ export default function RegisterPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6">
       <SEO
-        title="Create Account | Pottery Rugs & Home Decor"
+        title="Create Account | House of Loom & Craft"
         description="Create an account to track your orders, manage shipping addresses, and save favorite rugs."
         path="/register"
       />
@@ -87,7 +87,7 @@ export default function RegisterPage({ onShowToast }) {
               ACCOUNT BENEFITS
             </span>
             <h2 className="font-serif text-2xl text-[#FAF7F0] mt-1 font-light">
-              Join Pottery Rugs
+              Join House of Loom & Craft
             </h2>
           </div>
 

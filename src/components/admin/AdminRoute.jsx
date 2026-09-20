@@ -42,7 +42,7 @@ export default function AdminRoute({ children }) {
               Restricted Portal
             </h1>
             <p className="text-xs text-[#544131]/80 font-sans leading-relaxed">
-              Your account (<strong className="text-[#362B21]">{user?.email}</strong>) does not have administrative privileges for the Pottery Rugs admin portal.
+              Your account (<strong className="text-[#362B21]">{user?.email}</strong>) does not have administrative privileges for the House of Loom & Craft admin portal.
             </p>
           </div>
 

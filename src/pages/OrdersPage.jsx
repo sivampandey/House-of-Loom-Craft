@@ -48,8 +48,8 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Orders & History | Pottery Rugs & Home Decor"
-        description="View your order history, delivery timeline, and master loom tracking for Pottery Rugs & Home Decor."
+        title="Orders & History | House of Loom & Craft"
+        description="View your order history, delivery timeline, and master loom tracking for House of Loom & Craft."
         path="/orders"
       />
 

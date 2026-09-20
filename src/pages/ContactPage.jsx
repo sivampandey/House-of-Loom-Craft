@@ -38,14 +38,14 @@ export default function ContactPage({ onShowToast }) {
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello Pottery Rugs & Home Decor,\n\nI would like to inquire about your handcrafted rugs and home decor collection.`
+    `Hello House of Loom & Craft,\n\nI would like to inquire about your handcrafted rugs and home decor collection.`
   );
 
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-20">
       <SEO
-        title="Contact | Pottery Rugs & Home Decor"
-        description="Contact Pottery Rugs & Home Decor. Manufacturer & Exporter of handcrafted rugs and home decor located in Bhadohi, Uttar Pradesh, India."
+        title="Contact | House of Loom & Craft"
+        description="Contact House of Loom & Craft. Manufacturer & Exporter of handcrafted rugs and home decor located in Bhadohi, Uttar Pradesh, India."
         path="/contact"
         breadcrumbs={[
           { name: 'Home', url: '/' },
@@ -196,7 +196,7 @@ export default function ContactPage({ onShowToast }) {
                 <CheckCircle2 className="w-12 h-12 text-[#55694A] mx-auto" />
                 <h3 className="font-serif text-2xl text-[#362B21] font-medium">Inquiry Received</h3>
                 <p className="text-xs sm:text-sm text-[#4E3C2B] font-sans max-w-md mx-auto leading-relaxed">
-                  Thank you for contacting Pottery Rugs & Home Decor. A representative will review your message and connect with you shortly.
+                  Thank you for contacting House of Loom & Craft. A representative will review your message and connect with you shortly.
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}

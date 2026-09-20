@@ -19,6 +19,7 @@ import orderRoutes from './routes/orders.js';
 import paymentRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
 import offerRoutes from './routes/offers.js';
+import chatRoutes from './routes/chat.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -162,7 +163,7 @@ app.use('/api/payments/', authLimiter);
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'online',
-    brand: 'POTTERY RUGS & HOME DECOR',
+    brand: 'House of Loom & Craft',
     atelier: 'Bhadohi, U.P. (India)',
     timestamp: new Date().toISOString()
   });
@@ -178,6 +179,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/chat', chatRoutes);
 
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {
@@ -191,7 +193,7 @@ app.use('/api/*', (req, res) => {
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
-  console.log(`[Atelier Server] Pottery Rugs API running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+  console.log(`[Atelier Server] House of Loom & Craft API running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
 });
 
 export default app;

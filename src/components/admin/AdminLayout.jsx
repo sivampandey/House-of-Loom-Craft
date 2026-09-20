@@ -75,12 +75,12 @@ export default function AdminLayout() {
 
           {/* Logo & Brand Identity */}
           <Link to="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#4C5D41] text-[#FAF7F0] flex items-center justify-center font-serif font-bold text-sm shadow-sm border border-[#6D7F62]/40">
-              PR
+            <div className="w-8 h-8 rounded-lg bg-[#4C5D41] text-[#FAF7F0] flex items-center justify-center font-serif font-bold text-xs shadow-sm border border-[#6D7F62]/40">
+              HLC
             </div>
             <div>
               <span className="font-serif text-sm sm:text-base tracking-wider uppercase font-medium text-[#362B21] block leading-tight">
-                Pottery Rugs
+                House of Loom & Craft
               </span>
               <span className="text-[9px] uppercase tracking-[0.2em] text-[#55694A] font-sans font-bold block">
                 Admin Console

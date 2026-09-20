@@ -1,8 +1,9 @@
-// Centralized API client for POTTERY RUGS & HOME DECOR
+// Centralized API client for House of Loom & Craft
 
 export const API_BASE = (
-  import.meta.env.VITE_API_URL ||
-  'https://pottery-rugs-api.onrender.com/api'
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://localhost:5000/api'
+    : (import.meta.env.VITE_API_URL || 'https://pottery-rugs-api.onrender.com/api')
 ).replace(/\/$/, '');
 
 class ApiError extends Error {
@@ -235,5 +236,14 @@ export const adminAPI = {
     request(`/admin/offers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteOffer: (id) =>
     request(`/admin/offers/${id}`, { method: 'DELETE' })
+};
+
+// ==================== CONCIERGE CHATBOT ====================
+export const chatAPI = {
+  sendMessage: (message, history = []) =>
+    request('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, history })
+    })
 };
 

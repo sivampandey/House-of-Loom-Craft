@@ -81,7 +81,7 @@ export default function HomePage({
   return (
     <>
       <SEO
-        title="POTTERY RUGS & HOME DECOR | Manufacturer & Exporter | Bhadohi"
+        title="House of Loom & Craft | Manufacturer & Exporter | Bhadohi"
         description="Luxury handcrafted rugs and architectural home decor direct from our Bhadohi atelier. Discover Hand Knotted, Hand Tufted, and Bespoke commissions."
         path="/"
       />

@@ -78,7 +78,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
           <div className="col-span-1 sm:col-span-2 space-y-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-1 shadow-md flex-shrink-0">
-                <img src={companyInfo.logo} alt="Pottery Rugs & Home Decor Logo" className="w-full h-full object-contain" />
+                <img src={companyInfo.logo} alt="House of Loom & Craft Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <span className="font-serif text-2xl md:text-3xl tracking-[0.16em] text-[#FAF7F0] block font-medium">
@@ -178,7 +178,7 @@ export default function Footer({ onNavigate, onOpenConsultation }) {
         <div className="py-8 border-t border-[#5B6E51]/60 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-11 h-11 rounded-full border border-[#D4BC9F] bg-[#FAF7F0] p-1 flex items-center justify-center overflow-hidden shadow">
-              <img src={companyInfo.logo} alt="Pottery Rugs Official Emblem" className="w-full h-full object-contain" />
+              <img src={companyInfo.logo} alt="House of Loom & Craft Official Emblem" className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="text-[10px] uppercase tracking-[0.25em] text-[#FAF7F0] font-bold block">

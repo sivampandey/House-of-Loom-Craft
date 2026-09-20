@@ -64,7 +64,7 @@ export default function SearchPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Search Handcrafted Rugs | Pottery Rugs & Home Decor"
+        title="Search Handcrafted Rugs | House of Loom & Craft"
         description="Search our handcrafted carpets, flatweaves, and home decor by collection, material, knot density, and dimension."
         path="/search"
       />

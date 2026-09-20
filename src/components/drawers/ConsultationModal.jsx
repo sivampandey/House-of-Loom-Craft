@@ -194,10 +194,10 @@ export default function ConsultationModal({ isOpen, onClose }) {
 
             <div className="pt-2 border-t border-[#6D7F62]/40 text-center space-y-1 text-[11px] text-[#D4BC9F]">
               <p>
-                Direct Bhadohi Helplines: <a href="tel:9839116625" className="underline font-bold text-[#FAF7F0]">9839116625</a>, <a href="tel:7007879491" className="underline font-bold text-[#FAF7F0]">7007879491</a>
+                Direct Bhadohi Helplines: <a href="tel:9839116625" className="underline font-bold text-[#FAF7F0]">9839116625</a>, <a href="tel:7460007382" className="underline font-bold text-[#FAF7F0]">7460007382</a>
               </p>
               <p className="text-[#FAF7F0]/70">
-                POTTERY RUGS & HOME DECOR &bull; G.T. ROAD, GHOSIA, AURAI, BHADOHI 221301 U.P. (INDIA)
+                House of Loom & Craft &bull; G.T. ROAD, GHOSIA, AURAI, BHADOHI 221301 U.P. (INDIA)
               </p>
             </div>
           </form>

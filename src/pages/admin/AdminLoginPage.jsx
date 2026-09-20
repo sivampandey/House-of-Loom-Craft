@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="potteryrug@admin.com"
+                placeholder="Potteryrugs@gmail.com"
                 className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#362B21] placeholder-[#544131]/40 focus:outline-none focus:border-[#55694A] focus:ring-1 focus:ring-[#55694A] transition-all"
               />
             </div>
@@ -136,7 +136,7 @@ export default function AdminLoginPage() {
 
       {/* Bottom Footer */}
       <div className="text-center text-[10px] text-[#544131]/60 font-sans uppercase tracking-wider">
-        POTTERY RUGS & HOME DECOR &bull; STORE OPERATIONS &bull; SECURE PORTAL
+        HOUSE OF LOOM & CRAFT &bull; STORE OPERATIONS &bull; SECURE PORTAL
       </div>
     </div>
   );

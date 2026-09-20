@@ -4,15 +4,15 @@ const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://potteryrugs.com';
 const DEFAULT_IMAGE = `${SITE_URL}/images/pottery-logo.jpg`;
 
 export default function SEO({
-  title = 'POTTERY RUGS & HOME DECOR | Manufacturer & Exporter | Bhadohi',
-  description = 'POTTERY RUGS & HOME DECOR - Manufacturer & Exporter of Hand Tufted Rugs, Hand Knotted Rugs, Hand Woven Rugs, Handloom Rugs, Custom Rugs, and Special Shape Rugs. G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India).',
+  title = 'House of Loom & Craft | Manufacturer & Exporter | Bhadohi',
+  description = 'House of Loom & Craft - Manufacturer & Exporter of Hand Tufted Rugs, Hand Knotted Rugs, Hand Woven Rugs, Handloom Rugs, Custom Rugs, and Special Shape Rugs. G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India).',
   path = '',
   image = DEFAULT_IMAGE,
   type = 'website',
   product = null,
   breadcrumbs = null
 }) {
-  const fullTitle = title.includes('POTTERY RUGS') ? title : `${title} | POTTERY RUGS & HOME DECOR`;
+  const fullTitle = title.includes('House of Loom & Craft') ? title : `${title} | House of Loom & Craft`;
   const canonicalUrl = `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
   const absoluteImage = image.startsWith('http') ? image : `${SITE_URL}${image.startsWith('/') ? image : `/${image}`}`;
 
@@ -41,7 +41,7 @@ export default function SEO({
     setMeta('og:url', canonicalUrl, true);
     setMeta('og:type', type, true);
     setMeta('og:image', absoluteImage, true);
-    setMeta('og:site_name', 'POTTERY RUGS & HOME DECOR', true);
+    setMeta('og:site_name', 'House of Loom & Craft', true);
 
     // Twitter Card
     setMeta('twitter:card', 'summary_large_image');
@@ -65,8 +65,8 @@ export default function SEO({
     const orgSchema = {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'POTTERY RUGS & HOME DECOR',
-      legalName: 'POTTERY RUGS & HOME DECOR',
+      name: 'House of Loom & Craft',
+      legalName: 'House of Loom & Craft',
       url: SITE_URL,
       logo: `${SITE_URL}/images/pottery-logo.jpg`,
       contactPoint: {
@@ -90,7 +90,7 @@ export default function SEO({
     const websiteSchema = {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'POTTERY RUGS & HOME DECOR',
+      name: 'House of Loom & Craft',
       url: SITE_URL,
       potentialAction: {
         '@type': 'SearchAction',
@@ -124,11 +124,11 @@ export default function SEO({
         description: product.description || product.shortDescription,
         brand: {
           '@type': 'Brand',
-          name: 'POTTERY RUGS & HOME DECOR'
+          name: 'House of Loom & Craft'
         },
         manufacturer: {
           '@type': 'Organization',
-          name: 'POTTERY RUGS & HOME DECOR'
+          name: 'House of Loom & Craft'
         },
         offers: {
           '@type': 'Offer',
@@ -139,7 +139,7 @@ export default function SEO({
           itemCondition: 'https://schema.org/NewCondition',
           seller: {
             '@type': 'Organization',
-            name: 'POTTERY RUGS & HOME DECOR'
+            name: 'House of Loom & Craft'
           }
         }
       };

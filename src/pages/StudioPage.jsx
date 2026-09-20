@@ -45,8 +45,8 @@ export default function StudioPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-20">
       <SEO
-        title="Pottery Rugs Studio | Craft, Design & Process"
-        description="Discover the design philosophy, craftsmanship process, and creative direction behind Pottery Rugs & Home Decor. Handcrafted in Bhadohi, India."
+        title="House of Loom & Craft Studio | Craft, Design & Process"
+        description="Discover the design philosophy, craftsmanship process, and creative direction behind House of Loom & Craft. Handcrafted in Bhadohi, India."
         path="/studio"
         breadcrumbs={[
           { name: 'Home', url: '/' },
@@ -68,7 +68,7 @@ export default function StudioPage() {
               Where Ancient Loom Weaves Meet Modern Architecture
             </h1>
             <p className="font-sans text-sm sm:text-base md:text-lg text-[#4E3C2B] font-medium leading-relaxed max-w-2xl">
-              POTTERY RUGS & HOME DECOR functions as a design studio and manufacturer based in Bhadohi, Uttar Pradesh. We unite centuries of traditional Indian knotting mastery with understated contemporary minimalism.
+              House of Loom & Craft functions as a design studio and manufacturer based in Bhadohi, Uttar Pradesh. We unite centuries of traditional Indian knotting mastery with understated contemporary minimalism.
             </p>
           </div>
 
@@ -76,7 +76,7 @@ export default function StudioPage() {
             <div className="rounded-2xl overflow-hidden shadow-xl border border-[#DACDB3] bg-[#EFE8DC] aspect-[4/3]">
               <img
                 src="/images/bespoke-atelier.jpg"
-                alt="Pottery Rugs Studio drafting and design process"
+                alt="House of Loom & Craft Studio drafting and design process"
                 className="w-full h-full object-cover"
                 loading="eager"
               />
@@ -139,7 +139,7 @@ export default function StudioPage() {
               From Concept to Finished Piece
             </h2>
             <p className="text-xs sm:text-sm text-[#4E3C2B] font-sans leading-relaxed">
-              Step into the methodical five-phase journey of every Pottery Rugs creation.
+              Step into the methodical five-phase journey of every House of Loom & Craft creation.
             </p>
           </div>
 

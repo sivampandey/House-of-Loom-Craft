@@ -38,8 +38,8 @@ export default function LoginPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-16 flex items-center justify-center px-4 sm:px-6">
       <SEO
-        title="Sign In | Pottery Rugs & Home Decor"
-        description="Sign in to your Pottery Rugs & Home Decor account to view orders, saved items, and account details."
+        title="Sign In | House of Loom & Craft"
+        description="Sign in to your House of Loom & Craft account to view orders, saved items, and account details."
         path="/login"
       />
 
@@ -59,7 +59,7 @@ export default function LoginPage({ onShowToast }) {
               BHADOHI CRAFTSMANSHIP
             </span>
             <h2 className="font-serif text-2xl text-[#FAF7F0] mt-1 font-light">
-              POTTERY RUGS
+              House of Loom & Craft
             </h2>
           </div>
 
@@ -151,7 +151,7 @@ export default function LoginPage({ onShowToast }) {
 
             <div className="pt-4 border-t border-[#DACDB3]/60 text-center space-y-2">
               <p className="text-xs text-[#4E3C2B]">
-                New to POTTERY RUGS & HOME DECOR?{' '}
+                New to House of Loom & Craft?{' '}
                 <Link
                   to="/register"
                   className="font-bold text-[#55694A] hover:underline"

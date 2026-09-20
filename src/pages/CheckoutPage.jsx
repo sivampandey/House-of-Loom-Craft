@@ -165,7 +165,7 @@ export default function CheckoutPage({ onShowToast }) {
           key: razorpayOrderRes.keyId,
           amount: razorpayOrderRes.amount,
           currency: razorpayOrderRes.currency || 'INR',
-          name: 'POTTERY RUGS & HOME DECOR',
+          name: 'House of Loom & Craft',
           description: `Order (${itemsPayload.length} Pieces)`,
           image: '/images/pottery-logo.jpg',
           order_id: razorpayOrderRes.orderId,
@@ -238,7 +238,7 @@ export default function CheckoutPage({ onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title="Secure Checkout | Pottery Rugs & Home Decor"
+        title="Secure Checkout | House of Loom & Craft"
         description="Complete your handcrafted rug order with insured shipping and verified checkout."
         path="/checkout"
       />

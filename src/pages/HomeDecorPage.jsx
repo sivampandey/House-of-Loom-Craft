@@ -64,8 +64,8 @@ export default function HomeDecorPage({ onOpenQuickView, onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-20">
       <SEO
-        title="Pottery Rugs | Home Decor & Architectural Accents"
-        description="Explore handcrafted architectural accents, hand-embroidered cushions, cashmere throws, bouclé poufs, brass urns, and stone tables from Pottery Rugs & Home Decor."
+        title="House of Loom & Craft | Home Decor & Architectural Accents"
+        description="Explore handcrafted architectural accents, hand-embroidered cushions, cashmere throws, bouclé poufs, brass urns, and stone tables from House of Loom & Craft."
         path="/home-decor"
         breadcrumbs={[
           { name: 'Home', url: '/' },

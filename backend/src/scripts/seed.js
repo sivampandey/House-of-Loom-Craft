@@ -38,7 +38,7 @@ const initialCarpets = [
     material: '80% High-Plateau Wool, 20% Mulberry Silk',
     knotDensity: '450 Knots / sq. inch',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '14 Months (Single Master Loom)',
     texture: '/images/carpets/royal-ivory-medallion.jpg',
     images: ['/images/carpets/royal-ivory-medallion.jpg', '/images/carpets/royal-ivory-medallion-detail.jpg'],
@@ -56,7 +56,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Nain Imperial Ivory Medallion Rug | Pottery Rugs Bhadohi',
+    seoTitle: 'Nain Imperial Ivory Medallion Rug | House of Loom & Craft Bhadohi',
     seoDescription: 'Authentic hand-knotted Nain Imperial Ivory medallion carpet with 450 KPSI wool and silk highlights from Bhadohi.',
     seoKeywords: ['ivory medallion rug', 'nain carpet', 'hand knotted rug', 'bhadohi rugs', 'luxury silk rug']
   },
@@ -72,7 +72,7 @@ const initialCarpets = [
     material: '85% Bikaner Hand-Spun Wool, 15% Mulberry Silk',
     knotDensity: '400 Knots / sq. inch',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '11 Months',
     texture: '/images/carpets/noir-gold-arabesque.jpg',
     images: ['/images/carpets/noir-gold-arabesque.jpg'],
@@ -90,7 +90,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Royal Noir & Gilded Court Rug | Pottery Rugs Bhadohi',
+    seoTitle: 'Royal Noir & Gilded Court Rug | House of Loom & Craft Bhadohi',
     seoDescription: 'Midnight noir and gold hand-knotted carpet with 400 KPSI density and pure silk accents crafted in Bhadohi.',
     seoKeywords: ['black and gold rug', 'noir court rug', 'hand knotted carpet', 'bhadohi luxury rugs']
   },
@@ -106,7 +106,7 @@ const initialCarpets = [
     material: '80% High-Plateau Virgin Wool, 20% Pure Bamboo Silk',
     knotDensity: '380 Knots / sq. inch',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '10 Months',
     texture: '/images/carpets/ivory-celestial-bloom.jpg',
     images: ['/images/carpets/ivory-celestial-bloom.jpg'],
@@ -124,7 +124,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Isfahan Celestial Ivory & Indigo Bloom Rug | Pottery Rugs Bhadohi',
+    seoTitle: 'Isfahan Celestial Ivory & Indigo Bloom Rug | House of Loom & Craft Bhadohi',
     seoDescription: 'Ethereal ivory and slate blue floral hand-knotted rug with 380 KPSI density by master artisans in Bhadohi.',
     seoKeywords: ['ivory floral rug', 'isfahan rug', 'blue and ivory carpet', 'hand knotted rug bhadohi']
   },
@@ -140,7 +140,7 @@ const initialCarpets = [
     material: '80% High-Plateau Wool, 20% Mulberry Silk',
     knotDensity: '360 Knots / sq. inch',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '9 Months (Single Master Loom)',
     texture: '/textures/carpet-crimson.jpg',
     images: ['/textures/carpet-crimson.jpg', '/images/journal-penthouse.jpg'],
@@ -158,7 +158,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Kashan Imperial Crimson Hand Knotted Carpet | Pottery Rugs Bhadohi',
+    seoTitle: 'Kashan Imperial Crimson Hand Knotted Carpet | House of Loom & Craft Bhadohi',
     seoDescription: 'Handcrafted Kashan Imperial Crimson heirloom rug. Hand-knotted with 360 KPSI high-plateau wool & pure mulberry silk in Bhadohi, India.',
     seoKeywords: ['hand knotted rug', 'kashan rug', 'crimson medallion carpet', 'bhadohi rugs', 'luxury wool silk carpet']
   },
@@ -174,7 +174,7 @@ const initialCarpets = [
     material: '70% Hand-Spun Wool, 30% Pure Silk Weft',
     knotDensity: '420 Knots / sq. inch',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '12 Months',
     texture: '/textures/carpet-emerald.jpg',
     images: ['/textures/carpet-emerald.jpg', '/images/craft-weaving.jpg'],
@@ -192,7 +192,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Emerald Safavid Royal Medallion Rug | Pottery Rugs Bhadohi',
+    seoTitle: 'Emerald Safavid Royal Medallion Rug | House of Loom & Craft Bhadohi',
     seoDescription: 'Discover the Emerald Safavid 420 KPSI royal medallion carpet hand-knotted in Bhadohi. Natural mineral dyes with cashmere-soft touch.',
     seoKeywords: ['emerald carpet', 'safavid royal rug', 'fine hand knotted carpet', 'bhadohi exporter']
   },
@@ -208,7 +208,7 @@ const initialCarpets = [
     material: '100% Un-dyed New Zealand Fleece Wool',
     knotDensity: 'Dense Sculpted High-Low Pile',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '4 Months',
     texture: '/images/carpets/nordic-monolith-abstract.jpg',
     images: ['/images/carpets/nordic-monolith-abstract.jpg', '/images/journal-penthouse.jpg'],
@@ -226,7 +226,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Monolith Sculpted High-Low Rug | Pottery Rugs & Home Decor',
+    seoTitle: 'Monolith Sculpted High-Low Rug | House of Loom & Craft',
     seoDescription: 'Architectural hand-tufted rug crafted with undyed New Zealand fleece wool. Topographical high-low pile for contemporary spaces.',
     seoKeywords: ['sculpted rug', 'hand tufted rug', 'undyed wool carpet', 'minimalist luxury carpet']
   },
@@ -242,7 +242,7 @@ const initialCarpets = [
     material: '85% Bikaner Wool, 15% Raw Tussar Silk',
     knotDensity: 'Interlocking Handloom Weave',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '3 Months',
     texture: '/images/carpets/dune-saffron-handloom.jpg',
     images: ['/images/carpets/dune-saffron-handloom.jpg', '/images/room-after.jpg'],
@@ -259,7 +259,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Dune Saffron Handloom Textured Rug | Pottery Rugs',
+    seoTitle: 'Dune Saffron Handloom Textured Rug | House of Loom & Craft',
     seoDescription: 'Handloom textured wool rug with raw Tussar silk in terracotta and saffron. Artisan woven in Bhadohi.',
     seoKeywords: ['handloom rug', 'terracotta carpet', 'bikaner wool rug', 'handcrafted flatweave']
   },
@@ -275,7 +275,7 @@ const initialCarpets = [
     material: '100% Hand-Spun Organic Indian Wool',
     knotDensity: 'Tight Slit Tapestry Flatweave',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '2 Months',
     texture: '/images/carpets/solarium-ochre-flatweave.jpg',
     images: ['/images/carpets/solarium-ochre-flatweave.jpg', '/images/craft-yarn.jpg'],
@@ -292,7 +292,7 @@ const initialCarpets = [
     isFeatured: false,
     isActive: true,
     leadTime: 'In Stock - Dispatches in 24-48 Hours',
-    seoTitle: 'Solarium Reversible Hand Woven Kilim | Pottery Rugs',
+    seoTitle: 'Solarium Reversible Hand Woven Kilim | House of Loom & Craft',
     seoDescription: 'Hand-woven kilim in 100% organic Indian wool. Fully reversible flatweave crafted by master weavers.',
     seoKeywords: ['hand woven kilim', 'flatweave rug', 'reversible rug', 'organic wool kilim']
   },
@@ -308,7 +308,7 @@ const initialCarpets = [
     material: 'Pure New Zealand Wool & Bamboo Silk Inlay',
     knotDensity: 'Sculpted Organic Shape Relief',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '3.5 Months',
     texture: '/images/carpets/curvilinear-sculpted-arch.jpg',
     images: ['/images/carpets/curvilinear-sculpted-arch.jpg', '/images/bespoke-atelier.jpg'],
@@ -325,7 +325,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'In Stock / Custom Orders Welcome',
-    seoTitle: 'Curvilinear Sculpted Arch Rug | Pottery Rugs & Home Decor',
+    seoTitle: 'Curvilinear Sculpted Arch Rug | House of Loom & Craft',
     seoDescription: 'Non-rectangular organic curved rug designed for modern architectural spaces and curved seating.',
     seoKeywords: ['special shape rug', 'curved rug', 'oval arch carpet', 'organic sculpted rug']
   },
@@ -341,7 +341,7 @@ const initialCarpets = [
     material: 'Client-Specified (Pure Silk, Cashmere, Himalayan Wool)',
     knotDensity: 'Tailored Knot Density (200 - 600 KPSI)',
     origin: 'Bhadohi, U.P. (India)',
-    manufacturer: 'POTTERY RUGS & HOME DECOR (Manufacturer & Exporter)',
+    manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: 'Made to Order',
     texture: '/images/carpets/bespoke-custom-architectural.jpg',
     images: ['/images/carpets/bespoke-custom-architectural.jpg', '/images/craft-weaving.jpg'],
@@ -358,7 +358,7 @@ const initialCarpets = [
     isFeatured: true,
     isActive: true,
     leadTime: 'Custom Crafted - Delivery in 4-8 Weeks',
-    seoTitle: 'Bespoke Custom Architectural Rug Commission | Pottery Rugs',
+    seoTitle: 'Bespoke Custom Architectural Rug Commission | House of Loom & Craft',
     seoDescription: 'Bespoke handcrafted rugs made to measure for luxury residences and hotels. Handcrafted in Bhadohi, India.',
     seoKeywords: ['custom rugs', 'bespoke carpets', 'made to order rugs', 'architectural carpets bhadohi']
   }
@@ -390,7 +390,7 @@ const initialDecor = [
       'Heavyweight antique brass hidden zipper',
       'Includes premium goose down filler'
     ],
-    seoTitle: 'Bikaner Hand-Embroidered Linen Cushions | Pottery Rugs Home Decor',
+    seoTitle: 'Bikaner Hand-Embroidered Linen Cushions | House of Loom & Craft',
     seoDescription: 'Luxury hand-embroidered Belgian linen cushion set. Artisanal crewel embroidery with goose down inserts.',
     seoKeywords: ['luxury cushions', 'hand embroidered pillows', 'belgian linen cushion', 'artisan home decor']
   },
@@ -419,7 +419,7 @@ const initialDecor = [
       'Traditional wooden handloom weave',
       'Natural unbleached sand hue'
     ],
-    seoTitle: 'Ladakh Hand-Spun Cashmere Throw | Pottery Rugs & Home Decor',
+    seoTitle: 'Ladakh Hand-Spun Cashmere Throw | House of Loom & Craft',
     seoDescription: '100% Grade-A Himalayan cashmere throw hand-spun and hand-woven in Ladakh.',
     seoKeywords: ['cashmere throw', 'pashmina blanket', 'luxury wool throw', 'himalayan cashmere']
   },
@@ -448,7 +448,7 @@ const initialDecor = [
       'Internal structured jute core holds form under use',
       'Handmade in Jodhpur, India'
     ],
-    seoTitle: 'Jodhpur Sculpted Bouclé Wool Pouf | Pottery Rugs Decor',
+    seoTitle: 'Jodhpur Sculpted Bouclé Wool Pouf | House of Loom & Craft',
     seoDescription: 'Sculptural wool bouclé ottoman pouf crafted with durable jute core and terracotta banding.',
     seoKeywords: ['wool pouf', 'bouclé ottoman', 'architectural seating', 'jodhpur furniture']
   },
@@ -477,7 +477,7 @@ const initialDecor = [
       'Formed by master metalsmiths with precision hand strikes',
       'Living antique finish deepens naturally'
     ],
-    seoTitle: 'Artisan Hand-Hammered Brass Urn | Pottery Rugs Decor',
+    seoTitle: 'Artisan Hand-Hammered Brass Urn | House of Loom & Craft',
     seoDescription: 'Solid repousse brass urn handcrafted in Moradabad. Living patina finish.',
     seoKeywords: ['brass urn', 'hand hammered vase', 'indian metalwork', 'luxury home decor accents']
   },
@@ -506,7 +506,7 @@ const initialDecor = [
       'Satin honed top surface with raw chiseled edge detailing',
       'Weight: 85 kg (White-glove delivery included)'
     ],
-    seoTitle: 'Jaipur Travertine Low Monolith Coffee Table | Pottery Rugs',
+    seoTitle: 'Jaipur Travertine Low Monolith Coffee Table | House of Loom & Craft',
     seoDescription: 'Solid vein-cut travertine coffee table sculpted by Jaipur stonemasons.',
     seoKeywords: ['travertine table', 'stone monolith table', 'sculptural coffee table', 'jaipur stonework']
   },
@@ -535,7 +535,7 @@ const initialDecor = [
       'Includes solid antique brass mounting rod and finials',
       'Superb acoustic dampening for grand salons'
     ],
-    seoTitle: 'Kashmir Royal Court Wall Tapestry | Pottery Rugs Decor',
+    seoTitle: 'Kashmir Royal Court Wall Tapestry | House of Loom & Craft',
     seoDescription: 'Hand-woven Tree of Life wall tapestry. Fine silk warp and wool weft crafted in Kashmir.',
     seoKeywords: ['wall tapestry', 'kashmir textile', 'acoustic wall hanging', 'heritage silk tapestry']
   }
@@ -565,7 +565,7 @@ export const seedDatabase = async () => {
       console.log('[Seed] SEED_DEMO_USERS is enabled. Processing demo client and curator accounts...');
       const clientEmail = process.env.SEED_CLIENT_EMAIL || 'client@potteryrugs.com';
       const clientPass = process.env.SEED_CLIENT_PASSWORD || 'AtelierClient2026!';
-      const adminEmail = process.env.SEED_ADMIN_EMAIL || 'curator@potteryrugs.com';
+      const adminEmail = process.env.SEED_ADMIN_EMAIL || 'Potteryrugs@gmail.com';
       const adminPass = process.env.SEED_ADMIN_PASSWORD || 'AtelierMaster2026!';
 
       // Seed Demo Client
@@ -603,7 +603,7 @@ export const seedDatabase = async () => {
           firstName: 'Atelier',
           lastName: 'Curator',
           email: adminEmail.toLowerCase(),
-          phone: '+91 7007879491',
+          phone: '+91 7460007382',
           passwordHash: adminPass,
           role: 'admin'
         });

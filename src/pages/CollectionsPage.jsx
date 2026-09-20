@@ -121,7 +121,7 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-24">
       <SEO
-        title={`${currentCollectionInfo.name} | Pottery Rugs & Home Decor`}
+        title={`${currentCollectionInfo.name} | House of Loom & Craft`}
         description={`Explore our collection of ${currentCollectionInfo.name}. Handcrafted with high knot density, organic dyes, and generational craftsmanship.`}
         path={activeCollection === 'all' ? '/collections' : `/collections/${activeCollection}`}
         breadcrumbs={[

@@ -22,7 +22,7 @@ export default function BrandStory({ onOpenConsultation }) {
 
             <div className="space-y-4 font-sans text-sm md:text-base text-[#544131]/85 font-normal leading-relaxed max-w-xl">
               <p>
-                Founded on the belief that a true luxury carpet is an architectural anchor, POTTERY RUGS & HOME DECOR bridges five centuries of northern Indian hand-weaving genius with the serene discipline of international modernist spaces.
+                Founded on the belief that a true luxury carpet is an architectural anchor, House of Loom & Craft bridges five centuries of northern Indian hand-weaving genius with the serene discipline of international modernist spaces.
               </p>
               <p>
                 We do not manufacture rugs; we cultivate generational relationships with master knotters in Bhadohi, Mirzapur, and Kashmir. Each piece is an unrepeatable dialogue between pure unbleached mountain fleece, river-washed silk, and mineral botanicals.

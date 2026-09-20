@@ -33,8 +33,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-28 sm:pt-32 pb-20 flex items-center justify-center px-4">
       <SEO
-        title="Password Recovery | Pottery Rugs & Home Decor"
-        description="Reset your account password for Pottery Rugs & Home Decor."
+        title="Password Recovery | House of Loom & Craft"
+        description="Reset your account password for House of Loom & Craft."
         path="/forgot-password"
       />
 

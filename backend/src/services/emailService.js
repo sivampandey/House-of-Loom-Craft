@@ -1,4 +1,4 @@
-// Luxury Editorial Email Service for POTTERY RUGS & HOME DECOR
+// Luxury Editorial Email Service for House of Loom & Craft
 // Supports Resend, SendGrid, and Development Fallback
 
 export const sendPasswordResetEmail = async ({ toEmail, recipientName, resetToken }) => {
@@ -6,18 +6,18 @@ export const sendPasswordResetEmail = async ({ toEmail, recipientName, resetToke
   const defaultFrontendUrl = isProduction ? 'https://pottery-rugs.vercel.app' : 'http://localhost:5173';
   const frontendUrl = (process.env.FRONTEND_URL || defaultFrontendUrl).replace(/\/$/, '');
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-  const fromEmail = process.env.EMAIL_FROM || 'POTTERY RUGS <shivampandey66139@gmail.com>';
+  const fromEmail = process.env.EMAIL_FROM || 'House of Loom & Craft <Potteryrugs@gmail.com>';
   const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
   const apiKey = process.env.EMAIL_API_KEY;
 
   const subject = 'Atelier Access: Password Recovery Request';
 
   const textContent = `
-POTTERY RUGS & HOME DECOR — Bhadohi Atelier
+House of Loom & Craft — Bhadohi Atelier
 
 Salutations ${recipientName || 'Valued Client'},
 
-We received a request to reset your client credentials for Pottery Rugs & Home Decor.
+We received a request to reset your client credentials for House of Loom & Craft.
 
 Please access the secure atelier link below to establish a new password:
 ${resetUrl}
@@ -26,7 +26,7 @@ This security authorization will expire in 30 minutes. If you did not initiate t
 
 Atelier Concierge:
 G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
-+91 9839116625 | concierge@potteryrugs.com
++91 9839116625, +91 7460007382 | Potteryrugs@gmail.com
 `.trim();
 
   const htmlContent = `
@@ -34,7 +34,7 @@ G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Password Recovery — Pottery Rugs</title>
+  <title>Password Recovery — House of Loom & Craft</title>
   <style>
     body { margin: 0; padding: 0; background-color: #F5F0E6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #362B21; }
     .container { max-width: 600px; margin: 40px auto; background-color: #FAF7F0; border: 1px solid #DACDB3; border-radius: 16px; overflow: hidden; }
@@ -53,7 +53,7 @@ G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
 <body>
   <div class="container">
     <div class="header">
-      <h1>POTTERY RUGS &amp; HOME DECOR</h1>
+      <h1>House of Loom &amp; Craft</h1>
       <p>Bhadohi Master Atelier &bull; Est. 2026</p>
     </div>
     <div class="content">
@@ -72,9 +72,9 @@ G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
       </div>
     </div>
     <div class="footer">
-      POTTERY RUGS &amp; HOME DECOR &bull; Manufacturer &amp; Exporter<br>
+      House of Loom &amp; Craft &bull; Manufacturer &amp; Exporter<br>
       G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)<br>
-      Concierge Helpline: +91 9839116625 | concierge@potteryrugs.com
+      Concierge Helpline: +91 9839116625, +91 7460007382 | Potteryrugs@gmail.com
     </div>
   </div>
 </body>

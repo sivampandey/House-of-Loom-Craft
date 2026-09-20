@@ -134,10 +134,10 @@ RAZORPAY_SIMULATION=false
 # Supported: resend | sendgrid
 EMAIL_PROVIDER=resend
 EMAIL_API_KEY=
-EMAIL_FROM=POTTERY RUGS Atelier <concierge@potteryrugs.com>
+EMAIL_FROM=House of Loom & Craft <Potteryrugs@gmail.com>
 
 # Initial Seed Credentials
-SEED_ADMIN_EMAIL=curator@potteryrugs.com
+SEED_ADMIN_EMAIL=Potteryrugs@gmail.com
 SEED_ADMIN_PASSWORD=AtelierMaster2026!
 SEED_CLIENT_EMAIL=client@potteryrugs.com
 SEED_CLIENT_PASSWORD=AtelierClient2026!
@@ -225,7 +225,7 @@ npm run dev
    - `RAZORPAY_SIMULATION`: `false`
    - `EMAIL_PROVIDER`: `resend` (or `sendgrid`)
    - `EMAIL_API_KEY`: `re_...` (Resend API key)
-   - `EMAIL_FROM`: `POTTERY RUGS Atelier <concierge@potteryrugs.com>`
+   - `EMAIL_FROM`: `House of Loom & Craft <Potteryrugs@gmail.com>`
    - `SEED_DEMO_USERS`: `false`
 
 ---

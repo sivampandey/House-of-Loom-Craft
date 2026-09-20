@@ -87,8 +87,8 @@ export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
   return (
     <div className="min-h-screen bg-[#F5F0E6] text-[#362B21] pt-24 sm:pt-28 pb-20">
       <SEO
-        title="Handcrafted Carpets & Rugs | Pottery Rugs Bhadohi"
-        description="Explore luxury hand-knotted, hand-tufted, and handloom rugs from Pottery Rugs & Home Decor. Handcrafted in Bhadohi with high knot density, virgin fleece, and natural botanical dyes."
+        title="Handcrafted Carpets & Rugs | House of Loom & Craft Bhadohi"
+        description="Explore luxury hand-knotted, hand-tufted, and handloom rugs from House of Loom & Craft. Handcrafted in Bhadohi with high knot density, virgin fleece, and natural botanical dyes."
         path="/carpets"
         breadcrumbs={[
           { name: 'Home', url: '/' },

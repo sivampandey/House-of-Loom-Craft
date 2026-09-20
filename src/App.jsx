@@ -14,6 +14,7 @@ import Navbar from './components/common/Navbar';
 import Toast from './components/common/Toast';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Footer from './components/sections/Footer';
+import Chatbot from './components/common/Chatbot';
 
 // Drawers & Modals
 import CartDrawer from './components/drawers/CartDrawer';
@@ -433,6 +434,9 @@ function AppContent() {
             isOpen={consultationOpen}
             onClose={() => setConsultationOpen(false)}
           />
+
+          {/* Luxury Floating AI Concierge - only on public storefront */}
+          <Chatbot />
         </>
       )}
 
