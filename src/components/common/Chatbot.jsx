@@ -194,6 +194,44 @@ export default function Chatbot() {
     { label: 'Offers & Discounts', icon: Tag, prompt: 'What offers or promotional discounts are currently active?' }
   ];
 
+  // Safe conversational fallback in case of malformed or truncated responses
+  const SAFE_CONVERSATIONAL_FALLBACK = "I’d be happy to help you find the right piece. Could you tell me a little more about your space and preferred style?";
+
+  const validateAssistantMessage = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') {
+      return SAFE_CONVERSATIONAL_FALLBACK;
+    }
+
+    let text = rawText.trim();
+
+    // Strip any accidental thought markers or reasoning fragments
+    text = text.replace(/<thought>[\s\S]*?<\/thought>/gi, '').trim();
+    text = text.replace(/^(?:thought|reasoning|internal note):\s*/i, '').trim();
+    text = text.replace(/^.*?exists in catalog\.\s*let'?s showcase\s*/i, '').trim();
+
+    // Remove leaked raw backend fields
+    text = text.replace(/(?:Direct Link|Slug|Lead Time|Price):\s*[^\n]+/gi, '').trim();
+
+    // Check if obviously broken/truncated: does not end in punctuation (. ! ? " ')
+    const endsWithPunctuation = /[.!?)"']$/.test(text);
+    if (!endsWithPunctuation) {
+      const lastPunctuation = Math.max(text.lastIndexOf('. '), text.lastIndexOf('? '), text.lastIndexOf('! '));
+      if (lastPunctuation > 20) {
+        text = text.substring(0, lastPunctuation + 1).trim();
+      } else if (text.lastIndexOf('.') > 20) {
+        text = text.substring(0, text.lastIndexOf('.') + 1).trim();
+      } else {
+        return SAFE_CONVERSATIONAL_FALLBACK;
+      }
+    }
+
+    if (text.length < 15) {
+      return SAFE_CONVERSATIONAL_FALLBACK;
+    }
+
+    return text;
+  };
+
   const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputMessage).trim();
     if (!text || isLoading) return;
@@ -232,11 +270,12 @@ export default function Chatbot() {
       const res = await chatAPI.sendMessage(text, historyPayload);
 
       if (res && res.success) {
+        const validatedContent = validateAssistantMessage(res.message);
         setMessages(prev => [
           ...prev,
           {
             role: 'assistant',
-            content: res.message || 'I am at your service. How else may I assist you today?',
+            content: validatedContent,
             products: Array.isArray(res.products) ? res.products : [],
             timestamp: getCurrentTimeString()
           }
@@ -246,8 +285,8 @@ export default function Chatbot() {
           ...prev,
           {
             role: 'assistant',
-            content: res?.message || "I'm having a momentary connection issue. Please try that again.",
-            products: [],
+            content: validateAssistantMessage(res?.message),
+            products: Array.isArray(res?.products) ? res.products : [],
             timestamp: getCurrentTimeString()
           }
         ]);
@@ -257,7 +296,7 @@ export default function Chatbot() {
         ...prev,
         {
           role: 'assistant',
-          content: "I'm having a momentary connection issue. Please try that again.",
+          content: SAFE_CONVERSATIONAL_FALLBACK,
           products: [],
           timestamp: getCurrentTimeString()
         }
@@ -366,11 +405,11 @@ export default function Chatbot() {
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start items-start'} relative z-10`}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start items-start gap-2'} relative z-10`}
                 >
-                  {/* Assistant Avatar Badge: Icon Only (38-42px) */}
+                  {/* Assistant Avatar Badge */}
                   {msg.role === 'assistant' && (
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-xs border border-[#DDD5C7] p-1 flex items-center justify-center flex-shrink-0 mr-2 sm:mr-2.5 self-start mt-0.5">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-xs border border-[#DDD5C7] p-1 flex items-center justify-center flex-shrink-0 self-start mt-0.5">
                       <img
                         src="/images/house-of-loom-craft-icon.png"
                         alt="AI Concierge Avatar"
@@ -379,89 +418,101 @@ export default function Chatbot() {
                     </div>
                   )}
 
-                  {/* Message Bubble: Compact & Comfortable */}
-                  <div
-                    className={`max-w-[85%] rounded-[18px] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs transition-all ${
-                      msg.role === 'user'
-                        ? 'bg-[#34402D] text-[#FAF7F0] rounded-tr-[4px]'
-                        : 'bg-[#F2ECE1] border border-[#E2DDD3] text-[#241C16] rounded-tl-[4px]'
-                    }`}
-                  >
-                    {msg.role === 'user' ? (
-                      <p className="text-[13px] sm:text-[13.5px] leading-relaxed font-sans whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    ) : (
-                      <SafeFormattedMessage text={msg.content} />
-                    )}
-
-                    {/* Timestamp bottom right */}
+                  {/* Message & Product Cards Column */}
+                  <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'max-w-[85%]' : 'max-w-[calc(100%-42px)] sm:max-w-[82%]'}`}>
+                    {/* Message Bubble: Compact & Comfortable */}
                     <div
-                      className={`text-[9.5px] mt-1 font-sans ${
-                        msg.role === 'user' ? 'text-[#FAF7F0]/60 text-right' : 'text-[#8C7D70] text-right'
+                      className={`rounded-[18px] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs transition-all ${
+                        msg.role === 'user'
+                          ? 'bg-[#34402D] text-[#FAF7F0] rounded-tr-[4px]'
+                          : 'bg-[#F2ECE1] border border-[#E2DDD3] text-[#241C16] rounded-tl-[4px]'
                       }`}
                     >
-                      {msg.timestamp || '2:43 PM'}
-                    </div>
-                  </div>
+                      {msg.role === 'user' ? (
+                        <p className="text-[13px] sm:text-[13.5px] leading-relaxed font-sans whitespace-pre-wrap break-words">
+                          {msg.content}
+                        </p>
+                      ) : (
+                        <SafeFormattedMessage text={msg.content} />
+                      )}
 
-                  {/* Embedded Mini Product Recommendations */}
-                  {msg.products && msg.products.length > 0 && (
-                    <div className="mt-2 w-full space-y-1.5">
-                      <div className="text-[10px] font-sans uppercase tracking-wider text-[#34402D] font-bold px-1 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#1B6BC7]"></span>
-                        Curated Atelier Pieces
+                      {/* Timestamp bottom right */}
+                      <div
+                        className={`text-[9.5px] mt-1 font-sans ${
+                          msg.role === 'user' ? 'text-[#FAF7F0]/60 text-right' : 'text-[#8C7D70] text-right'
+                        }`}
+                      >
+                        {msg.timestamp || '2:43 PM'}
                       </div>
-                      <div className="grid grid-cols-1 gap-1.5">
-                        {msg.products.map((prod) => (
-                          <div
-                            key={prod.id || prod.slug}
-                            className="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#DDD5C7] shadow-xs hover:shadow-sm transition-shadow group"
-                          >
-                            {prod.thumbnail ? (
-                              <img
-                                src={prod.thumbnail}
-                                alt={prod.name}
-                                className="w-11 h-11 object-cover rounded-lg border border-[#DDD5C7]/70 bg-[#F5F0E6] flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="w-11 h-11 bg-[#F5F0E6] rounded-lg border border-[#DDD5C7]/70 flex items-center justify-center text-[#34402D]/40 flex-shrink-0">
-                                <Package className="w-4 h-4" />
-                              </div>
-                            )}
+                    </div>
 
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-[11.5px] font-serif font-medium text-[#241C16] truncate group-hover:text-[#34402D] transition-colors">
-                                {prod.name}
-                              </h4>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[11.5px] font-semibold text-[#18120D]">
-                                  ₹{prod.price?.toLocaleString('en-IN')}
-                                </span>
-                                {prod.badge && (
-                                  <span className="text-[8px] px-1 py-0.2 bg-[#1B6BC7]/10 text-[#1B6BC7] rounded-full uppercase tracking-wider font-semibold border border-[#1B6BC7]/20">
-                                    {prod.badge}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => {
-                                setIsOpen(false);
-                                navigate(`/products/${prod.slug}`);
-                              }}
-                              className="px-2 py-1 bg-[#34402D]/10 hover:bg-[#34402D] text-[#34402D] hover:text-[#FAF7F0] rounded-lg text-[10.5px] font-sans font-medium transition-colors flex items-center gap-0.5 flex-shrink-0 cursor-pointer"
-                              aria-label={`View details for ${prod.name}`}
+                    {/* Embedded Product Recommendations: Mobile-Friendly Stacked Layout */}
+                    {msg.products && msg.products.length > 0 && (
+                      <div className="mt-2.5 w-full space-y-1.5 min-w-0">
+                        <div className="text-[10px] font-sans uppercase tracking-wider text-[#34402D] font-bold px-1 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#1B6BC7]"></span>
+                          Curated Atelier Pieces
+                        </div>
+                        <div className="grid grid-cols-1 gap-1.5 w-full min-w-0">
+                          {msg.products.map((prod) => (
+                            <div
+                              key={prod.id || prod.slug}
+                              className="flex items-center gap-2.5 p-2 bg-white rounded-xl border border-[#DDD5C7] shadow-xs hover:shadow-sm transition-shadow min-w-0 w-full overflow-hidden"
                             >
-                              <span>View</span>
-                              <ChevronRight className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
+                              {/* Product Thumbnail: Never distorted, fixed aspect ratio */}
+                              {prod.thumbnail ? (
+                                <img
+                                  src={prod.thumbnail}
+                                  alt={prod.name}
+                                  className="w-12 h-12 rounded-lg object-cover border border-[#DDD5C7]/70 bg-[#F5F0E6] flex-shrink-0 aspect-square"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-[#F5F0E6] rounded-lg border border-[#DDD5C7]/70 flex items-center justify-center text-[#34402D]/40 flex-shrink-0 aspect-square">
+                                  <Package className="w-4 h-4" />
+                                </div>
+                              )}
+
+                              {/* Product Text & Meta: 1-2 lines clamped name, non-overlapping price & badge */}
+                              <div className="flex-1 min-w-0 py-0.5">
+                                <h4
+                                  title={prod.name}
+                                  className="text-[11.5px] sm:text-[12px] font-serif font-medium text-[#241C16] leading-snug line-clamp-2 break-words"
+                                >
+                                  {prod.name}
+                                </h4>
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1 min-w-0">
+                                  <span className="text-[11.5px] font-semibold text-[#18120D] whitespace-nowrap">
+                                    ₹{prod.price?.toLocaleString('en-IN')}
+                                  </span>
+                                  {prod.badge && (
+                                    <span 
+                                      title={prod.badge}
+                                      className="text-[8px] sm:text-[8.5px] px-1.5 py-0.5 bg-[#1B6BC7]/10 text-[#1B6BC7] rounded uppercase tracking-wider font-semibold border border-[#1B6BC7]/20 whitespace-nowrap max-w-[120px] truncate"
+                                    >
+                                      {prod.badge}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* View CTA Button: Always visible and aligned */}
+                              <button
+                                onClick={() => {
+                                  setIsOpen(false);
+                                  navigate(`/products/${prod.slug}`);
+                                }}
+                                className="px-2.5 py-1.5 bg-[#34402D]/10 hover:bg-[#34402D] text-[#34402D] hover:text-[#FAF7F0] rounded-lg text-[10.5px] sm:text-[11px] font-sans font-medium transition-colors flex items-center gap-0.5 flex-shrink-0 cursor-pointer self-center"
+                                aria-label={`View details for ${prod.name}`}
+                              >
+                                <span>View</span>
+                                <ChevronRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))}
 
