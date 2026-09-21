@@ -96,19 +96,43 @@ export default function Chatbot() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const initialGreeting = "Hello 👋\n**Welcome to House of Loom & Craft.**\n\nI’m your AI Concierge. I can help you explore our handcrafted rugs and home decor, find the right piece for your space, and answer questions about orders and offers.\n\nHow may I help you today?";
+  const getCurrentTimeString = () => {
+    return new Date().toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const initialGreeting = "Welcome to House of Loom & Craft. How may I help you?";
 
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content: initialGreeting,
       products: [],
-      timestamp: '2:43 PM'
+      timestamp: getCurrentTimeString()
     }
   ]);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Fast-path pattern matcher for instant conversational pleasantries
+  const FAST_LOCAL_REPLIES = [
+    {
+      regex: /^(hi|hello|hey|heya|hiya|greetings|good\s*(morning|afternoon|evening|day)|hola|namaste|pranam)[\s!.?]*$/i,
+      reply: "Hello! Welcome to House of Loom & Craft. What are you looking for today — a rug, home decor piece, or help choosing something for your space?"
+    },
+    {
+      regex: /^(thanks|thank\s*you|thankyou|thx|tysm|many\s*thanks|appreciate\s*it)[\s!.?]*$/i,
+      reply: "You are most welcome! Please let me know if you need anything else for your home or rugs."
+    },
+    {
+      regex: /^(bye|goodbye|see\s*you|take\s*care|cya|farewell)[\s!.?]*$/i,
+      reply: "Goodbye! Have a wonderful day, and feel free to return whenever you need bespoke interior assistance."
+    }
+  ];
 
   // Auto-open chatbot once per browser session after subtle 2.5s delay
   useEffect(() => {
@@ -170,14 +194,6 @@ export default function Chatbot() {
     { label: 'Offers & Discounts', icon: Tag, prompt: 'What offers or promotional discounts are currently active?' }
   ];
 
-  const getCurrentTimeString = () => {
-    return new Date().toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
   const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputMessage).trim();
     if (!text || isLoading) return;
@@ -186,6 +202,20 @@ export default function Chatbot() {
 
     const currentTime = getCurrentTimeString();
     const userMsg = { role: 'user', content: text, timestamp: currentTime };
+
+    // Fast-path: instant local response for simple greetings, gratitude, and goodbyes
+    const fastMatch = FAST_LOCAL_REPLIES.find(f => f.regex.test(text.toLowerCase()));
+    if (fastMatch) {
+      const assistantMsg = {
+        role: 'assistant',
+        content: fastMatch.reply,
+        products: [],
+        timestamp: getCurrentTimeString()
+      };
+      setMessages(prev => [...prev, userMsg, assistantMsg]);
+      return;
+    }
+
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setIsLoading(true);
@@ -195,7 +225,7 @@ export default function Chatbot() {
         .slice(1, -1)
         .slice(-6)
         .map(m => ({
-          role: m.role,
+          role: m.role === 'assistant' ? 'model' : m.role,
           content: m.content
         }));
 
@@ -216,7 +246,7 @@ export default function Chatbot() {
           ...prev,
           {
             role: 'assistant',
-            content: res?.message || 'I am having a brief connection issue with our atelier records. Please feel free to retry in a moment, or contact our team directly at +91 9839116625.',
+            content: res?.message || "I'm having a momentary connection issue. Please try that again.",
             products: [],
             timestamp: getCurrentTimeString()
           }
@@ -227,7 +257,7 @@ export default function Chatbot() {
         ...prev,
         {
           role: 'assistant',
-          content: "I'm having trouble connecting right now. Please try again in a moment, or contact our team directly at +91 9839116625 for personal assistance.",
+          content: "I'm having a momentary connection issue. Please try that again.",
           products: [],
           timestamp: getCurrentTimeString()
         }
@@ -362,26 +392,7 @@ export default function Chatbot() {
                         {msg.content}
                       </p>
                     ) : (
-                      <div>
-                        {idx === 0 ? (
-                          <div className="font-sans">
-                            <h4 className="font-serif text-[18px] font-semibold text-[#1E1914] mb-1">
-                              👋 Hello
-                            </h4>
-                            <p className="text-[14px] font-semibold text-[#241C16] mb-1.5">
-                              Welcome to House of Loom & Craft.
-                            </p>
-                            <p className="text-[14px] leading-[1.5] text-[#3B3228]">
-                              I’m your AI Concierge. I can help you explore our handcrafted rugs and home decor, find the right piece for your space, and assist with orders and offers.
-                            </p>
-                            <p className="text-[13px] leading-[1.5] text-[#635546] mt-1.5 font-serif italic">
-                              How may I help you today?
-                            </p>
-                          </div>
-                        ) : (
-                          <SafeFormattedMessage text={msg.content} />
-                        )}
-                      </div>
+                      <SafeFormattedMessage text={msg.content} />
                     )}
 
                     {/* Timestamp bottom right */}
@@ -468,7 +479,7 @@ export default function Chatbot() {
                     <span className="w-1.5 h-1.5 rounded-full bg-[#34402D] animate-bounce [animation-delay:-0.3s]"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#34402D] animate-bounce [animation-delay:-0.15s]"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#34402D] animate-bounce"></span>
-                    <span className="text-[11px] text-[#8C7D70] ml-2 font-sans">Connecting with atelier records...</span>
+                    <span className="text-[11px] text-[#8C7D70] ml-2 font-sans">Consulting atelier...</span>
                   </div>
                 </div>
               )}

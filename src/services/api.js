@@ -1,9 +1,13 @@
 // Centralized API client for House of Loom & Craft
 
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const configuredApiUrl = rawApiUrl.includes(',') ? rawApiUrl.split(',')[0].trim() : rawApiUrl;
+const DEPLOYED_API = 'https://pottery-rugs-api.onrender.com/api';
+
 export const API_BASE = (
   (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
     ? 'http://localhost:5000/api'
-    : (import.meta.env.VITE_API_URL || 'https://pottery-rugs-api.onrender.com/api')
+    : (configuredApiUrl || DEPLOYED_API)
 ).replace(/\/$/, '');
 
 class ApiError extends Error {
@@ -26,7 +30,7 @@ export const prewarmBackend = () => {
 
 async function request(endpoint, options = {}) {
   const method = (options.method || 'GET').toUpperCase();
-  const url = `${API_BASE}${endpoint}`;
+  let url = `${API_BASE}${endpoint}`;
   const isGet = method === 'GET';
 
   // Check cache for GET requests (exclude admin and user auth endpoints)
@@ -52,7 +56,19 @@ async function request(endpoint, options = {}) {
   };
 
   try {
-    const response = await fetch(url, config);
+    let response;
+    try {
+      response = await fetch(url, config);
+    } catch (networkErr) {
+      // If local dev server is unreachable, attempt fallback to deployed API
+      if (API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')) {
+        url = `${DEPLOYED_API}${endpoint}`;
+        response = await fetch(url, config);
+      } else {
+        throw networkErr;
+      }
+    }
+
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
