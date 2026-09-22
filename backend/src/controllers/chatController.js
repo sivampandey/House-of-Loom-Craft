@@ -138,8 +138,241 @@ function sanitizeAndValidateText(rawText, fallbackText) {
   return text;
 }
 
+// Product category classifiers
+function isRugProduct(p) {
+  if (!p) return false;
+  const col = (p.collection || '').toLowerCase();
+  const colName = (p.collectionName || '').toLowerCase();
+  const cat = (p.category || '').toLowerCase();
+  const name = (p.name || '').toLowerCase();
+  const slug = (p.slug || '').toLowerCase();
+
+  // Exclude explicit home-decor products
+  if (
+    col === 'home-decor' ||
+    cat.includes('brass') ||
+    cat.includes('pouf') ||
+    cat.includes('throw') ||
+    cat.includes('furniture') ||
+    cat.includes('table') ||
+    name.includes('brass urn') ||
+    name.includes('pouf') ||
+    name.includes('throw') ||
+    name.includes('table')
+  ) {
+    return false;
+  }
+
+  return (
+    col.includes('rug') ||
+    col.includes('carpet') ||
+    col.includes('knot') ||
+    col.includes('tuft') ||
+    col.includes('weave') ||
+    col.includes('loom') ||
+    col.includes('bespoke') ||
+    colName.includes('rug') ||
+    colName.includes('carpet') ||
+    cat.includes('rug') ||
+    cat.includes('carpet') ||
+    name.includes('rug') ||
+    name.includes('carpet') ||
+    slug.includes('rug') ||
+    slug.includes('carpet') ||
+    slug.includes('bespoke')
+  );
+}
+
+function isDecorProduct(p) {
+  if (!p) return false;
+  const col = (p.collection || '').toLowerCase();
+  const cat = (p.category || '').toLowerCase();
+  const colName = (p.collectionName || '').toLowerCase();
+  const name = (p.name || '').toLowerCase();
+
+  return (
+    col === 'home-decor' ||
+    col.includes('decor') ||
+    cat.includes('decor') ||
+    colName.includes('decor') ||
+    cat.includes('textiles') ||
+    cat.includes('cushion') ||
+    cat.includes('throw') ||
+    cat.includes('brass') ||
+    cat.includes('furniture') ||
+    cat.includes('pouf') ||
+    name.includes('urn') ||
+    name.includes('pouf') ||
+    name.includes('throw') ||
+    name.includes('cushion') ||
+    name.includes('table')
+  );
+}
+
+// Multi-turn context analyzer
+function analyzeConversationContext(message, sanitizedHistory = []) {
+  const currentText = (message || '').toLowerCase();
+
+  // Extract previous turns
+  const userTurns = sanitizedHistory
+    .filter(h => h && h.role === 'user' && typeof h.content === 'string')
+    .map(h => h.content.toLowerCase());
+  const allTurns = sanitizedHistory
+    .filter(h => h && typeof h.content === 'string')
+    .map(h => h.content.toLowerCase());
+
+  // 1. Detect Dimensions in current message
+  const dimMatch = currentText.match(/\b(\d+(?:\.\d+)?)\s*(?:by|x|\*|\s*(?:feet|ft|'|foot))\s*(\d+(?:\.\d+)?)\s*(?:feet|ft|'|foot)?\b/i)
+    || currentText.match(/\b(\d+(?:\.\d+)?)\s*(?:feet|ft|'|foot)\b/i);
+
+  const hasDimension = Boolean(dimMatch);
+  const dimensionString = dimMatch ? dimMatch[0] : '';
+
+  // 2. Detect Room: Check current message first, then search history (newest first)
+  let room = null;
+  const roomPatterns = [
+    { type: 'bedroom', regex: /\b(bed\s*room|bed\s*rooms?)\b/i },
+    { type: 'living_room', regex: /\b(living\s*room|sitting\s*room|drawing\s*room|lounge)\b/i },
+    { type: 'dining_room', regex: /\b(dining\s*room|dining\s*table|dining\s*area|dining)\b/i },
+    { type: 'hallway', regex: /\b(hallway|entryway|foyer|corridor|passage|runner)\b/i },
+    { type: 'office', regex: /\b(office|study|library|workspace)\b/i }
+  ];
+
+  for (const rp of roomPatterns) {
+    if (rp.regex.test(currentText)) {
+      room = rp.type;
+      break;
+    }
+  }
+
+  // If room not in current message, inherit from user history
+  if (!room) {
+    for (let i = userTurns.length - 1; i >= 0; i--) {
+      for (const rp of roomPatterns) {
+        if (rp.regex.test(userTurns[i])) {
+          room = rp.type;
+          break;
+        }
+      }
+      if (room) break;
+    }
+  }
+
+  // Also check assistant responses in history
+  if (!room) {
+    for (let i = allTurns.length - 1; i >= 0; i--) {
+      for (const rp of roomPatterns) {
+        if (rp.regex.test(allTurns[i])) {
+          room = rp.type;
+          break;
+        }
+      }
+      if (room) break;
+    }
+  }
+
+  // 3. Category & Specific Intent Detection
+  const customRugRegex = /\b(custom\s*rug|bespoke\s*rug|custom\s*carpet|made\s*for\s*my\s*room|custom\s*weaving|custom\s*scale|custom\s*size|wanna\s*custom|bespoke)\b/i;
+  const generalRugRegex = /\b(rug|rugs|carpet|carpets|dhurrie|kilim|flatweave|hand\s*knotted|hand\s*tufted|handloom|area\s*rug)\b/i;
+  const decorRegex = /\b(decor|cushion|cushions|throw|throws|pouf|poufs|brass|urn|vase|table|tables|furniture|accent|accents)\b/i;
+  const whatRugsRegex = /what\s*rugs|which\s*rugs|what\s*(kind\s*of\s*)?rugs\s*do\s*you\s*(have|offer|make)|show\s*(me\s*)?(your\s*)?rugs|explore\s*rugs/i;
+
+  let isCustom = customRugRegex.test(currentText);
+  let isRug = generalRugRegex.test(currentText) || Boolean(room) || isCustom;
+  let isDecor = decorRegex.test(currentText);
+  let isWhatRugs = whatRugsRegex.test(currentText);
+
+  // Inherit category from history if current turn has dimensions or is a follow-up
+  if (!isCustom && !isRug && !isDecor) {
+    for (let i = userTurns.length - 1; i >= 0; i--) {
+      if (customRugRegex.test(userTurns[i])) {
+        isCustom = true;
+        isRug = true;
+        break;
+      } else if (generalRugRegex.test(userTurns[i])) {
+        isRug = true;
+        break;
+      } else if (decorRegex.test(userTurns[i])) {
+        isDecor = true;
+        break;
+      }
+    }
+  }
+
+  // Check for Flow E: Dimensions provided with NO prior room/category context
+  const isDimensionWithoutContext = hasDimension && !room && !isCustom && !isDecor && userTurns.length === 0;
+
+  return {
+    hasDimension,
+    dimensionString,
+    room,
+    isCustom,
+    isRug,
+    isDecor,
+    isWhatRugs,
+    isDimensionWithoutContext
+  };
+}
+
+// Generate contextual guidance and fallback response
+function generateContextualGuidance(context) {
+  if (context.isDimensionWithoutContext) {
+    return "Those are wonderful proportions. Could you share which room these dimensions are for — such as a living room, bedroom, or dining space — and your furniture layout? I’ll gladly recommend the ideal rug sizing and curated pieces for your space.";
+  }
+
+  if (context.room === 'bedroom') {
+    if (context.hasDimension) {
+      return "Perfect. For a 10 × 12 ft bedroom, an 8 × 10 ft rug would be a versatile choice, especially if you want it positioned beneath the lower two-thirds of the bed. If you'd like more floor coverage, we can also consider a larger option.";
+    }
+    return "For a serene and comfortable bedroom, we recommend soft, plush textures and calming palettes. Here are curated pieces from our atelier that pair beautifully with bedroom spaces.";
+  }
+
+  if (context.room === 'living_room') {
+    if (context.hasDimension) {
+      return "For a 10 × 12 ft living room space, an 8 × 10 ft rug is an ideal choice to anchor the seating area with the front legs of your sofa resting comfortably on the pile.";
+    }
+    return "Absolutely. For a living room, I can help you choose a rug based on your room size, sofa layout, and preferred style. Here are a few pieces from our collection that could work well.";
+  }
+
+  if (context.room === 'dining_room') {
+    if (context.hasDimension) {
+      return "For a 10 × 12 ft dining space, an 8 × 10 ft rug accommodates a standard dining table with ample clearance for chairs when pushed back.";
+    }
+    return "For a dining area, an 8' x 10' or 9' x 12' rug ensures chair legs remain comfortably on the pile when seated. Here are durable, artisan-crafted pieces suited for dining spaces.";
+  }
+
+  if (context.isCustom) {
+    return "Absolutely. We can help you explore a custom rug for your space. Tell me your room size, preferred colours, and the style you have in mind, and I’ll guide you from there.";
+  }
+
+  if (context.isWhatRugs) {
+    return "We craft generational Hand Knotted heirlooms, sculpted Hand Tufted wool rugs, organic Hand Woven flatweaves, and Bespoke custom architectural pieces. Here are curated examples from our Bhadohi atelier.";
+  }
+
+  if (context.isDecor) {
+    return "Our home decor collection features hand-embroidered silk cushions, hand-spun cashmere throws, bouclé wool poufs, and hand-hammered antique brass accents. Here are curated pieces from our atelier.";
+  }
+
+  if (context.isRug) {
+    return "Here are a few curated handcrafted rugs from our collection that could work well for your space. Tell me a little about your room layout or preferences, and I’ll guide you further.";
+  }
+
+  return "I’d be happy to help you find the right piece. Could you tell me a little more about your space and preferred style?";
+}
+
 export const handleChat = async (req, res) => {
   let recommendedProducts = [];
+  let context = {
+    hasDimension: false,
+    dimensionString: '',
+    room: null,
+    isCustom: false,
+    isRug: false,
+    isDecor: false,
+    isWhatRugs: false,
+    isDimensionWithoutContext: false
+  };
+
   try {
     const rawMessage = req.body?.message;
     const rawHistory = req.body?.history;
@@ -213,29 +446,16 @@ export const handleChat = async (req, res) => {
         }))
       : [];
 
+    // Analyze conversation context across turns
+    context = analyzeConversationContext(message, sanitizedHistory);
+
     // 3. Intent Detection & Contextual Defaults
     let userOrdersContext = null;
     let activeOffersContext = null;
     recommendedProducts = [];
     let productContext = '';
 
-    // Specialized Intent Detection
-    const isCustomRugQuery = /custom\s*rug|bespoke\s*rug|custom\s*carpet|made\s*for\s*my\s*room|custom\s*weaving|custom\s*scale|custom\s*size|wanna\s*custom/i.test(lowerMsg);
-    const isLivingRoomQuery = /living\s*room/i.test(lowerMsg);
-    const isBedroomQuery = /bed\s*room/i.test(lowerMsg);
-    const isDiningQuery = /dining/i.test(lowerMsg);
-
-    // Build intelligent conversational fallback message
-    let defaultConversationalText = "I’d be happy to help you find the right piece. Could you tell me a little more about your space and preferred style?";
-    if (isCustomRugQuery) {
-      defaultConversationalText = "Absolutely. We can help you explore a custom rug for your space. Tell me your room size, preferred colours, and the style you have in mind, and I’ll guide you from there.";
-    } else if (isLivingRoomQuery) {
-      defaultConversationalText = "Absolutely. For a living room, I can help you choose a rug based on your room size, sofa layout, and preferred style. Here are a few pieces from our collection that could work well.";
-    } else if (isBedroomQuery) {
-      defaultConversationalText = "For a serene and comfortable bedroom, we recommend soft, plush textures and calming palettes. Here are curated pieces from our atelier that pair beautifully with bedroom spaces.";
-    } else if (isDiningQuery) {
-      defaultConversationalText = "For a dining area, an 8' x 10' or 9' x 12' rug ensures chair legs remain comfortably on the pile when seated. Here are durable, artisan-crafted pieces suited for dining spaces.";
-    }
+    const defaultConversationalText = generateContextualGuidance(context);
 
     // Check for Order tracking intent
     const isOrderQuery = /order|track|shipment|where is my|delivery status|my package/i.test(lowerMsg);
@@ -311,61 +531,99 @@ export const handleChat = async (req, res) => {
       }
     }
 
-    // 4. Intent-Based Product Retrieval:
-    const isProductInquiry = isCustomRugQuery || /rug|carpet|decor|table|cushion|throw|brass|pouf|collection|piece|show\s*me|what\s*do\s*you\s*have|what\s*rugs|recommend|bedroom|living|dining|bespoke|woven|tufted|knotted|handloom|kilim|flatweave|find\s*a\s*rug|explore/i.test(lowerMsg);
-
-    if (isProductInquiry) {
+    // 4. Intent-Aware Product Retrieval
+    // Do NOT show products if dimensions were provided without prior context (Flow E)
+    if (!context.isDimensionWithoutContext && (context.isRug || context.isDecor)) {
       const catalog = await getCatalogProducts();
 
       if (catalog && catalog.length > 0) {
-        const budget = extractBudget(message);
-        const keywords = extractSearchKeywords(message);
+        // Strict category gating: never recommend home decor products when looking for rugs
+        let candidates = [];
+        if (context.isRug) {
+          candidates = catalog.filter(isRugProduct);
+        } else if (context.isDecor) {
+          candidates = catalog.filter(isDecorProduct);
+        } else {
+          candidates = catalog;
+        }
 
-        // Score & filter products from catalog
-        let scored = catalog.map(p => {
-          let score = 0;
-          const pName = (p.name || '').toLowerCase();
-          const pDesc = (p.shortDescription || p.description || '').toLowerCase();
-          const pMat = (p.material || '').toLowerCase();
-          const pCol = (p.collectionName || p.category || '').toLowerCase();
+        if (candidates.length > 0) {
+          const budget = extractBudget(message);
+          const keywords = extractSearchKeywords(message);
 
-          if (budget && p.price && p.price <= budget) score += 3;
-          if (keywords) {
-            keywords.split(' ').forEach(kw => {
-              if (kw && (pName.includes(kw) || pDesc.includes(kw) || pMat.includes(kw) || pCol.includes(kw))) {
-                score += 2;
+          let scored = candidates.map(p => {
+            let score = 0;
+            const pName = (p.name || '').toLowerCase();
+            const pDesc = (p.shortDescription || p.description || '').toLowerCase();
+            const pMat = (p.material || '').toLowerCase();
+            const pCol = (p.collectionName || p.category || '').toLowerCase();
+            const pSlug = (p.slug || '').toLowerCase();
+
+            if (budget && p.price && p.price <= budget) score += 3;
+            if (keywords) {
+              keywords.split(' ').forEach(kw => {
+                if (kw && (pName.includes(kw) || pDesc.includes(kw) || pMat.includes(kw) || pCol.includes(kw))) {
+                  score += 2;
+                }
+              });
+            }
+
+            // Custom rug intent
+            if (context.isCustom) {
+              if (pSlug.includes('bespoke') || pName.includes('bespoke') || pName.includes('custom')) {
+                score += 10;
+              } else {
+                score += 1;
               }
-            });
-          }
+            }
 
-          if (isCustomRugQuery && (p.slug?.includes('bespoke') || pName.includes('bespoke') || pName.includes('custom'))) score += 10;
-          if (isLivingRoomQuery && (pCol.includes('rug') || pName.includes('rug') || pCol.includes('tufted') || pCol.includes('knotted'))) score += 4;
-          if (isBedroomQuery && (pCol.includes('rug') || pName.includes('rug') || pCol.includes('handloom'))) score += 4;
-          if (/knotted/i.test(lowerMsg) && (pCol.includes('knotted') || pName.includes('knotted'))) score += 5;
-          if (/tufted/i.test(lowerMsg) && (pCol.includes('tufted') || pName.includes('tufted'))) score += 5;
-          if (/woven|kilim|flatweave/i.test(lowerMsg) && (pCol.includes('woven') || pCol.includes('kilim'))) score += 5;
-          if (/handloom/i.test(lowerMsg) && pCol.includes('handloom')) score += 5;
-          if (/decor/i.test(lowerMsg) && !pName.toLowerCase().includes('rug')) score += 4;
+            // Bedroom rug intent: prioritize handloom, plush tufted, or bespoke
+            if (context.room === 'bedroom') {
+              if (pCol.includes('handloom') || pName.includes('handloom') || pMat.includes('wool') || pMat.includes('silk')) score += 6;
+              if (pCol.includes('tufted') || pName.includes('tufted')) score += 4;
+              if (pSlug.includes('bespoke')) score += 3;
+              score += 1;
+            }
 
-          return { product: p, score };
-        });
+            // Living room rug intent: prioritize hand knotted, sculpted tufted
+            if (context.room === 'living_room') {
+              if (pCol.includes('knotted') || pName.includes('knotted')) score += 6;
+              if (pCol.includes('tufted') || pName.includes('tufted')) score += 4;
+              score += 1;
+            }
 
-        scored.sort((a, b) => b.score - a.score);
+            // Dining room rug intent
+            if (context.room === 'dining_room') {
+              if (pCol.includes('woven') || pCol.includes('flatweave') || pCol.includes('knotted')) score += 6;
+              score += 1;
+            }
 
-        // Take top 3 relevant products
-        const topPicks = scored.slice(0, 3).map(s => s.product);
+            // "what rugs do you have?" intent: broad representation
+            if (context.isWhatRugs) {
+              score += 3;
+            }
 
-        if (topPicks.length > 0) {
-          recommendedProducts = topPicks;
-          productContext = topPicks.map(p => `
+            // General rug query
+            if (context.isRug && !context.room && !context.isCustom && !context.isWhatRugs) {
+              score += 2;
+            }
+
+            return { product: p, score };
+          });
+
+          // Only keep positive score matches - never recommend arbitrary products
+          scored = scored.filter(s => s.score > 0);
+          scored.sort((a, b) => b.score - a.score);
+
+          const topPicks = scored.slice(0, 3).map(s => s.product);
+          if (topPicks.length > 0) {
+            recommendedProducts = topPicks;
+            productContext = topPicks.map(p => `
 - ${p.name} (Price: ₹${p.price?.toLocaleString('en-IN')}, Collection: ${p.collectionName || p.category}, Dimensions: ${p.dimensions || 'Customizable'})
 `).join('\n');
+          }
         }
       }
-    }
-
-    if (recommendedProducts.length > 0 && defaultConversationalText.includes("find the right piece")) {
-      defaultConversationalText = "Here are a few curated pieces from our collection that could work well for your space. Tell me a little about your room layout or preferences, and I’ll guide you further.";
     }
 
     // 5. Gemini System Prompt & Execution
@@ -388,8 +646,23 @@ CORE RESPONSE GUIDELINES:
 - Keep your response to 2-3 complete, warm, elegant sentences.
 - ALWAYS finish your thoughts and end with proper sentence-ending punctuation (. or ?). NEVER stop mid-sentence.
 - DO NOT list product links, markdown URLs, or raw product specs in your text. The frontend UI automatically renders the curated product cards below your message.
-- For custom/bespoke rug inquiries ("I wanna custom rug"), warmly explain that we craft bespoke scales, custom pantone dyes, and unique pile profiles, and ask the user for their room dimensions, preferred colors, or design concept.
-- For room-specific inquiries (living room, bedroom), offer thoughtful interior guidance (such as room proportions, sofa layout, or pile feel) and mention that curated pieces are displayed below.
+
+CONVERSATION CONTINUITY & CONTEXT INHERITANCE:
+- You MUST maintain context from previous conversation turns.
+- If the user previously mentioned a room (e.g., bedroom, living room, dining area) and now provides dimensions (e.g., "10 by 12 feet", "8x10"):
+  * Immediately recognize those dimensions as applying to that previously specified room!
+  * Recommend appropriate rug sizing and furniture placement for that room. For example:
+    - For a 10 × 12 ft bedroom: recommend an 8 × 10 ft rug positioned beneath the lower two-thirds of the bed (or a 6 × 9 ft rug for more perimeter floor exposure).
+    - For a 10 × 12 ft living room: recommend an 8 × 10 ft rug to anchor the seating area with front sofa legs resting on the rug.
+  * NEVER ask the customer to repeat information they already provided in the immediately preceding conversation.
+- If the user provides dimensions with NO prior context at all (Flow E), ask what room or furniture arrangement the dimensions are for rather than guessing.
+- For custom/bespoke rug inquiries ("I wanna custom rug"), warmly explain that we craft bespoke scales, custom pantone dyes, and unique pile profiles, and invite them to share dimensions, colours, and style ideas.
+
+CURRENT CONVERSATION STATE:
+- Active Room: ${context.room ? context.room.replace('_', ' ') : 'Not specified'}
+- Focus Area: ${context.isRug ? 'Handcrafted Rugs & Carpets' : context.isDecor ? 'Home Decor & Accents' : 'General Concierge'}
+${context.isCustom ? '- Custom / Bespoke Rug Commission: Requested' : ''}
+${context.hasDimension ? `- Dimensions Stated: ${context.dimensionString || 'Yes'}` : ''}
 
 FACTUAL GROUNDING:
 ${ATELIER_FACTS}
@@ -470,21 +743,8 @@ ${productContext ? `CURATED PIECES DISPLAYED IN UI:\n${productContext}` : ''}
   } catch (error) {
     console.error('[House of Loom & Craft Concierge Notice]:', error.message || error);
 
-    // Contextual, complete conversational fallback with curated products
-    const isCustom = /custom|bespoke|made\s*for/i.test(req.body?.message || '');
-    const isLiving = /living/i.test(req.body?.message || '');
-    const isBed = /bed/i.test(req.body?.message || '');
-
-    let fallbackMsg = "I’d be happy to help you find the right piece. Could you tell me a little more about your space and preferred style?";
-    if (isCustom) {
-      fallbackMsg = "Absolutely. We can help you explore a custom rug for your space. Tell me your room size, preferred colours, and the style you have in mind, and I’ll guide you from there.";
-    } else if (isLiving) {
-      fallbackMsg = "Absolutely. For a living room, I can help you choose a rug based on your room size, sofa layout, and preferred style. Here are a few pieces from our collection that could work well.";
-    } else if (isBed) {
-      fallbackMsg = "For a serene and comfortable bedroom, we recommend soft, plush textures and calming palettes. Here are curated pieces from our atelier that pair beautifully with bedroom spaces.";
-    } else if (recommendedProducts && recommendedProducts.length > 0) {
-      fallbackMsg = "Here are a few curated pieces from our collection that could work well. How else may I assist your selection?";
-    }
+    // Contextual, complete conversational fallback using the analyzed conversation state
+    const fallbackMsg = generateContextualGuidance(context);
 
     return res.status(200).json({
       success: true,
