@@ -26,6 +26,7 @@ import {
   getAllTicketsAdmin,
   getTicketByIdAdmin,
   updateTicketStatusAdmin,
+  replyTicketAdmin,
   addTicketInternalNoteAdmin
 } from '../controllers/supportController.js';
 
@@ -67,6 +68,9 @@ router.delete('/offers/:id', deleteOfferAdmin);
 router.get('/support/tickets', getAllTicketsAdmin);
 router.get('/support/tickets/:id', getTicketByIdAdmin);
 router.put('/support/tickets/:id/status', updateTicketStatusAdmin);
+router.patch('/support/tickets/:id/status', updateTicketStatusAdmin);
+router.post('/support/tickets/:id/reply', replyTicketAdmin);
 router.post('/support/tickets/:id/notes', addTicketInternalNoteAdmin);
+router.post('/support/tickets/:id/internal-note', addTicketInternalNoteAdmin);
 
 export default router;

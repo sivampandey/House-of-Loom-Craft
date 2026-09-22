@@ -8,10 +8,30 @@ const attachmentSchema = new mongoose.Schema({
 }, { _id: false });
 
 const internalNoteSchema = new mongoose.Schema({
-  note: { type: String, required: true },
+  adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   author: { type: String, default: 'Atelier Support Team' },
+  note: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
-}, { _id: false });
+}, { _id: true });
+
+const ticketMessageSchema = new mongoose.Schema({
+  sender: { type: String, enum: ['customer', 'admin'], required: true },
+  message: { type: String, required: true, trim: true },
+  attachments: [attachmentSchema],
+  createdAt: { type: Date, default: Date.now }
+}, { _id: true });
+
+const timelineEntrySchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['created', 'status_change', 'admin_reply', 'customer_reply', 'info_requested'],
+    default: 'created'
+  },
+  status: { type: String, default: 'Open' },
+  message: { type: String, required: true },
+  visibleToCustomer: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+}, { _id: true });
 
 const conversationMessageSchema = new mongoose.Schema({
   role: { type: String, required: true },
@@ -31,6 +51,12 @@ const supportTicketSchema = new mongoose.Schema({
     ref: 'User',
     default: null,
     index: true
+  },
+  customer: {
+    name: { type: String, default: '', trim: true },
+    email: { type: String, default: '', trim: true, lowercase: true },
+    phone: { type: String, default: '', trim: true },
+    whatsapp: { type: String, default: '', trim: true }
   },
   orderId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -113,6 +139,8 @@ const supportTicketSchema = new mongoose.Schema({
     default: 'Open',
     index: true
   },
+  messages: [ticketMessageSchema],
+  timeline: [timelineEntrySchema],
   attachments: [attachmentSchema],
   internalNotes: [internalNoteSchema],
   notifications: {

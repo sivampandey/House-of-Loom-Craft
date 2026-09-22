@@ -483,15 +483,40 @@ export const handleChat = async (req, res) => {
     }
 
     // Check for Support Ticket / Complaint Status Inquiry
-    const isTicketStatusQuery = /status\s*of\s*my\s*(complaint|ticket|case|support|request)|track\s*my\s*(complaint|ticket)|ticket\s*status|complaint\s*status|has\s*my\s*(support\s*ticket|complaint)\s*been\s*resolved/i.test(lowerMsg);
+    const isTicketStatusQuery = /show\s*(my\s*)?(complaints?|tickets?|support)|(what\s*is\s*my\s*|check\s*my\s*|track\s*my\s*)?(complaints?|tickets?|support(\s*case)?)\s*status|status\s*of\s*my\s*(complaint|ticket|case|support|request)|track\s*my\s*(complaint|ticket)|ticket\s*status|complaint\s*status|what'?s\s*(the\s*)?status\s*of\s*hlc-\d+|has\s*my\s*(support\s*ticket|complaint)\s*been\s*resolved/i.test(lowerMsg);
     if (isTicketStatusQuery) {
       const ticketIdMatch = lowerMsg.match(/hlc-\d+/i);
       if (ticketIdMatch) {
-        const ticket = await SupportTicket.findOne({ ticketId: ticketIdMatch[0].toUpperCase() }).select('ticketId status category').lean();
+        const queryTicketId = ticketIdMatch[0].toUpperCase();
+        const ticket = await SupportTicket.findOne({ ticketId: queryTicketId })
+          .select('ticketId status category userId customerEmail')
+          .lean();
+
         if (ticket) {
+          // Security verification: if authenticated, verify ownership
+          if (req.user && req.user._id) {
+            const isOwner =
+              (ticket.userId && ticket.userId.toString() === req.user._id.toString()) ||
+              (ticket.customerEmail && ticket.customerEmail.toLowerCase() === req.user.email.toLowerCase());
+
+            if (!isOwner) {
+              return res.status(200).json({
+                success: true,
+                message: `Ticket ${queryTicketId} is registered under another account. For security, please sign in with the associated account or contact our support team.`,
+                products: []
+              });
+            }
+          }
+
           return res.status(200).json({
             success: true,
-            message: `Your support ticket ${ticket.ticketId} is currently ${ticket.status}. Our team is reviewing the issue.`,
+            message: `Your support ticket ${ticket.ticketId} is currently ${ticket.status}. Our support team is reviewing your request.`,
+            products: []
+          });
+        } else {
+          return res.status(200).json({
+            success: true,
+            message: `Support ticket ${queryTicketId} was not found. Please verify the ticket ID or check "My Complaints" in your account profile.`,
             products: []
           });
         }
@@ -500,17 +525,27 @@ export const handleChat = async (req, res) => {
       if (!req.user || !req.user._id) {
         return res.status(200).json({
           success: true,
-          message: "To track your support ticket or complaint, please sign in to your account, or provide your Ticket ID (e.g. HLC-1047).",
+          message: "To track your support ticket or complaint, please sign in to your account, or provide your Ticket ID (e.g. HLC-1008).",
           products: []
         });
       }
 
       const tickets = await getCustomerTicketsInternal(req.user._id, req.user.email);
-      if (tickets && tickets.length > 0) {
-        const latest = tickets[0];
+      if (tickets && tickets.length === 1) {
+        const t = tickets[0];
         return res.status(200).json({
           success: true,
-          message: `Your support ticket ${latest.ticketId} is currently ${latest.status}. Our team is reviewing the issue.`,
+          message: `You have one active support ticket, ${t.ticketId}. It is currently ${t.status}. Our support team is reviewing your request.`,
+          products: []
+        });
+      } else if (tickets && tickets.length > 1) {
+        const ticketList = tickets
+          .slice(0, 5)
+          .map(t => `• ${t.ticketId} (${t.category}) — Status: ${t.status}`)
+          .join('\n');
+        return res.status(200).json({
+          success: true,
+          message: `You have ${tickets.length} support tickets on file:\n\n${ticketList}\n\nAsk about any ticket (e.g. "What is the status of ${tickets[0].ticketId}?") or view them under Profile → My Complaints.`,
           products: []
         });
       }
@@ -518,6 +553,15 @@ export const handleChat = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: "You currently have no active support tickets on file. If you are experiencing an issue with an order or product, please describe what occurred and I will be pleased to register a ticket for you.",
+        products: []
+      });
+    }
+
+    // Check for short "I have a complaint" / "I want to complain" without details
+    if (/^(i\s*(have|want\s*to\s*make|want\s*to\s*file|want\s*to\s*raise)\s*a\s*complaint|i\s*want\s*to\s*complain)$/i.test(lowerMsg.trim())) {
+      return res.status(200).json({
+        success: true,
+        message: "I am here to assist you. Please describe what went wrong (for example: damaged product, wrong item delivered, payment deducted, or shipping delay), and I will register an official support ticket for you right away.",
         products: []
       });
     }
@@ -599,6 +643,7 @@ export const handleChat = async (req, res) => {
         customerName,
         customerEmail,
         customerPhone,
+        customerWhatsapp: customerPhone,
         orderNumber: detectedOrderNum,
         category,
         priority,

@@ -265,15 +265,42 @@ export const chatAPI = {
 
 // ==================== SUPPORT TICKETS ====================
 export const supportAPI = {
+  // Customer support methods
+  getMyTickets: () => request('/support/tickets'),
+  getTicketById: (id) => request(`/support/tickets/${id}`),
+  createTicket: (payload) =>
+    request('/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  addTicketMessage: (id, payload) =>
+    request(`/support/tickets/${id}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  // Admin support methods
   getTicketsAdmin: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return request(`/admin/support/tickets${query ? `?${query}` : ''}`);
   },
   getTicketByIdAdmin: (id) => request(`/admin/support/tickets/${id}`),
   updateTicketStatusAdmin: (id, status) =>
-    request(`/admin/support/tickets/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+    request(`/admin/support/tickets/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    }),
+  replyTicketAdmin: (id, message, attachments = []) =>
+    request(`/admin/support/tickets/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ message, attachments })
+    }),
   addInternalNoteAdmin: (id, note) =>
-    request(`/admin/support/tickets/${id}/notes`, { method: 'POST', body: JSON.stringify({ note }) })
+    request(`/admin/support/tickets/${id}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ note })
+    })
 };
+
 
 

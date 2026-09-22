@@ -20,6 +20,7 @@ import paymentRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
 import offerRoutes from './routes/offers.js';
 import chatRoutes from './routes/chat.js';
+import supportRoutes from './routes/support.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -123,7 +124,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
@@ -180,6 +181,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/support', supportRoutes);
 
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {

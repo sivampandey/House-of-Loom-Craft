@@ -7,11 +7,56 @@ import { SupportTicket } from '../models/SupportTicket.js';
  * Dispatch WhatsApp notification to the official shop contact
  * Server-side execution only. Never exposes tokens to client.
  */
+export const PRIMARY_SHOP_WHATSAPP = '917460007382';
+export const SECONDARY_SHOP_WHATSAPP = '919839116625';
+
+export const formatTicketWhatsAppMessage = (ticket) => {
+  const customerName = ticket.customer?.name || ticket.customerName || 'Valued Client';
+  const customerPhone = ticket.customer?.phone || ticket.customerPhone || 'Not provided';
+  const customerWhatsapp = ticket.customer?.whatsapp || ticket.customer?.phone || ticket.customerPhone || 'Not provided';
+  const customerEmail = ticket.customer?.email || ticket.customerEmail || 'Not provided';
+  const orderRef = ticket.orderNumber ? `#${ticket.orderNumber}` : 'None';
+  const complaintText = ticket.customerMessage || (ticket.messages && ticket.messages[0]?.message) || ticket.subject || 'No details provided';
+
+  return `🚨 *New Support Ticket:* ${ticket.ticketId}
+
+*Customer:*
+Name: ${customerName}
+Phone: ${customerPhone}
+WhatsApp: ${customerWhatsapp}
+Email: ${customerEmail}
+
+*Order #:* ${orderRef}
+
+*Category:* ${ticket.category}
+*Priority:* ${(ticket.priority || 'medium').toUpperCase()}
+
+*Customer Complaint:*
+"${complaintText}"
+
+*AI Summary:*
+${ticket.aiSummary || 'Customer submitted an atelier assistance request.'}
+
+*Suggested Next Step:*
+${ticket.aiSuggestedResolution || 'Review inquiry details and follow up with the client.'}
+
+*Admin Actions:*
+- WhatsApp Customer
+- Call Customer
+- Email Customer
+
+*Status:* ${ticket.status ? ticket.status.toUpperCase() : 'OPEN'}`.trim();
+};
+
+/**
+ * Dispatch WhatsApp notification to the official shop contact
+ * Server-side execution only. Never exposes tokens to client.
+ */
 export const notifyShopViaWhatsApp = async (ticket) => {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const primaryPhone = (process.env.SHOP_WHATSAPP_NUMBER || '917460007382').replace(/[^\d]/g, '');
-  const secondaryPhone = (process.env.SHOP_WHATSAPP_NUMBER_SECONDARY || '919839116625').replace(/[^\d]/g, '');
+  const primaryPhone = (process.env.SHOP_WHATSAPP_NUMBER || PRIMARY_SHOP_WHATSAPP).replace(/[^\d]/g, '');
+  const secondaryPhone = (process.env.SHOP_WHATSAPP_NUMBER_SECONDARY || SECONDARY_SHOP_WHATSAPP).replace(/[^\d]/g, '');
 
   if (!accessToken || !phoneNumberId) {
     console.log('[NotificationService] WhatsApp API credentials not configured. Skipping WhatsApp dispatch.');
@@ -23,33 +68,7 @@ export const notifyShopViaWhatsApp = async (ticket) => {
     recipients.push(secondaryPhone);
   }
 
-  const messageBody = `🚨 *New Customer Support Ticket*
-
-*Ticket:* ${ticket.ticketId}
-
-*Customer:*
-Name: ${ticket.customerName || 'Valued Client'}
-Phone: ${ticket.customerPhone || 'Not provided'}
-Email: ${ticket.customerEmail}
-
-*Order:*
-${ticket.orderNumber ? `#${ticket.orderNumber}` : 'General Inquiry / No order specified'}
-
-*Category:*
-${ticket.category} (Priority: ${ticket.priority})
-
-*Customer Message:*
-"${ticket.customerMessage}"
-
-*AI Summary:*
-${ticket.aiSummary || 'Customer submitted an atelier assistance request.'}
-
-*Suggested Next Step:*
-${ticket.aiSuggestedResolution || 'Review inquiry details and follow up with the client.'}
-
-*Status:*
-${ticket.status.toUpperCase()}
-`.trim();
+  const messageBody = formatTicketWhatsAppMessage(ticket);
 
   const sendToRecipient = async (recipient) => {
     try {
@@ -316,3 +335,51 @@ export const dispatchTicketNotifications = async (ticketId) => {
     console.error('[NotificationService dispatchTicketNotifications Exception]:', err.message);
   }
 };
+
+/**
+ * Resilient customer notification when ticket status changes (Open -> In Progress -> Resolved, etc.)
+ */
+export const notifyCustomerStatusChanged = async (ticket, oldStatus, newStatus) => {
+  try {
+    const customerEmail = ticket.customer?.email || ticket.customerEmail;
+    const customerName = ticket.customer?.name || ticket.customerName || 'Valued Client';
+    if (!customerEmail) return;
+
+    const subject = `[Update: ${ticket.ticketId}] Your support ticket is now ${newStatus}`;
+    const textContent = `
+Dear ${customerName},
+
+Your support request regarding "${ticket.subject}" (Ticket: ${ticket.ticketId}) has been updated.
+
+Status changed: ${oldStatus || 'Previous'} → ${newStatus}
+
+You can view your ticket timeline and reply directly from your account profile at:
+https://pottery-rugs.vercel.app/profile?tab=support
+
+House of Loom & Craft Atelier Support
+Bhadohi, Uttar Pradesh
+    `.trim();
+
+    console.log(`[NotificationService] Customer Status Change Notification (${ticket.ticketId}): ${newStatus} to ${customerEmail}`);
+  } catch (err) {
+    console.warn('[NotificationService notifyCustomerStatusChanged Error]:', err.message);
+  }
+};
+
+/**
+ * Resilient customer notification when atelier admin replies to the ticket
+ */
+export const notifyCustomerAdminReply = async (ticket, replyMessage) => {
+  try {
+    const customerEmail = ticket.customer?.email || ticket.customerEmail;
+    const customerName = ticket.customer?.name || ticket.customerName || 'Valued Client';
+    if (!customerEmail) return;
+
+    console.log(`[NotificationService] Customer Admin Reply Notification (${ticket.ticketId}) to ${customerEmail}`);
+  } catch (err) {
+    console.warn('[NotificationService notifyCustomerAdminReply Error]:', err.message);
+  }
+};
+
+export const notifyAdminNewTicket = dispatchTicketNotifications;
+
