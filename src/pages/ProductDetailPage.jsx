@@ -9,8 +9,10 @@ import { productsAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { companyInfo, carpetsData } from '../data/carpets';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function ProductDetailPage({ onShowToast }) {
+  const { formatPrice } = useCurrency();
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -138,7 +140,7 @@ export default function ProductDetailPage({ onShowToast }) {
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
   const whatsappConciergeMsg = encodeURIComponent(
-    `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Price: ₹${product.price?.toLocaleString()}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
+    `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Price: ${formatPrice(product.price)}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
   );
 
   return (
@@ -268,11 +270,11 @@ export default function ProductDetailPage({ onShowToast }) {
                 </span>
                 <div className="flex items-baseline gap-3 mt-1">
                   <span className="font-sans text-3xl font-bold text-[#362B21]">
-                    ₹{(product.price || 0).toLocaleString()}
+                    {formatPrice(product.price || 0)}
                   </span>
                   {product.compareAtPrice && (
                     <span className="font-sans text-sm text-[#4E3C2B]/60 line-through">
-                      ₹{product.compareAtPrice.toLocaleString()}
+                      {formatPrice(product.compareAtPrice)}
                     </span>
                   )}
                 </div>
@@ -431,7 +433,7 @@ export default function ProductDetailPage({ onShowToast }) {
                       {rel.name}
                     </h3>
                     <p className="font-sans font-bold text-sm text-[#362B21] mt-2">
-                      ₹{(rel.price || 0).toLocaleString()}
+                      {formatPrice(rel.price || 0)}
                     </p>
                   </Link>
                 );

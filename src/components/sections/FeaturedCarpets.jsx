@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, ArrowUpRight } from 'lucide-react';
 import { carpetsData, collectionsList } from '../../data/carpets';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function FeaturedCarpets({
   onQuickView,
@@ -9,6 +10,7 @@ export default function FeaturedCarpets({
   activeCollectionFilter = 'all',
   onSelectCollectionFilter
 }) {
+  const { formatPrice } = useCurrency();
   const filteredCarpets = activeCollectionFilter === 'all'
     ? carpetsData
     : carpetsData.filter(c => c.collection === activeCollectionFilter || c.category.toLowerCase().includes(activeCollectionFilter));
@@ -102,7 +104,7 @@ export default function FeaturedCarpets({
 
                 <div className="flex items-center gap-4">
                   <span className="font-sans text-2xl font-bold text-[#362B21]">
-                    {filteredCarpets[0].formattedPrice}
+                    {formatPrice(filteredCarpets[0].price)}
                   </span>
                   <button
                     onClick={() => onQuickView(filteredCarpets[0])}
@@ -171,7 +173,7 @@ export default function FeaturedCarpets({
                     </div>
                     <div className="text-right">
                       <span className="font-sans font-bold text-lg text-[#362B21] block">
-                        {carpet.formattedPrice}
+                        {formatPrice(carpet.price)}
                       </span>
                       <button
                         onClick={() => onQuickView(carpet)}
@@ -244,7 +246,7 @@ export default function FeaturedCarpets({
 
                     <div className="flex items-center gap-4">
                       <span className="font-sans text-2xl font-bold text-[#362B21]">
-                        {filteredCarpets[0].formattedPrice}
+                        {formatPrice(filteredCarpets[0].price)}
                       </span>
                       <button
                         onClick={() => onQuickView(filteredCarpets[0])}
@@ -311,7 +313,7 @@ export default function FeaturedCarpets({
                         </div>
                         <div className="text-right">
                           <span className="font-sans font-bold text-lg text-[#362B21] block">
-                            {carpet.formattedPrice}
+                            {formatPrice(carpet.price)}
                           </span>
                           <button
                             onClick={() => onQuickView(carpet)}
@@ -373,7 +375,7 @@ export default function FeaturedCarpets({
                           <p className="text-xs text-[#4E3C2B] font-sans font-medium">{carpet.dimensions}</p>
                         </div>
                         <span className="font-sans font-bold text-base text-[#362B21]">
-                          {carpet.formattedPrice}
+                          {formatPrice(carpet.price)}
                         </span>
                       </div>
                     </div>
@@ -441,7 +443,7 @@ export default function FeaturedCarpets({
                   <p className="text-[10px] text-[#4E3C2B] font-sans">{filteredCarpets[0].dimensions}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-sans font-bold text-xs text-[#362B21]">{filteredCarpets[0].formattedPrice}</span>
+                  <span className="font-sans font-bold text-xs text-[#362B21]">{formatPrice(filteredCarpets[0].price)}</span>
                   <button
                     onClick={() => onQuickView(filteredCarpets[0])}
                     className="bg-[#55694A] text-[#FAF7F0] px-2.5 py-1 rounded text-[10px] uppercase tracking-wider font-sans font-medium flex items-center gap-1"
@@ -507,7 +509,7 @@ export default function FeaturedCarpets({
                     {/* Price & Action */}
                     <div className="mt-2.5 pt-2 border-t border-[#DACDB3]/70 flex items-center justify-between gap-1">
                       <span className="font-sans font-bold text-xs sm:text-sm text-[#362B21]">
-                        {carpet.formattedPrice}
+                        {formatPrice(carpet.price)}
                       </span>
                       <button
                         onClick={(e) => {

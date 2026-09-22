@@ -55,6 +55,10 @@ const orderSchema = new mongoose.Schema({
   tax: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
   total: { type: Number, required: true },
+  baseAmountINR: { type: Number },
+  currency: { type: String, default: 'INR' },
+  currencyAmount: { type: Number },
+  exchangeRate: { type: Number, default: 1 },
   paymentMethod: {
     type: String,
     enum: ['online', 'cod'],

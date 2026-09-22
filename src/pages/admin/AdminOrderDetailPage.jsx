@@ -231,8 +231,25 @@ export default function AdminOrderDetailPage() {
 
               <div className="flex justify-between text-base font-bold text-[#362B21] pt-2 border-t border-[#DACDB3]">
                 <span>Total Amount:</span>
-                <span>{formatINR(order.total)}</span>
+                <span>
+                  {order.currency && order.currency !== 'INR'
+                    ? `${order.currency} ${order.currencyAmount?.toLocaleString()}`
+                    : formatINR(order.total)}
+                </span>
               </div>
+
+              {order.currency && order.currency !== 'INR' && (
+                <div className="pt-2 border-t border-dashed border-[#DACDB3] text-[11px] text-[#55694A] space-y-1">
+                  <div className="flex justify-between">
+                    <span>Store Base (INR):</span>
+                    <span className="font-mono font-bold">₹{(order.baseAmountINR || order.total)?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Exchange Rate:</span>
+                    <span className="font-mono">1 INR = {order.exchangeRate} {order.currency}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -442,6 +459,26 @@ export default function AdminOrderDetailPage() {
                   {order.paymentStatus}
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-[#8F6E50] font-bold">Currency:</span>
+                <span className="font-mono font-bold uppercase">{order.currency || 'INR'}</span>
+              </div>
+              {order.currency && order.currency !== 'INR' && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-[#8F6E50] font-bold">Charged Amount:</span>
+                    <span className="font-mono font-bold text-[#362B21]">{order.currency} {order.currencyAmount?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8F6E50] font-bold">Base Store Amount:</span>
+                    <span className="font-mono">{formatINR(order.baseAmountINR || order.total)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8F6E50] font-bold">Applied Rate:</span>
+                    <span className="font-mono text-[11px]">1 INR = {order.exchangeRate} {order.currency}</span>
+                  </div>
+                </>
+              )}
               {order.razorpayPaymentId && (
                 <div className="flex justify-between">
                   <span className="text-[#8F6E50] font-bold">Payment ID:</span>

@@ -6,8 +6,10 @@ import { productsAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { collectionsList, carpetsData } from '../data/carpets';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
+  const { formatPrice } = useCurrency();
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -317,7 +319,7 @@ export default function CollectionsPage({ onOpenQuickView, onShowToast }) {
                           PRICE
                         </span>
                         <span className="font-sans text-lg font-bold text-[#362B21]">
-                          ₹{(product.price || 0).toLocaleString()}
+                          {formatPrice(product.price || 0)}
                         </span>
                       </div>
 

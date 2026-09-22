@@ -2,6 +2,7 @@ import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { Cart } from '../models/Cart.js';
 import { Offer } from '../models/Offer.js';
+import { getExchangeRate, convertFromINR, SUPPORTED_CURRENCY_CODES } from '../services/currencyService.js';
 
 // Helper to atomically decrement stock for order items
 export const decrementStockSafely = async (items) => {
@@ -60,8 +61,13 @@ export const createOrder = async (req, res, next) => {
     const {
       items = [],
       shippingAddress,
-      paymentMethod = 'cod'
+      paymentMethod = 'cod',
+      currency: rawCurrency
     } = req.body;
+
+    const currency = (rawCurrency && typeof rawCurrency === 'string' && SUPPORTED_CURRENCY_CODES.includes(rawCurrency.toUpperCase()))
+      ? rawCurrency.toUpperCase()
+      : 'INR';
 
     // Security Gate: Reject direct online order creation through this endpoint.
     // Online orders must strictly be finalized via the verified payment flow (/api/payments/verify).
@@ -213,6 +219,13 @@ export const createOrder = async (req, res, next) => {
     // Generate unique order number with collision protection
     const orderNumber = await generateUniqueOrderNumber();
 
+    let exchangeRate = 1;
+    let currencyAmount = finalTotal;
+    if (currency !== 'INR') {
+      exchangeRate = await getExchangeRate(currency);
+      currencyAmount = await convertFromINR(finalTotal, currency);
+    }
+
     const order = await Order.create({
       orderNumber,
       userId: req.user._id,
@@ -233,6 +246,10 @@ export const createOrder = async (req, res, next) => {
       tax,
       discount,
       total: finalTotal,
+      baseAmountINR: finalTotal,
+      currency,
+      currencyAmount,
+      exchangeRate,
       couponCode: appliedCouponCode,
       couponDiscount: discount,
       paymentMethod: 'cod',

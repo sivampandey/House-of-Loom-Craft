@@ -1,7 +1,9 @@
 import React from 'react';
 import { X, ShoppingBag, Trash2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQty, onCheckout }) {
+  const { formatPrice, currency } = useCurrency();
   if (!isOpen) return null;
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
@@ -92,7 +94,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                         </button>
                       </div>
                       <p className="font-sans font-bold text-sm text-[#D4BC9F]">
-                        ₹{((item.price) * (item.quantity || 1)).toLocaleString()}
+                        {formatPrice((item.price) * (item.quantity || 1))}
                       </p>
                     </div>
                   </div>
@@ -107,7 +109,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-[#FAF7F0]/90">
                   <span>Subtotal</span>
-                  <span className="font-sans text-[#FAF7F0] font-bold">₹{subtotal.toLocaleString()}</span>
+                  <span className="font-sans text-[#FAF7F0] font-bold">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-[#D4BC9F]">
                   <span>Insured Shipping</span>
@@ -117,21 +119,21 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
 
               <div className="pt-2 border-t border-[#6D7F62]/50 flex justify-between text-base text-[#FAF7F0]">
                 <span className="font-serif tracking-wider font-medium">Total</span>
-                <span className="font-sans font-bold text-xl text-[#D4BC9F]">₹{subtotal.toLocaleString()}</span>
+                <span className="font-sans font-bold text-xl text-[#D4BC9F]">{formatPrice(subtotal)}</span>
               </div>
 
               <button
                 onClick={onCheckout}
                 className="w-full bg-[#5D7053] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-4 px-6 rounded text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg border border-[#85997A]/60"
               >
-                <span>Proceed to Checkout (Online Payment / COD)</span>
+                <span>{currency === 'INR' ? 'Proceed to Checkout (Online / COD)' : `Proceed to Checkout (${currency})`}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <div className="flex flex-col items-center justify-center gap-1.5 text-[11px] text-[#D4BC9F] pt-1">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#D4BC9F]" />
-                  <span>Online Payment (UPI/Cards) & Cash on Delivery Available</span>
+                  <span>{currency === 'INR' ? 'Online Payment (UPI/Cards) & Cash on Delivery Available' : `Secure International Payment in ${currency}`}</span>
                 </div>
                 <span className="text-[#FAF7F0]/70 text-[10px]">Free Insured Express Delivery from Bhadohi Workshop</span>
               </div>

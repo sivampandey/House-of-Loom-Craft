@@ -21,6 +21,7 @@ import adminRoutes from './routes/admin.js';
 import offerRoutes from './routes/offers.js';
 import chatRoutes from './routes/chat.js';
 import supportRoutes from './routes/support.js';
+import currencyRoutes from './routes/currency.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -182,6 +183,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/currency', currencyRoutes);
 
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {

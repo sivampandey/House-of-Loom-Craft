@@ -37,8 +37,10 @@ export default function OrderSuccessPage() {
     fetchOrder();
   }, [orderId]);
 
+  const totalStr = order ? (order.currency && order.currency !== 'INR' ? `${order.currency} ${order.currencyAmount?.toLocaleString()} (Base: ₹${(order.baseAmountINR || order.total)?.toLocaleString()} INR)` : `₹${order.total?.toLocaleString()}`) : '';
+
   const whatsappConfirmMsg = order ? encodeURIComponent(
-    `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total:* ₹${order.total?.toLocaleString()}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with order verification and delivery packaging.`
+    `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*\n\n*Order ID:* ${order.orderNumber}\n*Customer:* ${order.shippingAddress?.fullName}\n*Phone:* ${order.shippingAddress?.phone}\n*Address:* ${order.shippingAddress?.addressLine1}, ${order.shippingAddress?.city} - ${order.shippingAddress?.postalCode}\n*Total:* ${totalStr}\n*Payment Method:* ${order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery'}\n\nPlease proceed with order verification and delivery packaging.`
   ) : '';
 
   return (
@@ -75,9 +77,16 @@ export default function OrderSuccessPage() {
             {order?.orderNumber || orderId}
           </span>
           {order && (
-            <p className="text-xs text-[#4E3C2B]">
-              Total: <strong className="text-[#362B21]">₹{order.total?.toLocaleString()}</strong> · Method: <span className="capitalize">{order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</span>
-            </p>
+            <div className="space-y-1">
+              <p className="text-xs text-[#4E3C2B]">
+                Total: <strong className="text-[#362B21]">{order.currency && order.currency !== 'INR' ? `${order.currency} ${order.currencyAmount?.toLocaleString()}` : `₹${order.total?.toLocaleString()}`}</strong> · Method: <span className="capitalize">{order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</span>
+              </p>
+              {order.currency && order.currency !== 'INR' && (
+                <p className="text-[11px] text-[#55694A]">
+                  (Base Store Amount: ₹{(order.baseAmountINR || order.total)?.toLocaleString()} INR · Exchange Rate: 1 INR ≈ {order.exchangeRate} {order.currency})
+                </p>
+              )}
+            </div>
           )}
         </div>
 

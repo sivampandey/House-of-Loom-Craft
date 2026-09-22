@@ -5,8 +5,10 @@ import SEO from '../components/common/SEO';
 import { decorProducts, decorCategories } from '../data/decor';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function HomeDecorPage({ onOpenQuickView, onShowToast }) {
+  const { formatPrice } = useCurrency();
   const [activeCategory, setActiveCategory] = useState('All Decor');
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -209,7 +211,7 @@ export default function HomeDecorPage({ onOpenQuickView, onShowToast }) {
                         PRICE
                       </span>
                       <span className="font-sans font-bold text-xl text-[#362B21]">
-                        {item.formattedPrice || `₹${item.price?.toLocaleString()}`}
+                        {formatPrice(item.price)}
                       </span>
                     </div>
 

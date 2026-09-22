@@ -190,8 +190,8 @@ export const ordersAPI = {
 
 // ==================== PAYMENTS (RAZORPAY) ====================
 export const paymentsAPI = {
-  createOrder: (items, couponCode = null) =>
-    request('/payments/create-order', { method: 'POST', body: JSON.stringify({ items, couponCode }) }),
+  createOrder: (items, couponCode = null, currency = 'INR') =>
+    request('/payments/create-order', { method: 'POST', body: JSON.stringify({ items, couponCode, currency }) }),
   verifyPayment: (payload) =>
     request('/payments/verify', { method: 'POST', body: JSON.stringify(payload) })
 };
@@ -256,10 +256,10 @@ export const adminAPI = {
 
 // ==================== CONCIERGE CHATBOT ====================
 export const chatAPI = {
-  sendMessage: (message, history = []) =>
+  sendMessage: (message, history = [], currency = 'INR') =>
     request('/chat', {
       method: 'POST',
-      body: JSON.stringify({ message, history })
+      body: JSON.stringify({ message, history, currency })
     })
 };
 
@@ -301,6 +301,13 @@ export const supportAPI = {
       body: JSON.stringify({ note })
     })
 };
+
+// ==================== CURRENCY & EXCHANGE RATES ====================
+export const currencyAPI = {
+  getRates: () => request('/currency/rates')
+};
+
+
 
 
 

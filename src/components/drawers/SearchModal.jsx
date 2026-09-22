@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { X, Search, ArrowUpRight } from 'lucide-react';
 import { carpetsData } from '../../data/carpets';
 import { decorProducts } from '../../data/decor';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
+  const { formatPrice } = useCurrency();
   const [query, setQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
@@ -124,7 +126,7 @@ export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
 
                 <div className="text-right flex items-center gap-3">
                   <span className="font-sans font-bold text-base text-[#D4BC9F]">
-                    ₹{item.price.toLocaleString()}
+                    {formatPrice(item.price)}
                   </span>
                   <ArrowUpRight className="w-4 h-4 text-[#D4BC9F] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>

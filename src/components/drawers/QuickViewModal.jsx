@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Heart, ShoppingBag, Check, Shield, Clock, MapPin, Sparkles } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function QuickViewModal({ 
   product, 
@@ -10,6 +11,7 @@ export default function QuickViewModal({
   onToggleWishlist, 
   isWishlisted 
 }) {
+  const { formatPrice } = useCurrency();
   const [added, setAdded] = useState(false);
 
   if (!isOpen || !product) return null;
@@ -81,7 +83,7 @@ export default function QuickViewModal({
               </h2>
               <div className="mt-3 flex items-baseline gap-4">
                 <span className="font-sans text-3xl font-bold text-[#D4BC9F]">
-                  ₹{product.price.toLocaleString()}
+                  {formatPrice(product.price)}
                 </span>
                 <span className="text-xs text-[#FAF7F0]/80 uppercase tracking-wider font-sans font-medium">
                   Insured Delivery Included

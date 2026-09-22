@@ -132,8 +132,15 @@ export default function OrdersPage() {
                       Total Price
                     </span>
                     <span className="font-sans text-xl sm:text-2xl font-bold text-[#362B21]">
-                      ₹{(order.total || 0).toLocaleString()}
+                      {order.currency && order.currency !== 'INR'
+                        ? `${order.currency} ${order.currencyAmount?.toLocaleString()}`
+                        : `₹${(order.total || 0).toLocaleString()}`}
                     </span>
+                    {order.currency && order.currency !== 'INR' && (
+                      <span className="text-[10px] text-[#55694A] block font-mono">
+                        Base: ₹{(order.baseAmountINR || order.total)?.toLocaleString()} INR
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X, ArrowUpRight, Phone, MessageSquare, Heart } from 'lucide-react';
+import CurrencySelector from './CurrencySelector';
 import { companyInfo } from '../../data/carpets';
 import { useAuth } from '../../context/AuthContext';
 
@@ -147,6 +148,11 @@ export default function MobileMenu({
           </button>
         </div>
       )}
+
+      {/* Currency Switcher */}
+      <div className="pt-2">
+        <CurrencySelector variant="mobile" />
+      </div>
 
       {/* Nav Links */}
       <nav className="py-4 flex flex-col space-y-1.5">

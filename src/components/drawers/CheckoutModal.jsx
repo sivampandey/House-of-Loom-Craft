@@ -7,6 +7,7 @@ import {
 import confetti from 'canvas-confetti';
 import { companyInfo } from '../../data/carpets';
 import { ordersAPI } from '../../services/api';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function CheckoutModal({ 
   isOpen, 
@@ -14,6 +15,7 @@ export default function CheckoutModal({
   items = [], 
   onOrderSuccess 
 }) {
+  const { formatPrice, currency } = useCurrency();
   const [step, setStep] = useState('details'); // 'details' | 'payment' | 'success'
   const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' | 'cod'
   const [onlineType, setOnlineType] = useState('upi'); // 'upi' | 'card' | 'netbanking'
@@ -118,8 +120,8 @@ export default function CheckoutModal({
 
   const handleWhatsAppConfirm = () => {
     if (!completedOrder) return;
-    const itemList = completedOrder.items.map(i => `• ${i.name} (Qty: ${i.quantity || 1}) - ₹${(i.price * (i.quantity || 1)).toLocaleString()}`).join('%0A');
-    const msg = `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*%0A%0A*Order ID:* ${completedOrder.orderId}%0A*Customer Name:* ${completedOrder.customer.fullName}%0A*Phone:* ${completedOrder.customer.phone}%0A*Address:* ${completedOrder.customer.address}, ${completedOrder.customer.city} - ${completedOrder.customer.pincode}%0A*Payment Method:* ${completedOrder.paymentMethod}%0A*Total Amount:* ₹${completedOrder.total.toLocaleString()}%0A%0A*Items Ordered:*%0A${itemList}%0A%0APlease confirm and dispatch this order.`;
+    const itemList = completedOrder.items.map(i => `• ${i.name} (Qty: ${i.quantity || 1}) - ${formatPrice((i.price * (i.quantity || 1)))}`).join('%0A');
+    const msg = `*NEW ORDER CONFIRMATION - HOUSE OF LOOM & CRAFT*%0A%0A*Order ID:* ${completedOrder.orderId}%0A*Customer Name:* ${completedOrder.customer.fullName}%0A*Phone:* ${completedOrder.customer.phone}%0A*Address:* ${completedOrder.customer.address}, ${completedOrder.customer.city} - ${completedOrder.customer.pincode}%0A*Payment Method:* ${completedOrder.paymentMethod}%0A*Total Amount:* ${formatPrice(completedOrder.total)}%0A%0A*Items Ordered:*%0A${itemList}%0A%0APlease confirm and dispatch this order.`;
     window.open(`https://wa.me/${companyInfo.whatsappNumber}?text=${msg}`, '_blank');
   };
 
@@ -339,7 +341,7 @@ export default function CheckoutModal({
                           <p className="text-[11px] text-[#D4BC9F] truncate">{item.dimensions || item.category}</p>
                           <div className="flex justify-between items-center mt-1 text-xs">
                             <span className="text-[#FAF7F0]/70">Qty: {item.quantity || 1}</span>
-                            <span className="font-sans font-bold text-[#D4BC9F]">₹{((item.price) * (item.quantity || 1)).toLocaleString()}</span>
+                            <span className="font-sans font-bold text-[#D4BC9F]">{formatPrice((item.price) * (item.quantity || 1))}</span>
                           </div>
                         </div>
                       </div>
@@ -349,7 +351,7 @@ export default function CheckoutModal({
                   <div className="pt-3 border-t border-[#6D7F62]/40 space-y-2 text-xs">
                     <div className="flex justify-between text-[#FAF7F0]/80">
                       <span>Subtotal</span>
-                      <span>₹{subtotal.toLocaleString()}</span>
+                      <span>{formatPrice(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-[#D4BC9F]">
                       <span>White-Glove Insured Delivery</span>
@@ -361,7 +363,7 @@ export default function CheckoutModal({
                     </div>
                     <div className="pt-2 border-t border-[#6D7F62]/40 flex justify-between text-base font-serif text-[#FAF7F0] font-medium">
                       <span>Total Amount</span>
-                      <span className="font-sans font-bold text-lg text-[#D4BC9F]">₹{subtotal.toLocaleString()}</span>
+                      <span className="font-sans font-bold text-lg text-[#D4BC9F]">{formatPrice(subtotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -672,14 +674,14 @@ export default function CheckoutModal({
                   {completedOrder.items.map((it) => (
                     <div key={it.id} className="flex justify-between items-center text-[#FAF7F0]/90">
                       <span>{it.name} &times; {it.quantity || 1}</span>
-                      <span className="font-sans font-bold text-[#D4BC9F]">₹{((it.price) * (it.quantity || 1)).toLocaleString()}</span>
+                      <span className="font-sans font-bold text-[#D4BC9F]">{formatPrice((it.price) * (it.quantity || 1))}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="pt-3 border-t border-[#6D7F62]/50 flex justify-between items-center font-bold text-sm">
                   <span className="text-[#FAF7F0]">Total Amount:</span>
-                  <span className="font-sans text-lg text-[#D4BC9F]">₹{completedOrder.total.toLocaleString()}</span>
+                  <span className="font-sans text-lg text-[#D4BC9F]">{formatPrice(completedOrder.total)}</span>
                 </div>
 
                 <div className="pt-2 border-t border-[#6D7F62]/40 text-[11px] text-[#FAF7F0]/80">

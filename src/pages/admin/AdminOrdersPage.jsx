@@ -284,8 +284,15 @@ export default function AdminOrdersPage() {
                       {/* Total */}
                       <td className="py-3 px-4">
                         <span className="font-bold text-[#362B21] block">
-                          {formatINR(o.total)}
+                          {o.currency && o.currency !== 'INR'
+                            ? `${o.currency} ${o.currencyAmount?.toLocaleString()}`
+                            : formatINR(o.total)}
                         </span>
+                        {o.currency && o.currency !== 'INR' && (
+                          <span className="text-[9.5px] text-[#55694A] font-mono block">
+                            Base: {formatINR(o.baseAmountINR || o.total)}
+                          </span>
+                        )}
                         {o.couponDiscount > 0 && (
                           <span className="text-[9.5px] text-emerald-700 font-bold block">
                             Saved {formatINR(o.couponDiscount)} ({o.couponCode})
@@ -295,9 +302,14 @@ export default function AdminOrdersPage() {
 
                       {/* Payment */}
                       <td className="py-3 px-4">
-                        <span className="uppercase text-[10px] font-mono font-bold text-[#362B21] block">
-                          {o.paymentMethod}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="uppercase text-[10px] font-mono font-bold text-[#362B21]">
+                            {o.paymentMethod}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-[#BA9977]/20 text-[#544131] text-[9px] font-mono font-bold uppercase">
+                            {o.currency || 'INR'}
+                          </span>
+                        </div>
                         <span className={`text-[9.5px] uppercase font-bold ${
                           o.paymentStatus === 'completed'
                             ? 'text-emerald-700'

@@ -184,8 +184,24 @@ export default function OrderDetailPage({ onShowToast }) {
             </div>
             <div className="flex justify-between font-bold text-sm border-t border-black pt-2 font-serif">
               <span>Grand Total:</span>
-              <span>₹{order.total?.toLocaleString()}</span>
+              <span>
+                {order.currency && order.currency !== 'INR'
+                  ? `${order.currency} ${order.currencyAmount?.toLocaleString()}`
+                  : `₹${order.total?.toLocaleString()}`}
+              </span>
             </div>
+            {order.currency && order.currency !== 'INR' && (
+              <div className="text-[10px] text-gray-600 space-y-0.5 pt-1 border-t border-dashed border-gray-300">
+                <div className="flex justify-between">
+                  <span>Store Base (INR):</span>
+                  <span>₹{(order.baseAmountINR || order.total)?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Exchange Rate:</span>
+                  <span>1 INR = {order.exchangeRate} {order.currency}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -232,8 +248,15 @@ export default function OrderDetailPage({ onShowToast }) {
                 Grand Total
               </span>
               <span className="font-sans text-3xl font-bold text-[#362B21]">
-                ₹{(order.total || 0).toLocaleString()}
+                {order.currency && order.currency !== 'INR'
+                  ? `${order.currency} ${order.currencyAmount?.toLocaleString()}`
+                  : `₹${(order.total || 0).toLocaleString()}`}
               </span>
+              {order.currency && order.currency !== 'INR' && (
+                <span className="text-[11px] text-[#55694A] block font-mono">
+                  Base: ₹{(order.baseAmountINR || order.total)?.toLocaleString()} INR
+                </span>
+              )}
               <span className="text-[11px] text-[#55694A] block capitalize font-medium mt-0.5">
                 {order.paymentMethod === 'online' ? 'Online Payment (Verified)' : 'Cash on Delivery (Pending)'}
               </span>
@@ -458,8 +481,25 @@ export default function OrderDetailPage({ onShowToast }) {
 
                 <div className="pt-2 border-t border-[#DACDB3] flex justify-between text-base font-bold text-[#362B21]">
                   <span className="font-serif">Grand Total</span>
-                  <span className="font-sans">₹{order.total?.toLocaleString()}</span>
+                  <span className="font-sans">
+                    {order.currency && order.currency !== 'INR'
+                      ? `${order.currency} ${order.currencyAmount?.toLocaleString()}`
+                      : `₹${order.total?.toLocaleString()}`}
+                  </span>
                 </div>
+
+                {order.currency && order.currency !== 'INR' && (
+                  <div className="pt-2 border-t border-dashed border-[#DACDB3] text-[11px] text-[#55694A] space-y-1">
+                    <div className="flex justify-between">
+                      <span>Base Store Amount (INR):</span>
+                      <span className="font-mono font-bold">₹{(order.baseAmountINR || order.total)?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Prevailing Conversion Rate:</span>
+                      <span className="font-mono">1 INR = {order.exchangeRate} {order.currency}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

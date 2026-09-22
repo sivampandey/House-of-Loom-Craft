@@ -5,8 +5,10 @@ import SEO from '../components/common/SEO';
 import { productsAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function SearchPage({ onShowToast }) {
+  const { formatPrice } = useCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const initialQuery = searchParams.get('q') || '';
@@ -206,7 +208,7 @@ export default function SearchPage({ onShowToast }) {
 
                     <div className="pt-3 border-t border-[#DACDB3]/70 flex items-center justify-between mt-3">
                       <span className="font-sans font-bold text-sm text-[#362B21]">
-                        ₹{(product.price || 0).toLocaleString()}
+                        {formatPrice(product.price || 0)}
                       </span>
                       <span className="text-[11px] uppercase tracking-wider text-[#55694A] font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
                         View <ArrowRight className="w-3 h-3" />

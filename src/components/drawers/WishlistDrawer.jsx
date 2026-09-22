@@ -1,7 +1,9 @@
 import React from 'react';
 import { X, Heart, ShoppingBag, Trash2 } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function WishlistDrawer({ isOpen, onClose, items, onRemove, onMoveToCart }) {
+  const { formatPrice } = useCurrency();
   if (!isOpen) return null;
 
   return (
@@ -71,7 +73,7 @@ export default function WishlistDrawer({ isOpen, onClose, items, onRemove, onMov
                       </div>
                       <p className="text-xs text-[#D4BC9F] mt-0.5 font-medium">{item.dimensions || item.category}</p>
                       <p className="font-sans font-bold text-sm text-[#D4BC9F] mt-1">
-                        ₹{item.price.toLocaleString()}
+                        {formatPrice(item.price)}
                       </p>
                     </div>
 

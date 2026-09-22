@@ -13,6 +13,7 @@ import {
   Paperclip
 } from 'lucide-react';
 import { chatAPI } from '../../services/api';
+import { useCurrency } from '../../context/CurrencyContext';
 
 // Safe text renderer: Converts safe Markdown (bold, lists, links) into React elements without dangerouslySetInnerHTML
 function SafeFormattedMessage({ text }) {
@@ -92,6 +93,7 @@ function SafeFormattedMessage({ text }) {
 
 export default function Chatbot() {
   const navigate = useNavigate();
+  const { formatPrice, currency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -267,7 +269,7 @@ export default function Chatbot() {
           content: m.content
         }));
 
-      const res = await chatAPI.sendMessage(text, historyPayload);
+      const res = await chatAPI.sendMessage(text, historyPayload, currency);
 
       if (res && res.success) {
         const validatedContent = validateAssistantMessage(res.message);
@@ -482,7 +484,7 @@ export default function Chatbot() {
                                 </h4>
                                 <div className="flex flex-wrap items-center gap-1.5 mt-1 min-w-0">
                                   <span className="text-[11.5px] font-semibold text-[#18120D] whitespace-nowrap">
-                                    ₹{prod.price?.toLocaleString('en-IN')}
+                                    {formatPrice(prod.price)}
                                   </span>
                                   {prod.badge && (
                                     <span 

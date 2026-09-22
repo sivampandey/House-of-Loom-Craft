@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, ShoppingBag, Menu, Phone, User, LogOut, Package, Sparkles, ShieldCheck } from 'lucide-react';
 import MobileMenu from './MobileMenu';
+import CurrencySelector from './CurrencySelector';
 import { companyInfo } from '../../data/carpets';
 import { useAuth } from '../../context/AuthContext';
 
@@ -138,6 +139,11 @@ export default function Navbar({
             >
               <Phone className="w-4 h-4" />
             </a>
+
+            {/* Currency Selector - Desktop & Tablet */}
+            <div className="hidden sm:block">
+              <CurrencySelector variant="desktop" />
+            </div>
 
             {/* Wishlist - Visible on sm and up; on xs mobile accessible via menu */}
             <button

@@ -9,11 +9,13 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ordersAPI, paymentsAPI, usersAPI, offersAPI } from '../services/api';
 import { companyInfo } from '../data/carpets';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function CheckoutPage({ onShowToast }) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const { cartItems, clearCart, subtotal } = useCart();
+  const { formatPrice, currency, convertPrice, rates } = useCurrency();
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -21,6 +23,13 @@ export default function CheckoutPage({ onShowToast }) {
       navigate('/collections');
     }
   }, [cartItems, navigate]);
+
+  // Restrict COD for international currencies
+  useEffect(() => {
+    if (currency !== 'INR' && paymentMethod === 'cod') {
+      setPaymentMethod('online');
+    }
+  }, [currency, paymentMethod]);
 
   // Saved addresses from user
   const [savedAddresses, setSavedAddresses] = useState(user?.addresses || []);
@@ -84,7 +93,7 @@ export default function CheckoutPage({ onShowToast }) {
       if (offerData?.valid) {
         setAppliedOffer(offerData);
         if (onShowToast) {
-          onShowToast('success', 'Coupon Applied', `${offerData.code} applied! Saved ₹${offerData.discountAmount}`);
+          onShowToast('success', 'Coupon Applied', `${offerData.code} applied! Saved ${formatPrice(offerData.discountAmount)}`);
         }
       }
     } catch (err) {
@@ -129,10 +138,13 @@ export default function CheckoutPage({ onShowToast }) {
 
       // ================= PAYMENT FLOW =================
       if (paymentMethod === 'online') {
-        // Step 1: Create Razorpay Order via Backend with coupon code
-        const razorpayOrderRes = await paymentsAPI.createOrder(itemsPayload, appliedOffer?.code);
+        // Step 1: Create Razorpay Order via Backend with coupon code & selected currency
+        const razorpayOrderRes = await paymentsAPI.createOrder(itemsPayload, appliedOffer?.code, currency);
 
         if (!razorpayOrderRes.success) {
+          if (currency !== 'INR') {
+            throw new Error('International payment is currently unavailable. Please contact House of Loom & Craft for assistance.');
+          }
           throw new Error(razorpayOrderRes.message || 'Unable to initiate online payment.');
         }
 
@@ -142,6 +154,7 @@ export default function CheckoutPage({ onShowToast }) {
             razorpayOrderId: razorpayOrderRes.orderId,
             razorpayPaymentId: `pay_sim_${Date.now()}`,
             razorpaySignature: 'simulated_signature',
+            currency: razorpayOrderRes.currency || currency || 'INR',
             items: itemsPayload,
             shippingAddress: chosenAddress,
             couponCode: appliedOffer?.code
@@ -164,9 +177,9 @@ export default function CheckoutPage({ onShowToast }) {
         const options = {
           key: razorpayOrderRes.keyId,
           amount: razorpayOrderRes.amount,
-          currency: razorpayOrderRes.currency || 'INR',
+          currency: razorpayOrderRes.currency || currency || 'INR',
           name: 'House of Loom & Craft',
-          description: `Order (${itemsPayload.length} Pieces)`,
+          description: `Order (${itemsPayload.length} Pieces) [${razorpayOrderRes.currency || currency}]`,
           image: '/images/pottery-logo.jpg',
           order_id: razorpayOrderRes.orderId,
           handler: async function (response) {
@@ -175,6 +188,7 @@ export default function CheckoutPage({ onShowToast }) {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
+                currency: razorpayOrderRes.currency || currency || 'INR',
                 items: itemsPayload,
                 shippingAddress: chosenAddress,
                 couponCode: appliedOffer?.code
@@ -208,17 +222,23 @@ export default function CheckoutPage({ onShowToast }) {
 
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function (resp) {
-          setError(resp.error?.description || 'Payment transaction failed.');
+          const errMsg = resp.error?.description || '';
+          if (currency !== 'INR' || errMsg.toLowerCase().includes('international') || errMsg.toLowerCase().includes('currency')) {
+            setError('International payment is currently unavailable. Please contact House of Loom & Craft for assistance.');
+          } else {
+            setError(resp.error?.description || 'Payment transaction failed.');
+          }
           setProcessing(false);
         });
         rzp.open();
         return;
       } else {
-        // ================= CASH ON DELIVERY =================
+        // ================= CASH ON DELIVERY (INDIA / INR ONLY) =================
         const orderRes = await ordersAPI.createOrder({
           items: itemsPayload,
           shippingAddress: chosenAddress,
           paymentMethod: 'cod',
+          currency: 'INR',
           couponCode: appliedOffer?.code
         });
 
@@ -230,7 +250,12 @@ export default function CheckoutPage({ onShowToast }) {
         }
       }
     } catch (err) {
-      setError(err.message || 'Order processing encountered an error. Please try again.');
+      const msg = err.message || err.data?.message || '';
+      if (currency !== 'INR' && (msg.toLowerCase().includes('international') || msg.toLowerCase().includes('gateway') || msg.toLowerCase().includes('unavailable'))) {
+        setError('International payment is currently unavailable. Please contact House of Loom & Craft for assistance.');
+      } else {
+        setError(msg || 'Order processing encountered an error. Please try again.');
+      }
       setProcessing(false);
     }
   };
@@ -457,10 +482,12 @@ export default function CheckoutPage({ onShowToast }) {
                     <CreditCard className="w-5 h-5 text-[#55694A] mt-0.5" />
                     <div>
                       <p className="font-serif text-base font-medium text-[#362B21]">
-                        Online Payment (UPI, Cards, NetBanking)
+                        {currency === 'INR' ? 'Online Payment (UPI, Cards, NetBanking)' : `International Online Payment (${currency})`}
                       </p>
                       <p className="text-xs text-[#4E3C2B] mt-0.5">
-                        Secure instant payment gateway with encrypted verification.
+                        {currency === 'INR'
+                          ? 'Secure instant payment gateway with encrypted verification.'
+                          : `Secure international transaction processed in ${currency} via major international debit/credit cards.`}
                       </p>
                     </div>
                   </div>
@@ -474,33 +501,43 @@ export default function CheckoutPage({ onShowToast }) {
                 </label>
 
                 {/* Cash on Delivery Option */}
-                <label
-                  onClick={() => setPaymentMethod('cod')}
-                  className={`p-5 rounded-2xl border cursor-pointer flex items-start justify-between transition-all ${
-                    paymentMethod === 'cod'
-                      ? 'bg-[#FAF7F0] border-[#55694A] shadow-md'
-                      : 'bg-[#FAF7F0]/60 border-[#DACDB3]'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Banknote className="w-5 h-5 text-[#55694A] mt-0.5" />
+                {currency === 'INR' ? (
+                  <label
+                    onClick={() => setPaymentMethod('cod')}
+                    className={`p-5 rounded-2xl border cursor-pointer flex items-start justify-between transition-all ${
+                      paymentMethod === 'cod'
+                        ? 'bg-[#FAF7F0] border-[#55694A] shadow-md'
+                        : 'bg-[#FAF7F0]/60 border-[#DACDB3]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Banknote className="w-5 h-5 text-[#55694A] mt-0.5" />
+                      <div>
+                        <p className="font-serif text-base font-medium text-[#362B21]">
+                          Cash on Delivery (COD)
+                        </p>
+                        <p className="text-xs text-[#4E3C2B] mt-0.5">
+                          Inspect piece upon arrival. Payment collected upon delivery.
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
+                      className="mt-1 text-[#55694A] focus:ring-0"
+                    />
+                  </label>
+                ) : (
+                  <div className="p-4 rounded-xl bg-[#FAF7F0]/60 border border-[#DACDB3]/70 flex items-start gap-3 text-xs text-[#4E3C2B]">
+                    <Banknote className="w-4 h-4 text-[#8C7D70] mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-serif text-base font-medium text-[#362B21]">
-                        Cash on Delivery (COD)
-                      </p>
-                      <p className="text-xs text-[#4E3C2B] mt-0.5">
-                        Inspect piece upon arrival. Payment collected upon delivery.
-                      </p>
+                      <span className="font-semibold text-[#362B21] block">Cash on Delivery Notice</span>
+                      <span>COD is offered exclusively for addresses in India paying in Indian Rupees (INR ₹). For international orders in {currency}, please complete your order using secure card checkout above.</span>
                     </div>
                   </div>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === 'cod'}
-                    onChange={() => setPaymentMethod('cod')}
-                    className="mt-1 text-[#55694A] focus:ring-0"
-                  />
-                </label>
+                )}
               </div>
 
               <div className="flex items-center gap-2 text-xs text-[#55694A] pt-2">
@@ -532,7 +569,7 @@ export default function CheckoutPage({ onShowToast }) {
                       </p>
                       <p className="text-[11px] text-[#4E3C2B]">Qty: {item.quantity || 1}</p>
                       <p className="text-xs font-bold font-sans text-[#55694A]">
-                        ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                        {formatPrice((item.price || 0) * (item.quantity || 1))}
                       </p>
                     </div>
                   </div>
@@ -555,7 +592,7 @@ export default function CheckoutPage({ onShowToast }) {
                           </span>
                         </div>
                         <p className="text-[11px] text-[#4E3C2B]">
-                          Saved ₹{appliedOffer.discountAmount.toLocaleString()} ({appliedOffer.discountType === 'percentage' ? `${appliedOffer.discountValue}% OFF` : 'Flat Discount'})
+                          Saved {formatPrice(appliedOffer.discountAmount)} ({appliedOffer.discountType === 'percentage' ? `${appliedOffer.discountValue}% OFF` : 'Flat Discount'})
                         </p>
                       </div>
                     </div>
@@ -603,12 +640,12 @@ export default function CheckoutPage({ onShowToast }) {
               <div className="pt-4 border-t border-[#DACDB3] space-y-2 text-xs">
                 <div className="flex justify-between text-[#4E3C2B]">
                   <span>Subtotal</span>
-                  <span className="font-bold text-[#362B21]">₹{subtotal.toLocaleString()}</span>
+                  <span className="font-bold text-[#362B21]">{formatPrice(subtotal)}</span>
                 </div>
                 {appliedOffer && (
                   <div className="flex justify-between text-[#55694A] font-medium">
                     <span>Promotional Discount ({appliedOffer.code})</span>
-                    <span className="font-bold">-₹{appliedOffer.discountAmount.toLocaleString()}</span>
+                    <span className="font-bold">-{formatPrice(appliedOffer.discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[#55694A]">
@@ -620,9 +657,22 @@ export default function CheckoutPage({ onShowToast }) {
                   <span className="uppercase font-bold tracking-wider">Included</span>
                 </div>
 
+                {currency !== 'INR' && (
+                  <div className="py-2.5 px-3 bg-[#FAF7F0] rounded-xl border border-[#DACDB3]/70 space-y-1 text-[11px] text-[#4E3C2B]">
+                    <div className="flex justify-between font-medium">
+                      <span>Store Base Currency:</span>
+                      <span className="font-mono font-bold text-[#362B21]">₹{subtotal.toLocaleString('en-IN')} INR</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-[#55694A]">
+                      <span>Exchange Rate:</span>
+                      <span className="font-mono">1 INR ≈ {(rates[currency] || 0.012).toFixed(4)} {currency}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-3 border-t border-[#DACDB3] flex justify-between text-lg font-bold text-[#362B21]">
                   <span className="font-serif">Grand Total</span>
-                  <span className="font-sans text-2xl text-[#362B21]">₹{finalTotal.toLocaleString()}</span>
+                  <span className="font-sans text-2xl text-[#362B21]">{formatPrice(finalTotal)}</span>
                 </div>
               </div>
 
@@ -631,7 +681,7 @@ export default function CheckoutPage({ onShowToast }) {
                 disabled={processing}
                 className="w-full bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-4 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
               >
-                <span>{processing ? 'Confirming Order...' : paymentMethod === 'online' ? 'Proceed to Online Payment' : 'Confirm Order (COD)'}</span>
+                <span>{processing ? 'Confirming Order...' : paymentMethod === 'online' ? `Proceed to Payment (${currency})` : 'Confirm Order (COD)'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

@@ -5,8 +5,10 @@ import SEO from '../components/common/SEO';
 import { carpetsData, collectionsList } from '../data/carpets';
 import { productsAPI } from '../services/api';
 import { useWishlist } from '../context/WishlistContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
+  const { formatPrice } = useCurrency();
   const [activeCategory, setActiveCategory] = useState('all');
   const [carpets, setCarpets] = useState(carpetsData);
   const [loading, setLoading] = useState(false);
@@ -239,7 +241,7 @@ export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
                         PRICE
                       </span>
                       <span className="font-sans font-bold text-xl text-[#362B21]">
-                        {carpet.formattedPrice || `₹${carpet.price?.toLocaleString()}`}
+                        {formatPrice(carpet.price)}
                       </span>
                     </div>
 

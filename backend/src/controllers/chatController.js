@@ -9,6 +9,7 @@ import {
   getCustomerTicketsInternal,
   createSupportTicketInternal
 } from './supportController.js';
+import { getExchangeRate, convertFromINR, SUPPORTED_CURRENCY_CODES } from '../services/currencyService.js';
 
 // Ensure DNS resolution on Windows does not stall API calls
 try {
@@ -382,6 +383,10 @@ export const handleChat = async (req, res) => {
   try {
     const rawMessage = req.body?.message;
     const rawHistory = req.body?.history;
+    const rawCurrency = req.body?.currency || req.body?.selectedCurrency;
+    const customerCurrency = (rawCurrency && typeof rawCurrency === 'string' && SUPPORTED_CURRENCY_CODES.includes(rawCurrency.toUpperCase()))
+      ? rawCurrency.toUpperCase()
+      : 'INR';
 
     // 1. Input Validation
     if (!rawMessage || typeof rawMessage !== 'string') {
@@ -907,9 +912,15 @@ Our support team will review the issue and get back to you promptly.`;
           const topPicks = scored.slice(0, 3).map(s => s.product);
           if (topPicks.length > 0) {
             recommendedProducts = topPicks;
-            productContext = topPicks.map(p => `
-- ${p.name} (Price: ₹${p.price?.toLocaleString('en-IN')}, Collection: ${p.collectionName || p.category}, Dimensions: ${p.dimensions || 'Customizable'})
-`).join('\n');
+            const contextPromises = topPicks.map(async (p) => {
+              const convertedPrice = customerCurrency !== 'INR' ? await convertFromINR(p.price, customerCurrency) : p.price;
+              const displayPriceStr = customerCurrency !== 'INR' 
+                ? `${customerCurrency} ${convertedPrice?.toLocaleString()} (Base: ₹${p.price?.toLocaleString('en-IN')})`
+                : `₹${p.price?.toLocaleString('en-IN')}`;
+              return `- ${p.name} (Price: ${displayPriceStr}, Collection: ${p.collectionName || p.category}, Dimensions: ${p.dimensions || 'Customizable'})`;
+            });
+            const formattedContextLines = await Promise.all(contextPromises);
+            productContext = formattedContextLines.join('\n');
           }
         }
       }
@@ -950,8 +961,13 @@ CONVERSATION CONTINUITY & CONTEXT INHERITANCE:
 CURRENT CONVERSATION STATE:
 - Active Room: ${context.room ? context.room.replace('_', ' ') : 'Not specified'}
 - Focus Area: ${context.isRug ? 'Handcrafted Rugs & Carpets' : context.isDecor ? 'Home Decor & Accents' : 'General Concierge'}
+- Customer Selected Currency: ${customerCurrency}
 ${context.isCustom ? '- Custom / Bespoke Rug Commission: Requested' : ''}
 ${context.hasDimension ? `- Dimensions Stated: ${context.dimensionString || 'Yes'}` : ''}
+
+PRICING & CURRENCY GUIDELINE:
+- The customer is browsing in ${customerCurrency}.
+- If the customer asks about price (e.g. "how much is this rug?"), quote the display price using the exact figures from CURATED PIECES DISPLAYED IN UI (${customerCurrency}). Never invent exchange rates or fabrications.
 
 FACTUAL GROUNDING:
 ${ATELIER_FACTS}

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ZoomIn, ZoomOut, Sparkles, Check, Eye, ArrowUpRight, Layers } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function Interactive3DSection({ onOpenQuickView }) {
+  const { formatPrice } = useCurrency();
   const [selectedTextureKey, setSelectedTextureKey] = useState('royal-ivory');
   const [activeViewMode, setActiveViewMode] = useState('full');
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -273,7 +275,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                       }} 
                     />
                     <span>{c.name.split(' ')[0]}</span>
-                    <span className="font-bold opacity-90">{c.formattedPrice}</span>
+                    <span className="font-bold opacity-90">{formatPrice(c.price)}</span>
                   </button>
                 ))}
               </div>
@@ -339,7 +341,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
               <div className="space-y-2 text-xs font-sans">
                 <div className="flex justify-between py-2 border-b border-[#DACDB3]">
                   <span className="text-[#4E3C2B] font-medium">Price</span>
-                  <span className="text-[#362B21] font-bold text-lg">{currentCarpet.formattedPrice}</span>
+                  <span className="text-[#362B21] font-bold text-lg">{formatPrice(currentCarpet.price)}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-[#DACDB3]">
                   <span className="text-[#4E3C2B]">Pile Height</span>
@@ -370,7 +372,7 @@ export default function Interactive3DSection({ onOpenQuickView }) {
                   image: currentCarpet.images.full,
                   material: currentCarpet.material,
                   price: currentCarpet.price,
-                  formattedPrice: currentCarpet.formattedPrice,
+                  formattedPrice: formatPrice(currentCarpet.price),
                   dimensions: currentCarpet.dimensions,
                   origin: currentCarpet.origin,
                   knotDensity: currentCarpet.knotDensity,

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ShoppingBag, ArrowUpRight } from 'lucide-react';
 import { decorProducts, decorCategories } from '../../data/decor';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function HomeDecorSection({ onAddToCart, onQuickView }) {
+  const { formatPrice } = useCurrency();
   const [selectedCategory, setSelectedCategory] = useState('All Decor');
 
   const filtered = selectedCategory === 'All Decor'
@@ -141,7 +143,7 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
                       PRICE
                     </span>
                     <span className="font-sans font-bold text-xs sm:text-base md:text-lg text-[#362B21]">
-                      {item.formattedPrice}
+                      {formatPrice(item.price)}
                     </span>
                   </div>
 

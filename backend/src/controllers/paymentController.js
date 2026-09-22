@@ -5,6 +5,7 @@ import { Order } from '../models/Order.js';
 import { Cart } from '../models/Cart.js';
 import { Offer } from '../models/Offer.js';
 import { decrementStockSafely, generateUniqueOrderNumber } from './orderController.js';
+import { getExchangeRate, convertFromINR, SUPPORTED_CURRENCY_CODES } from '../services/currencyService.js';
 
 // Lazily initialize Razorpay if keys are configured
 const getRazorpayInstance = () => {
@@ -23,7 +24,10 @@ const getRazorpayInstance = () => {
 
 export const createRazorpayOrder = async (req, res, next) => {
   try {
-    const { items = [], couponCode } = req.body;
+    const { items = [], couponCode, currency: rawCurrency } = req.body;
+    const currency = (rawCurrency && typeof rawCurrency === 'string' && SUPPORTED_CURRENCY_CODES.includes(rawCurrency.toUpperCase()))
+      ? rawCurrency.toUpperCase()
+      : 'INR';
 
     if (!items.length) {
       return res.status(400).json({
@@ -32,7 +36,7 @@ export const createRazorpayOrder = async (req, res, next) => {
       });
     }
 
-    // Calculate server-side authoritative total strictly from MongoDB Product records
+    // Calculate server-side authoritative total strictly from MongoDB Product records in INR
     let subtotal = 0;
     for (const item of items) {
       const pId = item.productId || item._id;
@@ -87,10 +91,24 @@ export const createRazorpayOrder = async (req, res, next) => {
       }
     }
 
-    const finalPayable = Math.max(0, subtotal - discount);
+    const finalPayableINR = Math.max(0, subtotal - discount);
+    let exchangeRate = 1;
+    let currencyAmount = finalPayableINR;
 
-    // Razorpay works in subunits (paise for INR, 1 INR = 100 paise)
-    const amountInPaise = Math.round(finalPayable * 100);
+    if (currency !== 'INR') {
+      try {
+        exchangeRate = await getExchangeRate(currency, { forTransaction: true });
+        currencyAmount = await convertFromINR(finalPayableINR, currency, { forTransaction: true });
+      } catch (rateErr) {
+        return res.status(503).json({
+          success: false,
+          message: 'International payment is currently unavailable. Please contact House of Loom & Craft for assistance.'
+        });
+      }
+    }
+
+    // Razorpay works in lowest denomination subunits (paise for INR, cents for USD/EUR/AUD/CAD/SGD, pence for GBP, fils for AED)
+    const amountInSubunits = Math.round(currencyAmount * 100);
     const receipt = `rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
     const razorpay = getRazorpayInstance();
@@ -111,39 +129,56 @@ export const createRazorpayOrder = async (req, res, next) => {
         success: true,
         isSimulated: true,
         orderId: simulatedOrderId,
-        amount: amountInPaise,
-        currency: 'INR',
+        amount: amountInSubunits,
+        currency,
         keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_simulation',
-        total: finalPayable,
+        total: currencyAmount,
+        baseAmountINR: finalPayableINR,
+        currencyAmount,
+        exchangeRate,
         subtotal,
         discount,
         couponCode: appliedCode
       });
     }
 
-    const options = {
-      amount: amountInPaise,
-      currency: 'INR',
-      receipt,
-      payment_capture: 1
-    };
+    try {
+      const options = {
+        amount: amountInSubunits,
+        currency,
+        receipt,
+        payment_capture: 1
+      };
 
-    const razorpayOrder = await razorpay.orders.create(options);
+      const razorpayOrder = await razorpay.orders.create(options);
 
-    res.status(200).json({
-      success: true,
-      orderId: razorpayOrder.id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
-      total: finalPayable,
-      subtotal,
-      discount,
-      couponCode: appliedCode
-    });
-  } catch (error) {
-    next(error);
-  }
+      res.status(200).json({
+        success: true,
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        keyId: process.env.RAZORPAY_KEY_ID,
+        total: currencyAmount,
+        baseAmountINR: finalPayableINR,
+        currencyAmount,
+        exchangeRate,
+        subtotal,
+        discount,
+        couponCode: appliedCode
+      });
+    } catch (gatewayErr) {
+      console.error('[Razorpay Order Creation Error]:', gatewayErr);
+      if (currency !== 'INR') {
+        return res.status(400).json({
+          success: false,
+          message: 'International payment is currently unavailable. Please contact House of Loom & Craft for assistance.'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: `Payment order creation failed: ${gatewayErr.error?.description || gatewayErr.message}`
+      });
+    }
 };
 
 export const verifyPaymentAndCreateOrder = async (req, res, next) => {
@@ -154,8 +189,13 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       razorpaySignature,
       items = [],
       shippingAddress,
-      couponCode
+      couponCode,
+      currency: rawCurrency
     } = req.body;
+
+    const currency = (rawCurrency && typeof rawCurrency === 'string' && SUPPORTED_CURRENCY_CODES.includes(rawCurrency.toUpperCase()))
+      ? rawCurrency.toUpperCase()
+      : 'INR';
 
     if (!razorpayOrderId || !razorpayPaymentId) {
       return res.status(400).json({
@@ -247,8 +287,23 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       }
     }
 
-    const finalOrderTotal = Math.max(0, calculatedSubtotal - couponDiscount);
-    const amountInPaise = Math.round(finalOrderTotal * 100);
+    const finalOrderTotalINR = Math.max(0, calculatedSubtotal - couponDiscount);
+    let exchangeRate = 1;
+    let currencyAmount = finalOrderTotalINR;
+
+    if (currency !== 'INR') {
+      try {
+        exchangeRate = await getExchangeRate(currency, { forTransaction: true });
+        currencyAmount = await convertFromINR(finalOrderTotalINR, currency, { forTransaction: true });
+      } catch (rateErr) {
+        return res.status(503).json({
+          success: false,
+          message: 'International payment is currently unavailable. Please contact House of Loom & Craft for assistance.'
+        });
+      }
+    }
+
+    const expectedSubunits = Math.round(currencyAmount * 100);
 
     // 3. Simulated Payment Security Guard
     const isSimulated = String(razorpayOrderId).startsWith('order_sim_') || String(razorpayPaymentId).startsWith('pay_sim_');
@@ -309,10 +364,10 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
           });
         }
 
-        if (paymentDetails.currency !== 'INR') {
+        if (paymentDetails.currency.toUpperCase() !== currency) {
           return res.status(400).json({
             success: false,
-            message: `Invalid currency "${paymentDetails.currency}". Expected INR.`
+            message: `Invalid currency "${paymentDetails.currency}". Expected ${currency}.`
           });
         }
 
@@ -323,7 +378,7 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
           });
         }
 
-        if (Number(paymentDetails.amount) !== amountInPaise) {
+        if (Number(paymentDetails.amount) !== expectedSubunits) {
           return res.status(400).json({
             success: false,
             message: 'Payment amount mismatch between gateway and authoritative atelier cart.'
@@ -362,7 +417,11 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
         shippingFee: 0,
         tax: 0,
         discount: 0,
-        total: calculatedSubtotal,
+        total: finalOrderTotalINR,
+        baseAmountINR: finalOrderTotalINR,
+        currency,
+        currencyAmount,
+        exchangeRate,
         paymentMethod: 'online',
         paymentStatus: 'refund_required',
         razorpayOrderId,
@@ -409,7 +468,11 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       discount: couponDiscount,
       couponCode: couponOffer ? couponOffer.code : undefined,
       couponDiscount: couponDiscount,
-      total: finalOrderTotal,
+      total: finalOrderTotalINR,
+      baseAmountINR: finalOrderTotalINR,
+      currency,
+      currencyAmount,
+      exchangeRate,
       paymentMethod: 'online',
       paymentStatus: 'completed',
       razorpayOrderId,
@@ -420,7 +483,7 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
         {
           status: 'confirmed',
           timestamp: new Date(),
-          note: `Payment verified (${razorpayPaymentId}). Order confirmed.${couponOffer ? ` Applied coupon ${couponOffer.code} (₹${couponDiscount} discount).` : ''}`
+          note: `Payment verified (${razorpayPaymentId}) for ${currency === 'INR' ? '₹' : ''}${currencyAmount} ${currency}${currency !== 'INR' ? ` (Base INR: ₹${finalOrderTotalINR.toLocaleString('en-IN')})` : ''}. Order confirmed.${couponOffer ? ` Applied coupon ${couponOffer.code} (₹${couponDiscount} discount).` : ''}`
         }
       ]
     });
