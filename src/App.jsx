@@ -57,6 +57,7 @@ const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage'));
 const AdminOrderDetailPage = lazy(() => import('./pages/admin/AdminOrderDetailPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminOffersPage = lazy(() => import('./pages/admin/AdminOffersPage'));
+const AdminSupportPage = lazy(() => import('./pages/admin/AdminSupportPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
 
 // Elegant Minimalist Page Transition Fallback
@@ -369,6 +370,7 @@ function AppContent() {
           <Route path="orders/:id" element={<AdminOrderDetailPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="offers" element={<AdminOffersPage />} />
+          <Route path="support" element={<AdminSupportPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 

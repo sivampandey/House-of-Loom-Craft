@@ -13,13 +13,15 @@ import {
   Menu,
   X,
   Database,
-  ChevronRight
+  ChevronRight,
+  MessageSquareQuote
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/admin/products', label: 'Products', icon: Package },
   { path: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { path: '/admin/support', label: 'Support Tickets', icon: MessageSquareQuote },
   { path: '/admin/users', label: 'Customers', icon: Users },
   { path: '/admin/offers', label: 'Offers & Coupons', icon: Tag },
   { path: '/admin/settings', label: 'Settings', icon: Settings },

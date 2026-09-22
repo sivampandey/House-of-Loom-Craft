@@ -3,6 +3,12 @@ import dns from 'dns';
 import { Product } from '../models/Product.js';
 import { Offer } from '../models/Offer.js';
 import { Order } from '../models/Order.js';
+import {
+  getCustomerOrdersInternal,
+  getOrderDetailsInternal,
+  getCustomerTicketsInternal,
+  createSupportTicketInternal
+} from './supportController.js';
 
 // Ensure DNS resolution on Windows does not stall API calls
 try {
@@ -457,8 +463,229 @@ export const handleChat = async (req, res) => {
 
     const defaultConversationalText = generateContextualGuidance(context);
 
-    // Check for Order tracking intent
-    const isOrderQuery = /order|track|shipment|where is my|delivery status|my package/i.test(lowerMsg);
+    // Check for "I don't know what is wrong, please help me"
+    if (/i\s*don'?t\s*know\s*what\s*is\s*wrong|please\s*help\s*me|need\s*some\s*help/i.test(lowerMsg) && lowerMsg.length < 50) {
+      return res.status(200).json({
+        success: true,
+        message: "I am here to help you. Could you share what you need assistance with — an existing order, a delivery update, choosing a rug for your home, or connecting with our support team?",
+        products: []
+      });
+    }
+
+    // Check for Official Shop Contact & Escalation
+    const isContactQuery = /how\s*can\s*i\s*contact|contact\s*(the\s*)?shop|contact\s*us|talk\s*to\s*(someone|human|person|support)|give\s*me\s*your\s*whatsapp|customer\s*(care|support)\s*(number|helpline|phone)|talk\s*to\s*customer\s*support|reach\s*(out\s*to\s*)?you/i.test(lowerMsg);
+    if (isContactQuery) {
+      return res.status(200).json({
+        success: true,
+        message: "You can connect directly with our Bhadohi atelier and concierge team through any of the following channels:\n\n• WhatsApp & Phone: +91 9839116625, +91 7460007382\n• Email: Potteryrugs@gmail.com\n• Atelier Address: G.T. Road, Ghosia, Aurai, Bhadohi 221301, U.P. (India)\n\nIf you have an order inquiry, damage report, or specific complaint, please let me know and I can also register an official support ticket for you right here.",
+        products: []
+      });
+    }
+
+    // Check for Support Ticket / Complaint Status Inquiry
+    const isTicketStatusQuery = /status\s*of\s*my\s*(complaint|ticket|case|support|request)|track\s*my\s*(complaint|ticket)|ticket\s*status|complaint\s*status|has\s*my\s*(support\s*ticket|complaint)\s*been\s*resolved/i.test(lowerMsg);
+    if (isTicketStatusQuery) {
+      const ticketIdMatch = lowerMsg.match(/hlc-\d+/i);
+      if (ticketIdMatch) {
+        const ticket = await SupportTicket.findOne({ ticketId: ticketIdMatch[0].toUpperCase() }).select('ticketId status category').lean();
+        if (ticket) {
+          return res.status(200).json({
+            success: true,
+            message: `Your support ticket ${ticket.ticketId} is currently ${ticket.status}. Our team is reviewing the issue.`,
+            products: []
+          });
+        }
+      }
+
+      if (!req.user || !req.user._id) {
+        return res.status(200).json({
+          success: true,
+          message: "To track your support ticket or complaint, please sign in to your account, or provide your Ticket ID (e.g. HLC-1047).",
+          products: []
+        });
+      }
+
+      const tickets = await getCustomerTicketsInternal(req.user._id, req.user.email);
+      if (tickets && tickets.length > 0) {
+        const latest = tickets[0];
+        return res.status(200).json({
+          success: true,
+          message: `Your support ticket ${latest.ticketId} is currently ${latest.status}. Our team is reviewing the issue.`,
+          products: []
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "You currently have no active support tickets on file. If you are experiencing an issue with an order or product, please describe what occurred and I will be pleased to register a ticket for you.",
+        products: []
+      });
+    }
+
+    // Check for Customer Problems, Complaints & Support Ticket Triggers
+    const isDamagedQuery = /damage|damaged|broken|torn|cut|stain|soiled/i.test(lowerMsg);
+    const isWrongProductQuery = /wrong\s*(product|item|rug|order)|incorrect\s*(product|item|rug|order)|different\s*(product|item)/i.test(lowerMsg);
+    const isPaymentDeductedQuery = /payment\s*(was\s*)?deducted|money\s*(was\s*)?deducted|charged\s*twice|payment\s*failed\s*but/i.test(lowerMsg);
+    const isDeliveryIssueQuery = /hasn'?t\s*arrived|not\s*arrived|not\s*delivered|delivered\s*but\s*i\s*didn'?t\s*receive|late\s*delivery/i.test(lowerMsg);
+    const isCancelQuery = /want\s*to\s*cancel|cancel\s*(my\s*)?order|cancel\s*this\s*order/i.test(lowerMsg);
+    const isReturnQuery = /want\s*to\s*return|return\s*(this\s*)?(product|order|rug)/i.test(lowerMsg);
+    const isRefundQuery = /want\s*a\s*refund|process\s*my\s*refund|where\s*is\s*my\s*refund|get\s*a\s*refund/i.test(lowerMsg);
+    const isDefectQuery = /defect|defective|faulty|flaw|imperfection/i.test(lowerMsg);
+    const isGeneralComplaintQuery = /have\s*a\s*complaint|file\s*a\s*complaint|raise\s*a\s*complaint|problem\s*with\s*(my\s*)?order/i.test(lowerMsg);
+
+    const isComplaintOrIssue = isDamagedQuery || isWrongProductQuery || isPaymentDeductedQuery ||
+      isDeliveryIssueQuery || isCancelQuery || isReturnQuery || isRefundQuery || isDefectQuery || isGeneralComplaintQuery;
+
+    if (isComplaintOrIssue) {
+      // 1. Extract category & priority
+      let category = 'General Enquiry';
+      let priority = 'Normal';
+      let resolutionAction = 'Our atelier support team will review your case and reach out shortly.';
+
+      if (isDamagedQuery) {
+        category = 'Damaged Product';
+        priority = 'High';
+        resolutionAction = 'Request and review damage photographs for replacement or restoration.';
+      } else if (isWrongProductQuery) {
+        category = 'Wrong Product';
+        priority = 'High';
+        resolutionAction = 'Dispatch correct item and arrange return courier for incorrect parcel.';
+      } else if (isPaymentDeductedQuery) {
+        category = 'Payment';
+        priority = 'High';
+        resolutionAction = 'Reconcile transaction status with Razorpay payment gateway and verify bank credit.';
+      } else if (isDeliveryIssueQuery) {
+        category = 'Delivery';
+        priority = 'Normal';
+        resolutionAction = 'Trace shipment with courier partner and provide updated delivery timeline.';
+      } else if (isCancelQuery) {
+        category = 'Cancellation';
+        priority = 'Normal';
+        resolutionAction = 'Verify dispatch status within 24-hour window and process order cancellation.';
+      } else if (isReturnQuery) {
+        category = 'Return';
+        priority = 'Normal';
+        resolutionAction = 'Inspect return eligibility under 7-day policy and provide reverse pickup details.';
+      } else if (isRefundQuery) {
+        category = 'Refund';
+        priority = 'Normal';
+        resolutionAction = 'Verify return delivery at Bhadohi atelier and initiate 5-7 day bank refund.';
+      } else if (isDefectQuery) {
+        category = 'Product';
+        priority = 'Normal';
+        resolutionAction = 'Evaluate handcraft characteristics and inspect defect photographs.';
+      }
+
+      // 2. Extract order number if mentioned
+      const orderMatch = message.match(/#?([A-Za-z0-9\-]{5,20})/);
+      let detectedOrderNum = '';
+      if (orderMatch && !['damaged', 'payment', 'cancel', 'return', 'refund', 'complaint'].includes(orderMatch[1].toLowerCase())) {
+        detectedOrderNum = orderMatch[1].replace(/#/g, '');
+      }
+
+      // If authenticated and no order found in text, grab their latest order
+      if (!detectedOrderNum && req.user?._id) {
+        const latestOrder = await Order.findOne({ userId: req.user._id }).sort({ createdAt: -1 }).select('orderNumber').lean();
+        if (latestOrder) detectedOrderNum = latestOrder.orderNumber;
+      }
+
+      // 3. Create Support Ticket in MongoDB & dispatch non-blocking notifications
+      const customerName = req.user ? `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'Valued Client' : 'Valued Client';
+      const customerEmail = req.user?.email || 'client@houseofloomcraft.com';
+      const customerPhone = req.user?.phone || '';
+
+      const ticketResult = await createSupportTicketInternal({
+        userId: req.user?._id || null,
+        customerName,
+        customerEmail,
+        customerPhone,
+        orderNumber: detectedOrderNum,
+        category,
+        priority,
+        subject: `${category} Request${detectedOrderNum ? ` — Order #${detectedOrderNum}` : ''}`,
+        customerMessage: message,
+        conversationContext: sanitizedHistory,
+        aiSummary: `Customer submitted: "${message}"`,
+        aiSuggestedResolution: resolutionAction
+      });
+
+      // 4. Construct empathetic, accurate conversational response
+      let supportResponseText = '';
+
+      if (isDamagedQuery) {
+        supportResponseText = `I am truly sorry about that. I have registered an official support ticket for you so our atelier team can review this immediately.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Damaged Product
+Status: Open
+
+Please share a photo of the damaged area to Potteryrugs@gmail.com or via WhatsApp at +91 9839116625 quoting your Ticket ID. Our master craftsmen will inspect the case and guide you through a replacement or resolution.`;
+      } else if (isWrongProductQuery) {
+        supportResponseText = `I apologize for the shipment error. I have registered a support request to correct this for you.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Wrong Product
+Status: Open
+
+Please share a photograph of the piece you received to Potteryrugs@gmail.com or WhatsApp (+91 9839116625) with your Ticket ID. Our team will arrange the correct delivery and return of the incorrect parcel.`;
+      } else if (isPaymentDeductedQuery) {
+        supportResponseText = `I understand your payment was deducted. I have registered an urgent review ticket with our billing desk.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Payment (High Priority)
+Status: Open
+
+Our finance desk will reconcile this with our Razorpay records. If an order was not created, the amount will be linked or automatically credited back by your issuing bank within 3–5 business days.`;
+      } else if (isDeliveryIssueQuery) {
+        supportResponseText = `I regret to hear about the delivery issue. I have registered a support ticket to trace your parcel with our logistics team.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Delivery
+Status: Open
+
+Our dispatch desk will trace the carrier status and contact you with an updated delivery timeline.`;
+      } else if (isCancelQuery) {
+        supportResponseText = `Under our atelier policy, orders may be cancelled within 24 hours of placement before dispatch. I have registered your cancellation request.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Cancellation
+Status: Open
+
+Our team will verify the dispatch status of your piece and confirm cancellation shortly.`;
+      } else if (isReturnQuery) {
+        supportResponseText = `We accept returns within 7 days of delivery for defective or damaged pieces with photographic proof. I have registered your return request.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Return
+Status: Open
+
+Our team will review your inquiry and follow up with reverse-pickup guidance.`;
+      } else if (isRefundQuery) {
+        supportResponseText = `Refunds for returned pieces are credited to your original payment method within 5–7 business days following inspection at our Bhadohi atelier. I have registered your refund inquiry.
+
+Ticket ID: ${ticketResult.ticketId}
+Category: Refund
+Status: Open
+
+Our accounts desk will verify your order details and update you.`;
+      } else {
+        supportResponseText = `Your support request has been registered successfully.
+
+Ticket ID: ${ticketResult.ticketId}
+Status: Open
+
+Our support team will review the issue and get back to you promptly.`;
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: supportResponseText,
+        products: []
+      });
+    }
+
+    // Check for Order tracking and Order details intent
+    const isOrderQuery = /order|track|shipment|where is my|delivery status|my package|when will my order arrive|show my order/i.test(lowerMsg);
     if (isOrderQuery) {
       if (!req.user || !req.user._id) {
         return res.status(200).json({
@@ -468,32 +695,49 @@ export const handleChat = async (req, res) => {
         });
       }
 
-      try {
-        const orders = await Promise.race([
-          Order.find({ userId: req.user._id })
-            .sort({ createdAt: -1 })
-            .limit(3)
-            .select('orderNumber orderStatus total items.name items.quantity carrier trackingNumber createdAt')
-            .lean(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 2500))
-        ]);
+      // Check if specific order number is provided (e.g. "Track order #HLC10245" or "Show order #1045")
+      const orderNumMatch = message.match(/#?([A-Za-z0-9\-]{5,20})/);
+      const isSpecificOrder = orderNumMatch && !['order', 'orders', 'track', 'where', 'details'].includes(orderNumMatch[1].toLowerCase());
 
-        if (orders && orders.length > 0) {
-          userOrdersContext = orders.map(o => ({
-            orderNumber: o.orderNumber,
-            date: o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN') : 'Recent',
-            status: o.orderStatus,
-            total: `₹${o.total?.toLocaleString('en-IN')}`,
-            carrier: o.carrier || 'Standard Insured Logistics',
-            trackingNumber: o.trackingNumber || 'Pending dispatch confirmation',
-            items: o.items?.map(it => `${it.quantity}x ${it.name}`).join(', ')
-          }));
+      if (isSpecificOrder) {
+        const specificOrder = await getOrderDetailsInternal(req.user._id, orderNumMatch[1]);
+        if (specificOrder) {
+          return res.status(200).json({
+            success: true,
+            message: `Here are the details for Order #${specificOrder.orderNumber}:
+
+• Status: ${specificOrder.status.toUpperCase()}
+• Date: ${specificOrder.date}
+• Items: ${specificOrder.items}
+• Total: ${specificOrder.total}
+• Carrier: ${specificOrder.carrier}
+• Tracking: ${specificOrder.trackingNumber}`,
+            products: []
+          });
         } else {
-          userOrdersContext = 'No previous orders found for your account.';
+          return res.status(200).json({
+            success: true,
+            message: `I could not locate an order matching "${orderNumMatch[1]}" under your account. Please verify the order number or ask me to list your recent orders.`,
+            products: []
+          });
         }
-      } catch (err) {
-        console.warn('[Chatbot Order Query Timeout/Error]:', err.message);
-        userOrdersContext = 'Order status service is momentarily busy. Please check back shortly.';
+      }
+
+      // General order list
+      const orders = await getCustomerOrdersInternal(req.user._id);
+      if (orders && orders.length > 0) {
+        const ordersListFormatted = orders.map(o => `• Order #${o.orderNumber} (${o.date}) — Status: ${o.status.toUpperCase()} | Total: ${o.total}\n  Items: ${o.items}\n  Tracking: ${o.trackingNumber}`).join('\n\n');
+        return res.status(200).json({
+          success: true,
+          message: `Here are your recent House of Loom & Craft orders:\n\n${ordersListFormatted}\n\nLet me know if you would like more details or assistance with any specific order.`,
+          products: []
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: "You currently have no previous orders recorded under your account. When you place an order, live tracking and details will appear here.",
+          products: []
+        });
       }
     }
 

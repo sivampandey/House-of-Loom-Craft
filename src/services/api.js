@@ -263,3 +263,17 @@ export const chatAPI = {
     })
 };
 
+// ==================== SUPPORT TICKETS ====================
+export const supportAPI = {
+  getTicketsAdmin: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/support/tickets${query ? `?${query}` : ''}`);
+  },
+  getTicketByIdAdmin: (id) => request(`/admin/support/tickets/${id}`),
+  updateTicketStatusAdmin: (id, status) =>
+    request(`/admin/support/tickets/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  addInternalNoteAdmin: (id, note) =>
+    request(`/admin/support/tickets/${id}/notes`, { method: 'POST', body: JSON.stringify({ note }) })
+};
+
+

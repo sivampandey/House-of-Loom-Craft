@@ -22,6 +22,12 @@ import {
   updateOfferAdmin,
   deleteOfferAdmin
 } from '../controllers/offerController.js';
+import {
+  getAllTicketsAdmin,
+  getTicketByIdAdmin,
+  updateTicketStatusAdmin,
+  addTicketInternalNoteAdmin
+} from '../controllers/supportController.js';
 
 const router = express.Router();
 
@@ -56,5 +62,11 @@ router.get('/offers/:id', getOfferAdminById);
 router.post('/offers', createOfferAdmin);
 router.put('/offers/:id', updateOfferAdmin);
 router.delete('/offers/:id', deleteOfferAdmin);
+
+// ==================== SUPPORT & COMPLAINT TICKETS ====================
+router.get('/support/tickets', getAllTicketsAdmin);
+router.get('/support/tickets/:id', getTicketByIdAdmin);
+router.put('/support/tickets/:id/status', updateTicketStatusAdmin);
+router.post('/support/tickets/:id/notes', addTicketInternalNoteAdmin);
 
 export default router;
