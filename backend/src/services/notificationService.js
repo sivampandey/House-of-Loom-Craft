@@ -10,11 +10,17 @@ import { SupportTicket } from '../models/SupportTicket.js';
 export const notifyShopViaWhatsApp = async (ticket) => {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const recipientPhone = (process.env.SHOP_WHATSAPP_NUMBER || '+919839116625').replace(/[^\d+]/g, '');
+  const primaryPhone = (process.env.SHOP_WHATSAPP_NUMBER || '917460007382').replace(/[^\d]/g, '');
+  const secondaryPhone = (process.env.SHOP_WHATSAPP_NUMBER_SECONDARY || '919839116625').replace(/[^\d]/g, '');
 
   if (!accessToken || !phoneNumberId) {
     console.log('[NotificationService] WhatsApp API credentials not configured. Skipping WhatsApp dispatch.');
     return { status: 'not_configured', message: 'WhatsApp API credentials not configured.' };
+  }
+
+  const recipients = [primaryPhone];
+  if (secondaryPhone && secondaryPhone !== primaryPhone) {
+    recipients.push(secondaryPhone);
   }
 
   const messageBody = `🚨 *New Customer Support Ticket*
@@ -45,32 +51,43 @@ ${ticket.aiSuggestedResolution || 'Review inquiry details and follow up with the
 ${ticket.status.toUpperCase()}
 `.trim();
 
-  try {
-    const response = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: recipientPhone.replace('+', ''),
-        type: 'text',
-        text: {
-          preview_url: false,
-          body: messageBody
-        }
-      })
-    });
+  const sendToRecipient = async (recipient) => {
+    try {
+      const response = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: recipient,
+          type: 'text',
+          text: {
+            preview_url: false,
+            body: messageBody
+          }
+        })
+      });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      console.warn('[NotificationService WhatsApp Error]:', data.error?.message || response.statusText);
-      return { status: 'failed', error: data.error?.message || response.statusText };
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        console.warn(`[NotificationService WhatsApp Error for ${recipient}]:`, data.error?.message || response.statusText);
+        return { recipient, status: 'failed', error: data.error?.message || response.statusText };
+      }
+
+      return { recipient, status: 'sent', messageId: data.messages?.[0]?.id };
+    } catch (err) {
+      console.warn(`[NotificationService WhatsApp Exception for ${recipient}]:`, err.message);
+      return { recipient, status: 'failed', error: err.message };
     }
+  };
 
-    return { status: 'sent', messageId: data.messages?.[0]?.id };
+  try {
+    const results = await Promise.allSettled(recipients.map(r => sendToRecipient(r)));
+    const primaryResult = results[0]?.status === 'fulfilled' ? results[0].value : { status: 'failed', error: 'Primary recipient failed' };
+    return primaryResult;
   } catch (err) {
     console.warn('[NotificationService WhatsApp Exception]:', err.message);
     return { status: 'failed', error: err.message };

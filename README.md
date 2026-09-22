@@ -148,7 +148,8 @@ SEED_CLIENT_PASSWORD=AtelierClient2026!
 # In production on Vercel, point VITE_API_URL to your deployed Railway/Render backend URL
 VITE_API_URL=http://localhost:5000/api
 VITE_SITE_URL=https://potteryrugs.com
-VITE_WHATSAPP_NUMBER=919839116625
+VITE_WHATSAPP_NUMBER=917460007382
+VITE_WHATSAPP_NUMBER_SECONDARY=919839116625
 
 # Public Razorpay Key ID (Client-side safe; never expose secret key here)
 VITE_RAZORPAY_KEY_ID=
@@ -205,7 +206,8 @@ npm run dev
 6. Configure Environment Variables in Vercel Project Settings:
    - `VITE_API_URL`: `https://your-backend.railway.app/api`
    - `VITE_SITE_URL`: `https://potteryrugs.com`
-   - `VITE_WHATSAPP_NUMBER`: `919839116625`
+   - `VITE_WHATSAPP_NUMBER`: `917460007382` (Primary WhatsApp)
+   - `VITE_WHATSAPP_NUMBER_SECONDARY`: `919839116625` (Secondary WhatsApp)
    - `VITE_RAZORPAY_KEY_ID`: `rzp_live_...`
 7. SPA routing is managed automatically by `vercel.json` (`rewrites: [ { "source": "/(.*)", "destination": "/index.html" } ]`).
 

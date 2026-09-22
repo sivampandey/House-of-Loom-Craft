@@ -26,7 +26,7 @@ This security authorization will expire in 30 minutes. If you did not initiate t
 
 Atelier Concierge:
 G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
-+91 9839116625, +91 7460007382 | Potteryrugs@gmail.com
++91 7460007382, +91 9839116625 | Potteryrugs@gmail.com
 `.trim();
 
   const htmlContent = `
@@ -74,7 +74,7 @@ G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
     <div class="footer">
       House of Loom &amp; Craft &bull; Manufacturer &amp; Exporter<br>
       G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)<br>
-      Concierge Helpline: +91 9839116625, +91 7460007382 | Potteryrugs@gmail.com
+      Concierge Helpline: +91 7460007382, +91 9839116625 | Potteryrugs@gmail.com
     </div>
   </div>
 </body>

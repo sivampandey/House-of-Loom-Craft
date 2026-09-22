@@ -69,13 +69,22 @@ export default function SEO({
       legalName: 'House of Loom & Craft',
       url: SITE_URL,
       logo: `${SITE_URL}/images/pottery-logo.jpg`,
-      contactPoint: {
-        '@type': 'ContactPoint',
-        telephone: '+91-9839116625',
-        contactType: 'sales and customer service',
-        areaServed: ['IN', 'US', 'GB', 'AE', 'EU'],
-        availableLanguage: ['English', 'Hindi']
-      },
+      contactPoint: [
+        {
+          '@type': 'ContactPoint',
+          telephone: '+91-7460007382',
+          contactType: 'sales and customer service',
+          areaServed: ['IN', 'US', 'GB', 'AE', 'EU'],
+          availableLanguage: ['English', 'Hindi']
+        },
+        {
+          '@type': 'ContactPoint',
+          telephone: '+91-9839116625',
+          contactType: 'customer support',
+          areaServed: ['IN', 'US', 'GB', 'AE', 'EU'],
+          availableLanguage: ['English', 'Hindi']
+        }
+      ],
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'G.T. ROAD, GHOSIA, AURAI',

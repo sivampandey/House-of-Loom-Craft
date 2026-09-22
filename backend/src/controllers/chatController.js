@@ -35,7 +35,7 @@ Shipping Policy: Complimentary insured nationwide shipping across India.
 Dispatch: Per-piece dispatch lead times are specified in the catalog (e.g. In stock pieces dispatch in 24-48 hours).
 Payment Methods: Online payment (Credit/Debit Cards, UPI, NetBanking via Razorpay) and Cash on Delivery (COD).
 Contact & Atelier Concierge:
-- WhatsApp / Phone: +91 9839116625, +91 7460007382
+- WhatsApp / Phone (Primary): +91 7460007382, (Secondary): +91 9839116625
 - Email: Potteryrugs@gmail.com
 Unverified Policy Rule: If a customer inquires about custom return conditions, guarantees, international export quotes, or policies not documented above, invite them warmly to consult the master artisans directly via WhatsApp or phone. Never invent policy details.
 `;
@@ -473,11 +473,11 @@ export const handleChat = async (req, res) => {
     }
 
     // Check for Official Shop Contact & Escalation
-    const isContactQuery = /how\s*can\s*i\s*contact|contact\s*(the\s*)?shop|contact\s*us|talk\s*to\s*(someone|human|person|support)|give\s*me\s*your\s*whatsapp|customer\s*(care|support)\s*(number|helpline|phone)|talk\s*to\s*customer\s*support|reach\s*(out\s*to\s*)?you/i.test(lowerMsg);
+    const isContactQuery = /\bwhatsapp\b|how\s*can\s*i\s*contact|contact\s*(the\s*)?shop|contact\s*us|talk\s*to\s*(someone|human|person|support)|give\s*me\s*your\s*whatsapp|customer\s*(care|support)\s*(number|helpline|phone)|talk\s*to\s*customer\s*support|reach\s*(out\s*to\s*)?you/i.test(lowerMsg);
     if (isContactQuery) {
       return res.status(200).json({
         success: true,
-        message: "You can connect directly with our Bhadohi atelier and concierge team through any of the following channels:\n\n• WhatsApp & Phone: +91 9839116625, +91 7460007382\n• Email: Potteryrugs@gmail.com\n• Atelier Address: G.T. Road, Ghosia, Aurai, Bhadohi 221301, U.P. (India)\n\nIf you have an order inquiry, damage report, or specific complaint, please let me know and I can also register an official support ticket for you right here.",
+        message: "You can connect directly with our Bhadohi atelier and concierge team through any of the following channels:\n\n• Primary WhatsApp & Phone: +91 7460007382\n• Secondary / Alternate Phone: +91 9839116625\n• Email: Potteryrugs@gmail.com\n• Atelier Address: G.T. Road, Ghosia, Aurai, Bhadohi 221301, U.P. (India)\n\nIf you have an order inquiry, damage report, or specific complaint, please let me know and I can also register an official support ticket for you right here.",
         products: []
       });
     }
@@ -619,7 +619,7 @@ Ticket ID: ${ticketResult.ticketId}
 Category: Damaged Product
 Status: Open
 
-Please share a photo of the damaged area to Potteryrugs@gmail.com or via WhatsApp at +91 9839116625 quoting your Ticket ID. Our master craftsmen will inspect the case and guide you through a replacement or resolution.`;
+Please share a photo of the damaged area to Potteryrugs@gmail.com or via WhatsApp at +91 7460007382 quoting your Ticket ID. Our master craftsmen will inspect the case and guide you through a replacement or resolution.`;
       } else if (isWrongProductQuery) {
         supportResponseText = `I apologize for the shipment error. I have registered a support request to correct this for you.
 
@@ -627,7 +627,7 @@ Ticket ID: ${ticketResult.ticketId}
 Category: Wrong Product
 Status: Open
 
-Please share a photograph of the piece you received to Potteryrugs@gmail.com or WhatsApp (+91 9839116625) with your Ticket ID. Our team will arrange the correct delivery and return of the incorrect parcel.`;
+Please share a photograph of the piece you received to Potteryrugs@gmail.com or WhatsApp (+91 7460007382) with your Ticket ID. Our team will arrange the correct delivery and return of the incorrect parcel.`;
       } else if (isPaymentDeductedQuery) {
         supportResponseText = `I understand your payment was deducted. I have registered an urgent review ticket with our billing desk.
 

@@ -346,7 +346,7 @@ export default function CheckoutPage({ onShowToast }) {
                         required
                         value={addressForm.phone}
                         onChange={(e) => setAddressForm(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="+91 9839116625"
+                        placeholder="+91 7460007382"
                         className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl py-2.5 px-3 focus:outline-none"
                       />
                     </div>

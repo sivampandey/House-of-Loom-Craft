@@ -128,7 +128,7 @@ export default function AdminSettingsPage() {
             <input
               type="text"
               readOnly
-              value="+91 94152 00000"
+              value="+91 7460007382 (Alternate: +91 9839116625)"
               className="w-full px-3 py-2 border border-[#1E261B]/15 rounded bg-[#FAF7F2] text-[#1E261B]"
             />
           </div>

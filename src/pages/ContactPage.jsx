@@ -245,7 +245,7 @@ export default function ContactPage({ onShowToast }) {
                     <input
                       type="tel"
                       required
-                      placeholder="e.g. +91 9839116625"
+                      placeholder="e.g. +91 7460007382"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full bg-[#EFE8D8] border border-[#DACDB3] rounded-xl px-4 py-3 text-xs text-[#362B21] placeholder:text-[#4E3C2B]/50 focus:border-[#55694A] focus:outline-none font-sans"

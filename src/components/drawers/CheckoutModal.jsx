@@ -487,7 +487,7 @@ export default function CheckoutModal({
                           />
                           <button
                             type="button"
-                            onClick={() => setUpiId('9839116625@upi')}
+                            onClick={() => setUpiId('7460007382@upi')}
                             className="text-[11px] bg-[#526449] hover:bg-[#607555] px-3 py-2 rounded text-[#FAF7F0] border border-[#6D7F62]"
                           >
                             Use Demo UPI
