@@ -1,4 +1,4 @@
-# POTTERY RUGS & HOME DECOR — Production-Ready Luxury Atelier Platform
+# House of Loom & Craft — Production-Ready Luxury Atelier Platform
 
 > **Manufacturer & Exporter of Handcrafted Carpets and Architectural Home Accents**  
 > G.T. Road, Ghosia, Aurai, Bhadohi 221301 U.P. (India)
@@ -7,7 +7,7 @@
 
 ## 1. Project Overview
 
-**POTTERY RUGS & HOME DECOR** is a full-stack e-commerce web platform for a high-end luxury carpet manufacturer and exporter based in Bhadohi, Uttar Pradesh (India). 
+**House of Loom & Craft** is a full-stack e-commerce web platform for a high-end luxury carpet manufacturer and exporter based in Bhadohi, Uttar Pradesh (India). 
 
 The platform retains its core identity as an architectural, editorial showroom—featuring 3D WebGL carpet inspections, cinematic transition videos, deep craftsmanship storytelling, and a warm earthy palette (`#45563D` olive, `#FAF7F0` cream, `#D4BC9F` sand/camel, and `#362B21` deep brown)—while offering enterprise-grade e-commerce capabilities:
 - User authentication via secure `httpOnly` cookies and JWT
@@ -35,7 +35,7 @@ The platform retains its core identity as an architectural, editorial showroom�
 ## 3. Project Structure
 
 ```
-pottery-rugs-luxury-decor/
+ House of Loom & Craft/
 │
 ├── backend/
 │   ├── src/
