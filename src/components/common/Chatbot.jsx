@@ -95,6 +95,7 @@ export default function Chatbot() {
   const navigate = useNavigate();
   const { formatPrice, currency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
+  const [showWelcomeBubble, setShowWelcomeBubble] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -136,22 +137,19 @@ export default function Chatbot() {
     }
   ];
 
-  // Auto-open chatbot once per browser session after subtle 2.5s delay
+  // Show small welcome message bubble above launcher once per session (without auto-opening full chat)
   useEffect(() => {
     try {
       const hasSeen = sessionStorage.getItem('pottery_rugs_concierge_seen');
       if (!hasSeen) {
         const timer = setTimeout(() => {
-          setIsOpen(true);
-          try {
-            sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
-          } catch (_) {}
-        }, 2500);
+          setShowWelcomeBubble(true);
+        }, 800);
 
         return () => clearTimeout(timer);
       }
     } catch (_) {
-      // Graceful fallback if sessionStorage is inaccessible
+      setShowWelcomeBubble(true);
     }
   }, []);
 
@@ -159,7 +157,33 @@ export default function Chatbot() {
     setIsOpen(false);
     try {
       sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
-    } catch (_) {}
+    } catch (_) { }
+  };
+
+  const handleDismissWelcomeBubble = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setShowWelcomeBubble(false);
+    try {
+      sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
+    } catch (_) { }
+  };
+
+  const handleOpenChat = () => {
+    setShowWelcomeBubble(false);
+    setIsOpen(true);
+    try {
+      sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
+    } catch (_) { }
+  };
+
+  const toggleChat = () => {
+    if (isOpen) {
+      handleClose();
+    } else {
+      handleOpenChat();
+    }
   };
 
   const scrollToBottom = () => {
@@ -317,15 +341,62 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* Floating Circular Launcher: Compact 60px Desktop / 56px Mobile */}
-      <div className={`fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 select-none ${isOpen ? 'hidden sm:block' : 'block'}`}>
+      {/* Floating Circular Launcher & Attached Welcome Tooltip */}
+      <div
+        className={`fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 select-none flex flex-col items-end pointer-events-none ${isOpen ? 'hidden sm:flex' : 'flex'
+          }`}
+      >
+        {/* Small Welcome Tooltip positioned directly above floating button */}
+        <AnimatePresence>
+          {!isOpen && showWelcomeBubble && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.95 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              onClick={handleOpenChat}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleOpenChat();
+                }
+              }}
+              aria-label="Open AI Concierge chat assistance"
+              className="pointer-events-auto relative mb-3 cursor-pointer bg-[#FAF7F0] border border-[#DACDB3] rounded-2xl px-3.5 py-2.5 shadow-[0_12px_28px_rgba(40,30,20,0.18),0_2px_8px_rgba(40,30,20,0.08)] w-auto max-w-[210px] sm:max-w-[250px] transition-all duration-200 hover:border-[#34402D]/40 hover:shadow-[0_16px_34px_rgba(40,30,20,0.22)] group/bubble"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[12.5px] sm:text-[13px] leading-snug font-sans text-[#2C241E] font-medium tracking-normal select-none pr-0.5">
+                  Hello 👋 May I help you?
+                </p>
+                <button
+                  type="button"
+                  onClick={handleDismissWelcomeBubble}
+                  aria-label="Dismiss greeting"
+                  className="w-5 h-5 -mr-1 -mt-0.5 rounded-full flex items-center justify-center text-[#8C7E72] hover:text-[#2C241E] hover:bg-[#EAE0D0] transition-colors flex-shrink-0 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Downward Caret pointing directly into center of floating launcher */}
+              <div
+                className="absolute -bottom-1.5 right-5 sm:right-6 w-3 h-3 bg-[#FAF7F0] border-b border-r border-[#DACDB3] rotate-45 pointer-events-none group-hover/bubble:border-[#34402D]/40 transition-colors"
+                aria-hidden="true"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Circular Launcher: Compact 60px Desktop / 56px Mobile */}
         <motion.button
           id="house-of-loom-craft-concierge-toggle"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleChat}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.94 }}
           aria-label={isOpen ? "Close House of Loom & Craft Concierge" : "Open House of Loom & Craft Concierge"}
-          className="w-14 h-14 sm:w-[60px] sm:h-[60px] rounded-full bg-[#34402D] hover:bg-[#283222] shadow-[0_10px_26px_rgba(0,0,0,0.28),0_2px_6px_rgba(0,0,0,0.18)] border border-[#4B5B41] flex items-center justify-center cursor-pointer transition-colors duration-200 relative group"
+          className="pointer-events-auto w-14 h-14 sm:w-[60px] sm:h-[60px] rounded-full bg-[#34402D] hover:bg-[#283222] shadow-[0_10px_26px_rgba(0,0,0,0.28),0_2px_6px_rgba(0,0,0,0.18)] border border-[#4B5B41] flex items-center justify-center cursor-pointer transition-colors duration-200 relative group"
         >
           {/* House of Loom & Craft Icon Centered (30-34px in crisp white disc) */}
           <div className="w-[34px] h-[34px] sm:w-[36px] sm:h-[36px] rounded-full bg-white p-1 flex items-center justify-center overflow-hidden shadow-xs">
@@ -424,11 +495,10 @@ export default function Chatbot() {
                   <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'max-w-[85%]' : 'max-w-[calc(100%-42px)] sm:max-w-[82%]'}`}>
                     {/* Message Bubble: Compact & Comfortable */}
                     <div
-                      className={`rounded-[18px] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs transition-all ${
-                        msg.role === 'user'
+                      className={`rounded-[18px] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-xs transition-all ${msg.role === 'user'
                           ? 'bg-[#34402D] text-[#FAF7F0] rounded-tr-[4px]'
                           : 'bg-[#F2ECE1] border border-[#E2DDD3] text-[#241C16] rounded-tl-[4px]'
-                      }`}
+                        }`}
                     >
                       {msg.role === 'user' ? (
                         <p className="text-[13px] sm:text-[13.5px] leading-relaxed font-sans whitespace-pre-wrap break-words">
@@ -440,9 +510,8 @@ export default function Chatbot() {
 
                       {/* Timestamp bottom right */}
                       <div
-                        className={`text-[9.5px] mt-1 font-sans ${
-                          msg.role === 'user' ? 'text-[#FAF7F0]/60 text-right' : 'text-[#8C7D70] text-right'
-                        }`}
+                        className={`text-[9.5px] mt-1 font-sans ${msg.role === 'user' ? 'text-[#FAF7F0]/60 text-right' : 'text-[#8C7D70] text-right'
+                          }`}
                       >
                         {msg.timestamp || '2:43 PM'}
                       </div>
@@ -487,7 +556,7 @@ export default function Chatbot() {
                                     {formatPrice(prod.price)}
                                   </span>
                                   {prod.badge && (
-                                    <span 
+                                    <span
                                       title={prod.badge}
                                       className="text-[8px] sm:text-[8.5px] px-1.5 py-0.5 bg-[#1B6BC7]/10 text-[#1B6BC7] rounded uppercase tracking-wider font-semibold border border-[#1B6BC7]/20 whitespace-nowrap max-w-[120px] truncate"
                                     >
@@ -562,7 +631,7 @@ export default function Chatbot() {
             )}
 
             {/* Input Composer Field: 54-58px Compact Container with Safe Area Support, flex-shrink: 0 */}
-            <div 
+            <div
               className="px-2.5 sm:px-3 pt-2 pb-[max(8px,env(safe-area-inset-bottom))] bg-[#FAF7F2] border-t border-[#DDD5C7]/80 flex-shrink-0"
               style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
             >

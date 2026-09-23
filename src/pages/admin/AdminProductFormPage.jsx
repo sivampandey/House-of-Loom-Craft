@@ -12,7 +12,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-const CATEGORIES = [
+export const CATEGORIES = [
   'Hand Knotted Rugs',
   'Hand Tufted Rugs',
   'Hand Woven Rugs',
@@ -22,6 +22,17 @@ const CATEGORIES = [
   'Custom Rugs',
   'Special Shape Rugs'
 ];
+
+export const CATEGORY_COLLECTION_MAP = {
+  'Hand Knotted Rugs': { collection: 'hand-knotted', collectionName: 'Hand Knotted Rugs' },
+  'Hand Tufted Rugs': { collection: 'hand-tufted', collectionName: 'Hand Tufted Rugs' },
+  'Hand Woven Rugs': { collection: 'hand-woven', collectionName: 'Hand Woven Rugs' },
+  'Handloom Rugs': { collection: 'handloom', collectionName: 'Handloom Rugs' },
+  'Custom Rugs': { collection: 'custom', collectionName: 'Custom Rugs' },
+  'Special Shape Rugs': { collection: 'special-shape', collectionName: 'Special Shape Rugs' },
+  'Home Decor': { collection: 'home-decor', collectionName: 'Architectural Accents' },
+  'Architectural Accents': { collection: 'home-decor', collectionName: 'Architectural Accents' }
+};
 
 export default function AdminProductFormPage() {
   const { id } = useParams();
@@ -114,18 +125,26 @@ export default function AdminProductFormPage() {
 
   const handleCategoryChange = (e) => {
     const cat = e.target.value;
-    const colKey = cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const mapping = CATEGORY_COLLECTION_MAP[cat] || {
+      collection: cat.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      collectionName: cat
+    };
     setFormData((prev) => ({
       ...prev,
       category: cat,
-      collection: colKey,
-      collectionName: cat
+      collection: mapping.collection,
+      collectionName: mapping.collectionName
     }));
   };
 
   const handleAddImage = () => {
-    if (!newImageUrl.trim()) return;
     const clean = newImageUrl.trim();
+    if (!clean) return;
+    if (!clean.startsWith('/') && !clean.startsWith('http://') && !clean.startsWith('https://')) {
+      setError('Please provide a valid image path or URL (e.g. /images/... or https://...)');
+      return;
+    }
+    setError('');
     setFormData((prev) => {
       const updated = [...prev.images, clean];
       return {
@@ -188,8 +207,14 @@ export default function AdminProductFormPage() {
         stock: Number(formData.stock)
       };
 
-      if (!payload.name.trim() || !payload.price) {
-        throw new Error('Product name and price are mandatory fields.');
+      if (!payload.name.trim() || payload.price === undefined || payload.price === null || isNaN(payload.price)) {
+        throw new Error('Product name and a valid price are mandatory fields.');
+      }
+      if (payload.price < 0) {
+        throw new Error('Price cannot be negative.');
+      }
+      if (payload.stock < 0) {
+        throw new Error('Stock quantity cannot be negative.');
       }
 
       if (isEditing) {

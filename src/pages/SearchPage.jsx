@@ -6,6 +6,9 @@ import { productsAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
+import ProductCard from '../components/common/ProductCard';
+import CurrencySelector from '../components/common/CurrencySelector';
+import { normalizeProductList } from '../utils/productUtils';
 
 export default function SearchPage({ onShowToast }) {
   const { formatPrice } = useCurrency();
@@ -39,7 +42,7 @@ export default function SearchPage({ onShowToast }) {
     try {
       const res = await productsAPI.searchProducts(term);
       if (res.success && res.results) {
-        setResults(res.results);
+        setResults(normalizeProductList(res.results));
       }
     } catch (err) {
       console.error('Search error', err);
@@ -157,66 +160,26 @@ export default function SearchPage({ onShowToast }) {
           </div>
         ) : results.length > 0 ? (
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-wider text-[#55694A] font-bold">
-              Found {results.length} Product{results.length === 1 ? '' : 's'}
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#DACDB3]/60">
+              <p className="text-xs uppercase tracking-wider text-[#55694A] font-bold">
+                Found {results.length} Product{results.length === 1 ? '' : 's'}
+              </p>
+              <CurrencySelector variant="editorial" />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((product) => {
-                const pId = product.slug || product._id;
-                const wishlisted = isWishlisted(pId);
-
-                return (
-                  <div
-                    key={pId}
-                    onClick={() => navigate(`/products/${product.slug || pId}`)}
-                    className="group bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] flex flex-col justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer p-4"
-                  >
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#E8E2D4] mb-3 relative">
-                      <img
-                        src={product.thumbnail || (product.images && product.images[0]) || product.texture}
-                        alt={product.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const res = await toggleWishlist(product);
-                          if (onShowToast) onShowToast('wishlist', res.saved ? 'Saved' : 'Removed', res.message);
-                        }}
-                        className={`absolute top-2.5 right-2.5 p-2 rounded-full backdrop-blur-md transition-colors ${
-                          wishlisted ? 'bg-[#55694A] text-[#FAF7F0]' : 'bg-[#FAF7F0]/80 text-[#362B21]'
-                        }`}
-                      >
-                        <Heart className="w-3.5 h-3.5 fill-current" />
-                      </button>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider text-[#55694A] font-bold block mb-1">
-                        {product.collectionName || product.category}
-                      </span>
-                      <h4 className="font-serif text-lg text-[#362B21] leading-snug group-hover:text-[#55694A] transition-colors font-medium">
-                        {product.name}
-                      </h4>
-                      {product.dimensions && (
-                        <p className="text-[11px] text-[#4E3C2B] mt-0.5">{product.dimensions}</p>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-[#DACDB3]/70 flex items-center justify-between mt-3">
-                      <span className="font-sans font-bold text-sm text-[#362B21]">
-                        {formatPrice(product.price || 0)}
-                      </span>
-                      <span className="text-[11px] uppercase tracking-wider text-[#55694A] font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                        View <ArrowRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+              {results.map((product) => (
+                <ProductCard
+                  key={product.id || product._id || product.slug}
+                  product={product}
+                  onToggleWishlist={async (p, e) => {
+                    const res = await toggleWishlist(p);
+                    if (onShowToast) onShowToast('wishlist', res.saved ? 'Saved' : 'Removed', res.message);
+                  }}
+                  isWishlisted={isWishlisted}
+                  imageFit="object-cover"
+                />
+              ))}
             </div>
           </div>
         ) : null}

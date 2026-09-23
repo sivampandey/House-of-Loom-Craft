@@ -10,7 +10,7 @@ export default function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    // If navigating to an anchor hash (such as #studio), do not reset scroll to top
+    // If navigating to an anchor hash, do not reset scroll to top
     if (hash || window.location.hash) return;
 
     window.scrollTo({

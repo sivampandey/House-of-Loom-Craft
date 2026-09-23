@@ -6,46 +6,52 @@ import { carpetsData, collectionsList } from '../data/carpets';
 import { productsAPI } from '../services/api';
 import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
+import ProductCard from '../components/common/ProductCard';
+import CurrencySelector from '../components/common/CurrencySelector';
+import { normalizeProductList } from '../utils/productUtils';
 
 export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
   const { formatPrice } = useCurrency();
   const [activeCategory, setActiveCategory] = useState('all');
-  const [carpets, setCarpets] = useState(carpetsData);
+  const [carpets, setCarpets] = useState(() => normalizeProductList(carpetsData));
   const [loading, setLoading] = useState(false);
 
   const { wishlistItems, toggleWishlist, isWishlisted } = useWishlist();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchCarpets = async () => {
+      setLoading(true);
       try {
         const params = {};
         if (activeCategory !== 'all') {
           params.collection = activeCategory;
         }
         const res = await productsAPI.getProducts(params);
+        if (!isMounted) return;
         if (res.success && res.products && res.products.length > 0) {
-          setCarpets(res.products);
+          setCarpets(normalizeProductList(res.products));
         } else {
-          setCarpets(
-            activeCategory === 'all'
-              ? carpetsData
-              : carpetsData.filter(c => c.collection === activeCategory || c.category.toLowerCase().includes(activeCategory))
-          );
+          const fallback = activeCategory === 'all'
+            ? carpetsData
+            : carpetsData.filter(c => c.collection === activeCategory || c.category?.toLowerCase().includes(activeCategory));
+          setCarpets(normalizeProductList(fallback));
         }
       } catch (e) {
-        setCarpets(
-          activeCategory === 'all'
-            ? carpetsData
-            : carpetsData.filter(c => c.collection === activeCategory || c.category.toLowerCase().includes(activeCategory))
-        );
+        if (!isMounted) return;
+        const fallback = activeCategory === 'all'
+          ? carpetsData
+          : carpetsData.filter(c => c.collection === activeCategory || c.category?.toLowerCase().includes(activeCategory));
+        setCarpets(normalizeProductList(fallback));
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
     fetchCarpets();
+    return () => { isMounted = false; };
   }, [activeCategory]);
 
   const handleWishlistClick = async (carpet, e) => {
-    e.preventDefault();
-    e.stopPropagation();
     try {
       const res = await toggleWishlist(carpet);
       if (onShowToast) {
@@ -169,96 +175,52 @@ export default function CarpetsPage({ onOpenQuickView, onShowToast }) {
             </div>
           </div>
 
-          {/* Product Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCarpets.map((carpet) => {
-              const carpetSlug = carpet.slug || carpet.id;
-              const wishlisted = isWishlisted(carpet.slug || carpet.id || carpet._id);
-
-              return (
-                <div
-                  key={carpet.id}
-                  className="group bg-[#EFE8D8] rounded-2xl overflow-hidden border border-[#DACDB3] p-6 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-500 card-hover-lift"
-                >
-                  <div>
-                    {/* Top Row: Category & Wishlist */}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[11px] uppercase tracking-[0.2em] text-[#55694A] font-sans font-bold">
-                        {carpet.category || carpet.collectionName}
-                      </span>
-                      <button
-                        onClick={(e) => handleWishlistClick(carpet, e)}
-                        className={`p-2 rounded-full border transition-colors ${
-                          wishlisted
-                            ? 'bg-[#55694A] text-[#FAF7F0] border-[#55694A]'
-                            : 'border-[#55694A]/30 text-[#362B21] hover:border-[#55694A]'
-                        }`}
-                        aria-label="Save to Wishlist"
-                      >
-                        <Heart className={`w-3.5 h-3.5 ${wishlisted ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
-
-                    {/* Image with Quick View trigger */}
-                    <div
-                      onClick={() => onOpenQuickView && onOpenQuickView(carpet)}
-                      className="aspect-[4/3] rounded-xl bg-[#E2D8C3] p-4 flex items-center justify-center cursor-pointer overflow-hidden relative shadow-sm"
-                    >
-                      <img
-                        src={carpet.thumbnail || carpet.image || carpet.texture}
-                        alt={carpet.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      {carpet.badge && (
-                        <span className="absolute top-3 left-3 text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#55694A] text-[#FAF7F0] font-bold shadow-sm">
-                          {carpet.badge}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="mt-4 space-y-1.5">
-                      <h3 className="font-serif text-xl text-[#362B21] font-medium leading-snug group-hover:text-[#55694A] transition-colors line-clamp-2">
-                        {carpet.name}
-                      </h3>
-                      <p className="text-xs text-[#4E3C2B] font-sans leading-relaxed line-clamp-2">
-                        {carpet.description}
-                      </p>
-                      {carpet.dimensions && (
-                        <p className="text-[11px] text-[#55694A] font-mono font-medium pt-1">
-                          Dimensions: {carpet.dimensions}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Bottom: Price and View Details CTA */}
-                  <div className="mt-5 pt-4 border-t border-[#DACDB3]/70 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider text-[#55694A] block font-sans font-semibold">
-                        PRICE
-                      </span>
-                      <span className="font-sans font-bold text-xl text-[#362B21]">
-                        {formatPrice(carpet.price)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/products/${carpetSlug}`}
-                        className="bg-[#55694A] hover:bg-[#657C58] text-[#FAF7F0] px-4 py-2.5 rounded-lg text-xs uppercase tracking-widest font-sans font-bold transition-all shadow-sm flex items-center gap-1.5"
-                      >
-                        <span>View Details</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Results Toolbar with Currency Selector */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 pt-1 border-b border-[#DACDB3]/50">
+            <span className="text-xs uppercase tracking-wider text-[#55694A] font-sans font-bold">
+              {filteredCarpets.length} {filteredCarpets.length === 1 ? 'Heirloom Piece' : 'Heirloom Pieces'} Available
+            </span>
+            <CurrencySelector variant="editorial" />
           </div>
+
+          {/* Product Cards Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-[#EFE8D8] rounded-2xl p-6 border border-[#DACDB3] animate-pulse space-y-4">
+                  <div className="aspect-[4/3] bg-[#E2D8C3] rounded-xl" />
+                  <div className="h-5 bg-[#E2D8C3] rounded w-3/4" />
+                  <div className="h-4 bg-[#E2D8C3] rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : filteredCarpets.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredCarpets.map((carpet) => (
+                <ProductCard
+                  key={carpet.id || carpet._id || carpet.slug}
+                  product={carpet}
+                  onQuickView={onOpenQuickView}
+                  onToggleWishlist={handleWishlistClick}
+                  isWishlisted={isWishlisted}
+                  imageFit="object-contain"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center bg-[#EFE8D8]/50 rounded-2xl border border-dashed border-[#DACDB3] p-12">
+              <p className="font-serif text-2xl text-[#362B21] mb-2">No Carpets Found</p>
+              <p className="text-sm text-[#4E3C2B] font-sans max-w-md mx-auto mb-6">
+                There are currently no rugs listed under this category. Check back soon or browse all collections.
+              </p>
+              <button
+                onClick={() => setActiveCategory('all')}
+                className="bg-[#55694A] text-[#FAF7F0] px-6 py-2.5 rounded-full text-xs uppercase tracking-widest font-sans font-bold hover:bg-[#657C58] transition-all"
+              >
+                View All Rugs
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

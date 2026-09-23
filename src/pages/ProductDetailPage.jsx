@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Heart, ShoppingBag, ArrowLeft, ShieldCheck, Truck, 
-  RotateCcw, Sparkles, Check, MessageSquare, Phone 
+  RotateCcw, Check, MessageSquare, Phone 
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { productsAPI } from '../services/api';
@@ -10,6 +10,8 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { companyInfo, carpetsData } from '../data/carpets';
 import { useCurrency } from '../context/CurrencyContext';
+import CurrencySelector from '../components/common/CurrencySelector';
+import { normalizeProduct, normalizeProductList, DEFAULT_FALLBACK_IMAGE } from '../utils/productUtils';
 
 export default function ProductDetailPage({ onShowToast }) {
   const { formatPrice } = useCurrency();
@@ -32,26 +34,27 @@ export default function ProductDetailPage({ onShowToast }) {
       try {
         const res = await productsAPI.getProductBySlug(slug);
         if (res.success && res.product) {
-          setProduct(res.product);
-          setRelated(res.related || []);
-          setSelectedImage(
-            res.product.thumbnail || (res.product.images && res.product.images[0]) || res.product.texture
-          );
+          const norm = normalizeProduct(res.product);
+          setProduct(norm);
+          setRelated(normalizeProductList(res.related || []));
+          setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
         } else {
           // Fallback to local data
           const local = carpetsData.find(c => c.slug === slug || c.id === slug);
           if (local) {
-            setProduct(local);
-            setSelectedImage(local.texture || local.image);
-            setRelated(carpetsData.filter(c => c.id !== local.id).slice(0, 3));
+            const norm = normalizeProduct(local);
+            setProduct(norm);
+            setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
+            setRelated(normalizeProductList(carpetsData.filter(c => c.id !== local.id).slice(0, 3)));
           }
         }
       } catch (err) {
         const local = carpetsData.find(c => c.slug === slug || c.id === slug);
         if (local) {
-          setProduct(local);
-          setSelectedImage(local.texture || local.image);
-          setRelated(carpetsData.filter(c => c.id !== local.id).slice(0, 3));
+          const norm = normalizeProduct(local);
+          setProduct(norm);
+          setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
+          setRelated(normalizeProductList(carpetsData.filter(c => c.id !== local.id).slice(0, 3)));
         }
       } finally {
         setLoading(false);
@@ -91,8 +94,10 @@ export default function ProductDetailPage({ onShowToast }) {
 
   const pId = product.slug || product.id || product._id;
   const wishlisted = isWishlisted(pId);
+  const isOutOfStock = (product.stock !== undefined && Number(product.stock) <= 0) || product.isAvailable === false;
 
   const handleAddToCart = async () => {
+    if (isOutOfStock) return;
     setIsAdding(true);
     try {
       await addToCart(product, quantity);
@@ -109,6 +114,7 @@ export default function ProductDetailPage({ onShowToast }) {
   };
 
   const handleBuyNow = async () => {
+    if (isOutOfStock) return;
     try {
       await addToCart(product, quantity);
       navigate('/checkout');
@@ -133,9 +139,9 @@ export default function ProductDetailPage({ onShowToast }) {
   };
 
   const allImages = [
-    product.texture,
     product.image,
     product.thumbnail,
+    product.texture,
     ...(product.images || [])
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
@@ -183,6 +189,10 @@ export default function ProductDetailPage({ onShowToast }) {
                 src={selectedImage}
                 alt={product.name}
                 decoding="async"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                }}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
 
@@ -219,7 +229,15 @@ export default function ProductDetailPage({ onShowToast }) {
                         : 'border-[#DACDB3] opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt={`Angle ${i + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`Angle ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -263,31 +281,44 @@ export default function ProductDetailPage({ onShowToast }) {
             </div>
 
             {/* Pricing Section */}
-            <div className="p-6 rounded-2xl bg-[#EFE8D8] border border-[#DACDB3] flex items-baseline justify-between">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 block font-sans font-semibold">
+            <div className="p-6 rounded-2xl bg-[#EFE8D8] border border-[#DACDB3] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#DACDB3]/70">
+                <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 font-sans font-semibold">
                   PRICE (Inclusive of all duties)
                 </span>
-                <div className="flex items-baseline gap-3 mt-1">
-                  <span className="font-sans text-3xl font-bold text-[#362B21]">
-                    {formatPrice(product.price || 0)}
-                  </span>
-                  {product.compareAtPrice && (
-                    <span className="font-sans text-sm text-[#4E3C2B]/60 line-through">
-                      {formatPrice(product.compareAtPrice)}
-                    </span>
-                  )}
-                </div>
+                <CurrencySelector variant="editorial" />
               </div>
 
-              <div className="text-right">
-                <span className="text-xs text-[#55694A] font-sans font-bold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#55694A] inline-block animate-pulse" />
-                  {product.stock > 0 ? 'Available' : 'Made to Order'}
-                </span>
-                <span className="text-[10px] text-[#4E3C2B]/80 block font-mono mt-0.5">
-                  {product.leadTime || 'Dispatches in 24-48 Hours'}
-                </span>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-sans text-3xl font-bold text-[#362B21]">
+                      {formatPrice(product.price || 0)}
+                    </span>
+                    {product.compareAtPrice && (
+                      <span className="font-sans text-sm text-[#4E3C2B]/60 line-through">
+                        {formatPrice(product.compareAtPrice)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  {isOutOfStock ? (
+                    <span className="text-xs text-[#8A3324] font-sans font-bold flex items-center justify-end gap-1">
+                      <span className="w-2 h-2 rounded-full bg-[#8A3324] inline-block" />
+                      Out of Stock
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[#55694A] font-sans font-bold flex items-center justify-end gap-1">
+                      <span className="w-2 h-2 rounded-full bg-[#55694A] inline-block animate-pulse" />
+                      In Stock ({product.stock} available)
+                    </span>
+                  )}
+                  <span className="text-[10px] text-[#4E3C2B]/80 block font-mono mt-0.5">
+                    {isOutOfStock ? 'Currently Unavailable' : (product.leadTime || 'Dispatches in 24-48 Hours')}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -328,18 +359,20 @@ export default function ProductDetailPage({ onShowToast }) {
             {/* Quantity Selector & Action Buttons */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-4">
-                <div className="flex items-center border border-[#DACDB3] rounded-full bg-[#EFE8D8] px-3 py-1">
+                <div className={`flex items-center border border-[#DACDB3] rounded-full bg-[#EFE8D8] px-3 py-1 ${isOutOfStock ? 'opacity-50 pointer-events-none' : ''}`}>
                   <span className="text-xs uppercase tracking-wider text-[#4E3C2B] mr-3 font-medium">Qty</span>
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-full text-base font-bold flex items-center justify-center hover:bg-[#DACDB3]/50 transition-colors"
+                    disabled={isOutOfStock}
+                    className="w-7 h-7 rounded-full text-base font-bold flex items-center justify-center hover:bg-[#DACDB3]/50 transition-colors disabled:cursor-not-allowed"
                   >
                     -
                   </button>
-                  <span className="w-8 text-center text-sm font-bold font-sans">{quantity}</span>
+                  <span className="w-8 text-center text-sm font-bold font-sans">{isOutOfStock ? 0 : quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(product.stock || 10, quantity + 1))}
-                    className="w-7 h-7 rounded-full text-base font-bold flex items-center justify-center hover:bg-[#DACDB3]/50 transition-colors"
+                    disabled={isOutOfStock}
+                    className="w-7 h-7 rounded-full text-base font-bold flex items-center justify-center hover:bg-[#DACDB3]/50 transition-colors disabled:cursor-not-allowed"
                   >
                     +
                   </button>
@@ -347,28 +380,28 @@ export default function ProductDetailPage({ onShowToast }) {
 
                 <button
                   onClick={handleAddToCart}
-                  disabled={isAdding}
-                  className="flex-1 bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
+                  disabled={isAdding || isOutOfStock}
+                  className={`flex-1 font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-md ${
+                    isOutOfStock
+                      ? 'bg-[#A89F91] text-[#EFE8D8] cursor-not-allowed shadow-none'
+                      : 'bg-[#55694A] hover:bg-[#6D8262] text-[#FAF7F0]'
+                  }`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>{isAdding ? 'Placing in Bag...' : 'Add to Bag'}</span>
+                  <span>{isOutOfStock ? 'Out of Stock' : isAdding ? 'Placing in Bag...' : 'Add to Bag'}</span>
                 </button>
               </div>
 
               <button
                 onClick={handleBuyNow}
-                className="w-full bg-[#362B21] hover:bg-[#4E3C2B] text-[#FAF7F0] font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg"
+                disabled={isOutOfStock}
+                className={`w-full font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${
+                  isOutOfStock
+                    ? 'bg-[#A89F91] text-[#EFE8D8] cursor-not-allowed shadow-none'
+                    : 'bg-[#362B21] hover:bg-[#4E3C2B] text-[#FAF7F0] shadow-lg'
+                }`}
               >
-                <span>Purchase Now</span>
-              </button>
-
-              {/* 3D Studio Integration: View in Your Room */}
-              <button
-                onClick={() => navigate(`/#studio?product=${product.slug || product._id || product.id}`)}
-                className="w-full bg-[#EFE8D8] hover:bg-[#E2D8C3] text-[#362B21] border border-[#85977A]/60 font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Sparkles className="w-4 h-4 text-[#55694A]" />
-                <span>View in Your Room</span>
+                <span>{isOutOfStock ? 'Currently Unavailable' : 'Purchase Now'}</span>
               </button>
             </div>
 
@@ -428,10 +461,14 @@ export default function ProductDetailPage({ onShowToast }) {
                   >
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#E8E2D4] mb-4">
                       <img
-                        src={rel.thumbnail || (rel.images && rel.images[0]) || rel.texture || rel.image}
+                        src={rel.image || rel.thumbnail || (rel.images && rel.images[0]) || rel.texture}
                         alt={rel.name}
                         loading="lazy"
                         decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                        }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>

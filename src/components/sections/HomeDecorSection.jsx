@@ -1,15 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingBag, ArrowUpRight } from 'lucide-react';
 import { decorProducts, decorCategories } from '../../data/decor';
+import { productsAPI } from '../../services/api';
+import { normalizeProductList, DEFAULT_FALLBACK_IMAGE } from '../../utils/productUtils';
 import { useCurrency } from '../../context/CurrencyContext';
+import CurrencySelector from '../common/CurrencySelector';
 
 export default function HomeDecorSection({ onAddToCart, onQuickView }) {
   const { formatPrice } = useCurrency();
   const [selectedCategory, setSelectedCategory] = useState('All Decor');
+  const [decorItems, setDecorItems] = useState(() => normalizeProductList(decorProducts));
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDecor = async () => {
+      try {
+        const res = await productsAPI.getProducts({ collection: 'home-decor', limit: 20 });
+        if (isMounted && res?.success && Array.isArray(res.products) && res.products.length > 0) {
+          setDecorItems(normalizeProductList(res.products));
+        }
+      } catch (err) {
+        // Safe fallback
+      }
+    };
+
+    fetchDecor();
+    return () => { isMounted = false; };
+  }, []);
 
   const filtered = selectedCategory === 'All Decor'
-    ? decorProducts
-    : decorProducts.filter(p => p.category === selectedCategory);
+    ? decorItems
+    : decorItems.filter(p => p.category === selectedCategory);
 
   return (
     <section id="home-decor" className="py-24 md:py-32 bg-[#F5F0E6] text-[#362B21] relative overflow-hidden border-t border-[#DACDB3]">
@@ -33,21 +54,28 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
           </p>
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto py-5 scrollbar-none border-b border-[#DACDB3]/60 mb-8 sm:mb-10">
-          {decorCategories.filter(cat => cat !== 'Artisan Baskets').map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200 font-sans font-medium min-h-[36px] ${
-                selectedCategory === cat
-                  ? 'bg-[#55694A] text-[#FAF7F0] shadow-md border border-[#6D7F62]'
-                  : 'bg-[#E5DCB8]/60 text-[#4E3C2B] hover:bg-[#DBCFB8] border border-[#DACDB3]'
-              }`}
-            >
-              {cat === 'Cashmere Throws' ? 'Throws & Blankets' : cat}
-            </button>
-          ))}
+        {/* Category Filter Pills & Currency Selector */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-[#DACDB3]/60 mb-8 sm:mb-10">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {decorCategories.filter(cat => cat !== 'Artisan Baskets').map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-200 font-sans font-medium min-h-[36px] ${
+                  selectedCategory === cat
+                    ? 'bg-[#55694A] text-[#FAF7F0] shadow-md border border-[#6D7F62]'
+                    : 'bg-[#E5DCB8]/60 text-[#4E3C2B] hover:bg-[#DBCFB8] border border-[#DACDB3]'
+                }`}
+              >
+                {cat === 'Cashmere Throws' ? 'Throws & Blankets' : cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="shrink-0 self-end sm:self-auto">
+            <CurrencySelector variant="editorial" />
+          </div>
         </div>
 
         {/* Editorial Layout: Desktop 5-col + 7-col; Mobile Stacked with Clean Hierarchy */}
@@ -115,6 +143,10 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
                     <img
                       src={item.image}
                       alt={item.name}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       decoding="async"
@@ -149,6 +181,7 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
 
                   <div className="flex items-center gap-1 sm:gap-2">
                     <button
+                      type="button"
                       onClick={() => onQuickView(item)}
                       className="text-xs text-[#55694A] hover:text-[#362B21] font-sans hidden sm:flex items-center gap-1 font-bold py-1.5 px-2.5 rounded hover:bg-[#DACDB3]/40 transition-colors"
                       title="View Details"
@@ -157,6 +190,7 @@ export default function HomeDecorSection({ onAddToCart, onQuickView }) {
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAddToCart(item);

@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
 import { X, Heart, ShoppingBag, Check, Shield, Clock, MapPin, Sparkles } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
+import { normalizeProduct, getProductImage, DEFAULT_FALLBACK_IMAGE } from '../../utils/productUtils';
 
 export default function QuickViewModal({ 
-  product, 
+  product: rawProduct, 
   isOpen, 
   onClose, 
   onAddToCart, 
-  onBuyNow,
+  onBuyNow, 
   onToggleWishlist, 
   isWishlisted 
 }) {
   const { formatPrice } = useCurrency();
   const [added, setAdded] = useState(false);
 
-  if (!isOpen || !product) return null;
+  if (!isOpen || !rawProduct) return null;
+
+  const product = normalizeProduct(rawProduct) || rawProduct;
+  const isOutOfStock = (product.stock !== undefined && Number(product.stock) <= 0) || product.isAvailable === false || product.inStock === false;
 
   const handleAdd = () => {
+    if (isOutOfStock) return;
     onAddToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleInstantBuy = () => {
+    if (isOutOfStock) return;
     if (onBuyNow) {
       onBuyNow(product);
     } else {
@@ -49,8 +55,12 @@ export default function QuickViewModal({
           {/* Visual Showcase */}
           <div className="relative bg-[#3C4A34] p-8 flex items-center justify-center border-b lg:border-b-0 lg:border-r border-[#6D7F62]/60 min-h-[350px] lg:min-h-[500px]">
             <img 
-              src={product.image || product.texture} 
+              src={getProductImage(product)} 
               alt={product.name} 
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+              }}
               className="max-h-[460px] w-auto object-contain rounded shadow-2xl transition-transform duration-500 hover:scale-105"
             />
             {product.badge && (
@@ -123,29 +133,31 @@ export default function QuickViewModal({
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleInstantBuy}
-                  disabled={product.inStock === false}
+                  disabled={isOutOfStock}
                   className={`flex-1 py-3.5 px-5 rounded-lg text-xs uppercase tracking-widest font-sans font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-xl ${
-                    product.inStock === false
+                    isOutOfStock
                       ? 'bg-[#3C4A34]/60 text-[#FAF7F0]/50 cursor-not-allowed'
                       : 'bg-[#5D7053] hover:bg-[#6D8262] text-[#FAF7F0] border border-[#85997A]/60'
                   }`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Buy Now (Online / COD)</span>
+                  <span>{isOutOfStock ? 'Sold Out' : 'Buy Now (Online / COD)'}</span>
                 </button>
 
                 <div className="flex gap-2">
                   <button
                     onClick={handleAdd}
-                    disabled={product.inStock === false}
+                    disabled={isOutOfStock}
                     className={`py-3.5 px-5 rounded-lg text-xs uppercase tracking-widest font-sans font-bold flex items-center justify-center gap-2 transition-all duration-300 ${
-                      added
+                      isOutOfStock
+                        ? 'bg-[#3C4A34]/60 text-[#FAF7F0]/50 cursor-not-allowed'
+                        : added
                         ? 'bg-[#6D8262] text-[#FAF7F0]'
                         : 'bg-[#3C4A34] hover:bg-[#48593F] text-[#FAF7F0] border border-[#6D7F62]'
                     }`}
                   >
                     {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4 text-[#D4BC9F]" />}
-                    <span>{added ? 'Added' : 'Add to Bag'}</span>
+                    <span>{isOutOfStock ? 'Out of Stock' : added ? 'Added' : 'Add to Bag'}</span>
                   </button>
 
                   <button

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Heart, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
+import { getProductImage, DEFAULT_FALLBACK_IMAGE } from '../../utils/productUtils';
 
 export default function WishlistDrawer({ isOpen, onClose, items, onRemove, onMoveToCart }) {
   const { formatPrice } = useCurrency();
@@ -54,8 +55,12 @@ export default function WishlistDrawer({ isOpen, onClose, items, onRemove, onMov
                 <div key={item.id} className="py-5 flex gap-4">
                   <div className="w-20 h-20 bg-[#3C4A34] rounded overflow-hidden flex-shrink-0 border border-[#6D7F62]/50">
                     <img 
-                      src={item.image || item.texture} 
+                      src={getProductImage(item)} 
                       alt={item.name} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
                       className="w-full h-full object-cover"
                     />
                   </div>

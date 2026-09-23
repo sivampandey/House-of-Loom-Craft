@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ShoppingBag, Trash2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
+import { getProductImage, DEFAULT_FALLBACK_IMAGE } from '../../utils/productUtils';
 
 export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQty, onCheckout }) {
   const { formatPrice, currency } = useCurrency();
@@ -57,8 +58,12 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                 <div key={item.id} className="py-5 flex gap-4">
                   <div className="w-20 h-20 bg-[#3C4A34] rounded overflow-hidden flex-shrink-0 border border-[#6D7F62]/50">
                     <img 
-                      src={item.image || item.texture} 
+                      src={getProductImage(item)} 
                       alt={item.name} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
                       className="w-full h-full object-cover"
                     />
                   </div>

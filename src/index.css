@@ -68,11 +68,6 @@ input[type=range].luxury-slider::-webkit-slider-thumb:hover {
   background: #FAF7F0;
 }
 
-/* Three.js Canvas Container */
-.three-canvas-container canvas {
-  touch-action: none;
-}
-
 /* Subtle grain overlay for luxury depth */
 .film-grain {
   background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0);

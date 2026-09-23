@@ -22,6 +22,18 @@ class ApiError extends Error {
 const apiCache = new Map();
 const CACHE_TTL = 90 * 1000;
 
+export const clearApiCache = (filterPattern = '') => {
+  if (!filterPattern) {
+    apiCache.clear();
+  } else {
+    for (const key of apiCache.keys()) {
+      if (key.includes(filterPattern)) {
+        apiCache.delete(key);
+      }
+    }
+  }
+};
+
 export const prewarmBackend = () => {
   try {
     fetch(`${API_BASE}/health`, { method: 'GET', keepalive: true }).catch(() => {});
@@ -220,12 +232,21 @@ export const adminAPI = {
     return request(`/admin/products${query ? `?${query}` : ''}`);
   },
   getProductById: (id) => request(`/admin/products/${id}`),
-  createProduct: (data) =>
-    request('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
-  updateProduct: (id, data) =>
-    request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteProduct: (id) =>
-    request(`/admin/products/${id}`, { method: 'DELETE' }),
+  createProduct: async (data) => {
+    const res = await request('/admin/products', { method: 'POST', body: JSON.stringify(data) });
+    clearApiCache();
+    return res;
+  },
+  updateProduct: async (id, data) => {
+    const res = await request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    clearApiCache();
+    return res;
+  },
+  deleteProduct: async (id) => {
+    const res = await request(`/admin/products/${id}`, { method: 'DELETE' });
+    clearApiCache();
+    return res;
+  },
 
   // Users
   getUsers: (params = {}) => {

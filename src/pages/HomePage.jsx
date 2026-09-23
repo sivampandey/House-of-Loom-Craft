@@ -8,7 +8,6 @@ import { useWishlist } from '../context/WishlistContext';
 import Hero from '../components/sections/Hero';
 import TransitionSection from '../components/sections/TransitionSection';
 import CollectionShowcase from '../components/sections/CollectionShowcase';
-import Interactive3DSection from '../components/sections/Interactive3DSection';
 import FeaturedCarpets from '../components/sections/FeaturedCarpets';
 import CraftsmanshipStory from '../components/sections/CraftsmanshipStory';
 import TextureExperience from '../components/sections/TextureExperience';
@@ -102,13 +101,7 @@ export default function HomePage({
           onExploreAll={(e) => handleNavigate(e, '#featured')}
         />
 
-        {/* Section 6: 3D Studio - Visualize Your Space */}
-        <Interactive3DSection
-          onOpenQuickView={onOpenQuickView}
-          onShowToast={onShowToast}
-        />
-
-        {/* Section 7: Curated Featured Carpets */}
+        {/* Section 6: Curated Featured Carpets */}
         <FeaturedCarpets
           onQuickView={onOpenQuickView}
           onToggleWishlist={handleToggleWishlist}

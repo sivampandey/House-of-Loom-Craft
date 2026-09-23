@@ -1,20 +1,46 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Search, ArrowUpRight } from 'lucide-react';
 import { carpetsData } from '../../data/carpets';
 import { decorProducts } from '../../data/decor';
+import { productsAPI } from '../../services/api';
 import { useCurrency } from '../../context/CurrencyContext';
+import { normalizeProductList, getProductImage, DEFAULT_FALLBACK_IMAGE } from '../../utils/productUtils';
 
 export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
   const { formatPrice } = useCurrency();
   const [query, setQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [liveProducts, setLiveProducts] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    const fetchAll = async () => {
+      try {
+        const res = await productsAPI.getProducts({ limit: 150 });
+        if (isMounted && res.success && res.products && res.products.length > 0) {
+          setLiveProducts(normalizeProductList(res.products));
+        }
+      } catch (err) {
+        // Fallback to static data
+      }
+    };
+    fetchAll();
+    return () => { isMounted = false; };
+  }, [isOpen]);
 
   const allItems = useMemo(() => {
+    if (liveProducts && liveProducts.length > 0) {
+      return liveProducts.map(p => ({
+        ...p,
+        type: (p.collection === 'home-decor' || p.category?.toLowerCase().includes('decor')) ? 'decor' : 'carpet'
+      }));
+    }
     return [
       ...carpetsData.map(c => ({ ...c, type: 'carpet' })),
       ...decorProducts.map(d => ({ ...d, type: 'decor' }))
     ];
-  }, []);
+  }, [liveProducts]);
 
   const filteredItems = useMemo(() => {
     return allItems.filter(item => {
@@ -98,7 +124,7 @@ export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
           ) : (
             filteredItems.map(item => (
               <div 
-                key={item.id}
+                key={item.id || item._id || item.slug}
                 onClick={() => {
                   onSelectProduct(item);
                   onClose();
@@ -108,8 +134,12 @@ export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded overflow-hidden bg-[#3C4A34] border border-[#6D7F62]/50 flex-shrink-0">
                     <img 
-                      src={item.image || item.texture} 
+                      src={getProductImage(item)} 
                       alt={item.name} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
