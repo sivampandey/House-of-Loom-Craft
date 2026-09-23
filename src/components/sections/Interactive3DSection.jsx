@@ -162,9 +162,10 @@ export default function Interactive3DSection({ onOpenQuickView, onShowToast }) {
     rendererRef.current.render(
       floorQuad, 
       0.97, 
-      showComparisonSlider ? sliderPos : 100
+      showComparisonSlider ? sliderPos : 100,
+      activeCalibration?.occlusionPolygons || []
     );
-  }, [floorQuad, showComparisonSlider, sliderPos]);
+  }, [floorQuad, showComparisonSlider, sliderPos, activeCalibration]);
 
   // Load Rug Texture into WebGL Renderer with robust CORS & same-origin handling
   useEffect(() => {
@@ -218,10 +219,10 @@ export default function Interactive3DSection({ onOpenQuickView, onShowToast }) {
     };
   }, [rugImageUrl, renderFrame]);
 
-  // Re-render whenever floor quad or slider position changes
+  // Re-render whenever floor quad, slider position or active room calibration changes
   useEffect(() => {
     renderFrame();
-  }, [floorQuad, showComparisonSlider, sliderPos, renderFrame]);
+  }, [floorQuad, showComparisonSlider, sliderPos, activeCalibration, renderFrame]);
 
   // Handle Container Resize (for responsive viewports)
   useEffect(() => {
@@ -914,32 +915,6 @@ export default function Interactive3DSection({ onOpenQuickView, onShowToast }) {
                       </div>
                     )}
 
-                    {/* Layer 4: Furniture Occlusion Overlays (Curated rooms) */}
-                    <div 
-                      className="absolute inset-0 w-full h-full pointer-events-none z-20"
-                      style={{
-                        clipPath: showComparisonSlider 
-                          ? `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` 
-                          : 'none'
-                      }}
-                    >
-                      {activeCalibration.occlusionPolygons?.map((poly, idx) => {
-                        const pointsStr = poly.map(p => `${p.x}% ${p.y}%`).join(', ');
-                        return (
-                          <img
-                            key={idx}
-                            src={roomImage}
-                            alt="Furniture Occlusion Layer"
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                            style={{
-                              clipPath: `polygon(${pointsStr})`,
-                              WebkitClipPath: `polygon(${pointsStr})`
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-
                     {/* Layer 5: Interactive 4-Corner Draggable Pins (When calibrating floor) */}
                     {isCalibratingFloor && (
                       <div className="absolute inset-0 z-40 pointer-events-auto">
@@ -1033,8 +1008,14 @@ export default function Interactive3DSection({ onOpenQuickView, onShowToast }) {
                       </div>
                     )}
 
-                    {/* Top-Right Badge: Active Room Status */}
+                    {/* Top-Right Badges: Active Room & Occlusion Indicator */}
                     <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-2">
+                      {activeCalibration.occlusionPolygons?.length > 0 && (
+                        <span className="bg-[#55694A]/90 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-[#DACDB3]/40 text-[10.5px] text-[#FAF7F0] font-sans font-medium shadow-md flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-[#D4BC9F]" />
+                          <span>Furniture Occlusion</span>
+                        </span>
+                      )}
                       <span className="bg-[#362B21]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#DACDB3]/40 text-[11px] text-[#FAF7F0] font-sans font-medium shadow-md">
                         {activeCalibration.name}
                       </span>
@@ -1070,6 +1051,16 @@ export default function Interactive3DSection({ onOpenQuickView, onShowToast }) {
                   </div>
                 )}
               </div>
+
+              {/* User-Uploaded Photo Placement Tip */}
+              {roomImage && activeCalibration.id === 'custom-upload' && (
+                <div className="bg-[#EFE8D8] border border-[#DACDB3] rounded-2xl p-3.5 text-xs font-sans text-[#4E3C2B] flex items-start gap-2.5 shadow-sm">
+                  <Sparkles className="w-4 h-4 text-[#55694A] flex-shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong className="text-[#362B21]">Photo Placement Tip:</strong> Apni room photo mein agar furniture rug ke upar aa raha hai, to neeche <strong className="text-[#55694A]">Floor Placement Controls (Resize / Move)</strong> ya upar <strong className="text-[#55694A]">Calibrate Floor</strong> button use karke rug ko open floor space par adjust karein taaki furniture natural dikhe.
+                  </p>
+                </div>
+              )}
 
               {/* Manual Adjustment Bar (Preserves floor perspective convergence) */}
               {roomImage && (

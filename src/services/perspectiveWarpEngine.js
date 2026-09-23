@@ -215,6 +215,16 @@ export class ProjectiveWarpRenderer {
     this.hasError = false;
     this.errorMessage = null;
 
+    // Offscreen 2D mask canvas for arbitrary occlusion polygon rasterization
+    this.maskCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+    if (this.maskCanvas) {
+      this.maskCanvas.width = 512;
+      this.maskCanvas.height = 512;
+      this.maskCtx = this.maskCanvas.getContext('2d');
+    }
+    this.maskTexture = null;
+    this.currentOcclusionKey = null;
+
     if (!this.gl) {
       this.hasError = true;
       this.errorMessage = 'WebGL is not supported or was disabled in your browser.';
@@ -248,6 +258,8 @@ export class ProjectiveWarpRenderer {
 
       varying vec2 v_pos;
       uniform sampler2D u_texture;
+      uniform sampler2D u_occlusionMask;
+      uniform int u_hasOcclusion;
       uniform mat3 u_invH;
       uniform float u_opacity;
       uniform float u_sliderPos;
@@ -255,6 +267,14 @@ export class ProjectiveWarpRenderer {
       void main() {
         if (v_pos.x > u_sliderPos) {
           discard;
+        }
+
+        // Real-time furniture & decor occlusion: discard pixels behind foreground objects
+        if (u_hasOcclusion == 1) {
+          float occluded = texture2D(u_occlusionMask, v_pos).r;
+          if (occluded > 0.5) {
+            discard;
+          }
         }
 
         // Projective backward mapping from canvas coordinate to texture UV
@@ -339,11 +359,68 @@ export class ProjectiveWarpRenderer {
       1, 0,
       1, 1
     ]), gl.STATIC_DRAW);
-
     this.posBuffer = posBuffer;
+
+    // Initialize 2D occlusion mask texture
+    const maskTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, maskTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // 1x1 black fallback (0 = no occlusion)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+    this.maskTexture = maskTex;
+
     this.isReady = true;
     this.hasError = false;
     this.errorMessage = null;
+  }
+
+  updateOcclusionMask(occlusionPolygons) {
+    const gl = this.gl;
+    if (!gl || !this.maskCanvas || !this.maskCtx || !this.maskTexture) return false;
+
+    if (!occlusionPolygons || !Array.isArray(occlusionPolygons) || occlusionPolygons.length === 0) {
+      this.currentOcclusionKey = null;
+      return false;
+    }
+
+    // Generate unique key to avoid re-rendering mask texture if polygons haven't changed
+    const key = JSON.stringify(occlusionPolygons);
+    if (this.currentOcclusionKey === key) {
+      return true;
+    }
+
+    const ctx = this.maskCtx;
+    const w = this.maskCanvas.width;
+    const h = this.maskCanvas.height;
+
+    // Black = floor transparent to rug (rug visible)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+
+    // White = furniture occlusion (rug discarded, underlying room photo visible)
+    ctx.fillStyle = '#ffffff';
+
+    for (const poly of occlusionPolygons) {
+      if (Array.isArray(poly) && poly.length >= 3) {
+        ctx.beginPath();
+        ctx.moveTo((poly[0].x / 100) * w, (poly[0].y / 100) * h);
+        for (let i = 1; i < poly.length; i++) {
+          ctx.lineTo((poly[i].x / 100) * w, (poly[i].y / 100) * h);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    gl.bindTexture(gl.TEXTURE_2D, this.maskTexture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.maskCanvas);
+
+    this.currentOcclusionKey = key;
+    return true;
   }
 
   loadTexture(imageElement) {
@@ -388,7 +465,7 @@ export class ProjectiveWarpRenderer {
     }
   }
 
-  render(quad, opacity = 0.96, sliderPos = 100) {
+  render(quad, opacity = 0.96, sliderPos = 100, occlusionPolygons = []) {
     const gl = this.gl;
     if (!gl || !this.program || !this.texture) return;
 
@@ -420,7 +497,19 @@ export class ProjectiveWarpRenderer {
     const uSliderPosLoc = gl.getUniformLocation(this.program, 'u_sliderPos');
     gl.uniform1f(uSliderPosLoc, sliderPos / 100);
 
-    // Bind texture
+    // Update and bind occlusion mask
+    const hasOcclusion = this.updateOcclusionMask(occlusionPolygons);
+    const uHasOcclusionLoc = gl.getUniformLocation(this.program, 'u_hasOcclusion');
+    gl.uniform1i(uHasOcclusionLoc, hasOcclusion ? 1 : 0);
+
+    if (hasOcclusion && this.maskTexture) {
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTexture);
+      const uMaskLoc = gl.getUniformLocation(this.program, 'u_occlusionMask');
+      gl.uniform1i(uMaskLoc, 1);
+    }
+
+    // Bind rug texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     const uTexLoc = gl.getUniformLocation(this.program, 'u_texture');
@@ -439,6 +528,7 @@ export class ProjectiveWarpRenderer {
     const gl = this.gl;
     if (!gl) return;
     if (this.texture) gl.deleteTexture(this.texture);
+    if (this.maskTexture) gl.deleteTexture(this.maskTexture);
     if (this.program) gl.deleteProgram(this.program);
     if (this.posBuffer) gl.deleteBuffer(this.posBuffer);
   }
