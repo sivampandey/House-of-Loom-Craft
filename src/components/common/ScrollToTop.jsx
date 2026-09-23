@@ -7,15 +7,18 @@ import { useLocation } from 'react-router-dom';
  * preventing retention of prior section scroll states.
  */
 export default function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
+    // If navigating to an anchor hash (such as #studio), do not reset scroll to top
+    if (hash || window.location.hash) return;
+
     window.scrollTo({
       top: 0,
       left: 0,
       behavior: 'instant'
     });
-  }, [pathname]);
+  }, [pathname, hash]);
 
   return null;
 }

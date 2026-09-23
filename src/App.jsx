@@ -139,14 +139,22 @@ function AppContent() {
       const hash = href.replace('/', '');
       if (location.pathname === '/') {
         const el = document.querySelector(hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        if (el) {
+          const navbarHeight = 90;
+          const targetY = el.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+        }
       } else {
         navigate(href);
       }
     } else if (href.startsWith('#')) {
       if (location.pathname === '/') {
         const el = document.querySelector(href);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        if (el) {
+          const navbarHeight = 90;
+          const targetY = el.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+        }
       } else {
         navigate(`/${href}`);
       }

@@ -361,6 +361,15 @@ export default function ProductDetailPage({ onShowToast }) {
               >
                 <span>Purchase Now</span>
               </button>
+
+              {/* 3D Studio Integration: View in Your Room */}
+              <button
+                onClick={() => navigate(`/#studio?product=${product.slug || product._id || product.id}`)}
+                className="w-full bg-[#EFE8D8] hover:bg-[#E2D8C3] text-[#362B21] border border-[#85977A]/60 font-sans font-bold py-3.5 px-6 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Sparkles className="w-4 h-4 text-[#55694A]" />
+                <span>View in Your Room</span>
+              </button>
             </div>
 
             {/* Reassurance Guarantees */}

@@ -179,6 +179,9 @@ export const createRazorpayOrder = async (req, res, next) => {
         message: `Payment order creation failed: ${gatewayErr.error?.description || gatewayErr.message}`
       });
     }
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const verifyPaymentAndCreateOrder = async (req, res, next) => {

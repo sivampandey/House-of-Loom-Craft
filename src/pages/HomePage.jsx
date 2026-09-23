@@ -102,9 +102,10 @@ export default function HomePage({
           onExploreAll={(e) => handleNavigate(e, '#featured')}
         />
 
-        {/* Section 6: Interactive 3D Carpet Inspection */}
+        {/* Section 6: 3D Studio - Visualize Your Space */}
         <Interactive3DSection
           onOpenQuickView={onOpenQuickView}
+          onShowToast={onShowToast}
         />
 
         {/* Section 7: Curated Featured Carpets */}

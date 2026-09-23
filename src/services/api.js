@@ -49,9 +49,14 @@ async function request(endpoint, options = {}) {
     ...(options.headers || {})
   };
 
+  const timeoutMs = options.timeout || (API_BASE.includes('localhost') ? 3500 : 12000);
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
   const config = {
     ...options,
     headers,
+    signal: options.signal || controller?.signal,
     credentials: 'include' // Strictly authenticates via secure httpOnly cookies
   };
 
@@ -67,6 +72,8 @@ async function request(endpoint, options = {}) {
       } else {
         throw networkErr;
       }
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
 
     const data = await response.json().catch(() => ({}));
