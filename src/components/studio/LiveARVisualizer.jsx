@@ -35,6 +35,8 @@ export default function LiveARVisualizer({
   const [errorMessage, setErrorMessage] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeControlTab, setActiveControlTab] = useState('move');
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   // MediaStream & Video Feed Ref
   const videoRef = useRef(null);
@@ -65,18 +67,33 @@ export default function LiveARVisualizer({
   const dragStartRef = useRef({ x: 0, y: 0, origX: 50, origY: 75 });
   const containerRef = useRef(null);
 
-  // Derive aspect ratio and exact metric dimensions
-  const rugAspectRatio = useMemo(() => {
-    return parseRugAspectRatio(selectedRug?.dimensions);
+  // Derive aspect ratio and exact metric dimensions with NaN/falsy guards
+  const safeAspectRatio = useMemo(() => {
+    const ratio = parseRugAspectRatio(selectedRug?.dimensions);
+    return (typeof ratio === 'number' && !isNaN(ratio) && ratio > 0.1 && ratio < 10) ? ratio : 0.75;
   }, [selectedRug?.dimensions]);
 
   const realDimensions = useMemo(() => {
     return parseRugDimensionsInMeters(selectedRug?.dimensions);
   }, [selectedRug?.dimensions]);
 
-  const rugImageUrl = selectedRug
-    ? (selectedRug.texture || selectedRug.thumbnail || (selectedRug.images && selectedRug.images[0]) || selectedRug.image)
-    : '/images/carpets/royal-ivory-medallion.jpg';
+  const rugImageUrl = useMemo(() => {
+    const rawUrl = selectedRug && (
+      selectedRug.texture ||
+      selectedRug.thumbnail ||
+      (Array.isArray(selectedRug.images) && selectedRug.images[0]) ||
+      selectedRug.image
+    );
+    return (typeof rawUrl === 'string' && rawUrl.trim().length > 0)
+      ? rawUrl.trim()
+      : '/images/carpets/royal-ivory-medallion.jpg';
+  }, [selectedRug]);
+
+  // Reset image loading states when rug image source changes
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageLoadError(false);
+  }, [rugImageUrl]);
 
   // 1. Strict MediaStream Teardown (Camera Privacy)
   const stopCameraStream = useCallback(() => {
@@ -556,9 +573,21 @@ export default function LiveARVisualizer({
             </p>
           )}
           {visualizerState === 'Rug placed' && (
-            <p className="text-xs text-[#FAF7F0] font-sans">
-              {activeMode === 'webxr' ? 'Rug anchored to floor. Move phone around to inspect.' : 'Drag to reposition rug onto your floor.'}
-            </p>
+            <div className="flex items-center justify-center gap-1.5 text-xs text-[#FAF7F0] font-sans">
+              {imageLoadError ? (
+                <span className="text-amber-300 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Rug texture failed to load</span>
+                </span>
+              ) : !imageLoaded ? (
+                <span className="text-[#D4BC9F] flex items-center gap-1.5">
+                  <RefreshCw className="w-3 h-3 animate-spin text-[#D4BC9F]" />
+                  <span>Loading rug design...</span>
+                </span>
+              ) : (
+                <span>{activeMode === 'webxr' ? 'Rug anchored to floor. Move phone around to inspect.' : 'Drag to reposition rug onto your floor.'}</span>
+              )}
+            </div>
           )}
           {visualizerState === 'Camera permission denied' && (
             <div className="flex items-center gap-1.5 text-xs text-red-400 font-sans">
@@ -596,11 +625,12 @@ export default function LiveARVisualizer({
             style={{
               left: `${transform.x}%`,
               top: `${transform.y}%`,
-              width: `${transform.scale}%`,
-              aspectRatio: `${rugAspectRatio}`,
+              width: `${Math.max(15, Math.min(85, transform.scale))}%`,
+              aspectRatio: `${safeAspectRatio}`,
               transform: `translate(-50%, -50%) rotateX(${transform.perspectiveTilt}deg) rotateZ(${transform.rotation}deg)`,
               transformOrigin: 'center center',
-              transformStyle: 'preserve-3d'
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'visible'
             }}
           >
             {/* Soft Ambient Contact Shadow on Camera Floor */}
@@ -608,24 +638,61 @@ export default function LiveARVisualizer({
               className="w-full h-full relative rounded-[2px] overflow-hidden"
               style={{
                 boxShadow: `
-                  0 2px 5px rgba(10, 8, 5, 0.25),
-                  0 6px 14px rgba(10, 8, 5, 0.16),
-                  0 12px 28px rgba(10, 8, 5, 0.10)
+                  0 4px 10px rgba(0, 0, 0, 0.40),
+                  0 10px 22px rgba(0, 0, 0, 0.30),
+                  0 18px 40px rgba(0, 0, 0, 0.20)
                 `,
-                filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.18))'
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.25))'
               }}
             >
               <img
                 src={rugImageUrl}
-                alt={selectedRug?.name}
+                alt={selectedRug?.name || 'Artisanal Rug'}
                 className="w-full h-full object-cover block"
                 draggable={false}
+                onLoad={() => {
+                  setImageLoaded(true);
+                  setImageLoadError(false);
+                }}
+                onError={(e) => {
+                  console.error('[Live AR Visualizer] Rug image failed to load:', rugImageUrl, e);
+                  setImageLoadError(true);
+                  setImageLoaded(false);
+                }}
                 style={{
-                  mixBlendMode: 'multiply',
-                  opacity: 0.95
+                  opacity: 0.98
                 }}
               />
+
+              {/* Natural ambient lighting gradient over camera floor */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/[0.08] via-transparent to-white/[0.08] pointer-events-none" />
+
+              {/* Loading indicator while image is downloading over mobile data */}
+              {!imageLoaded && !imageLoadError && (
+                <div className="absolute inset-0 bg-[#2A2118]/80 backdrop-blur-xs flex flex-col items-center justify-center gap-1.5 text-[#D4BC9F]">
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#D4BC9F]" />
+                  <span className="text-[10px] font-sans">Loading rug...</span>
+                </div>
+              )}
+
+              {/* Image Load Error Overlay */}
+              {imageLoadError && (
+                <div className="absolute inset-0 bg-[#1E140E]/95 p-3 flex flex-col items-center justify-center text-center text-red-200">
+                  <AlertCircle className="w-5 h-5 text-red-400 mb-1" />
+                  <p className="text-[11px] font-bold text-white">Rug Image Load Failed</p>
+                  <p className="text-[9.5px] text-white/60 truncate max-w-[90%] mt-0.5">{rugImageUrl}</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImageLoadError(false);
+                      setImageLoaded(false);
+                    }}
+                    className="mt-2 px-2.5 py-1 bg-[#55694A] hover:bg-[#657C58] text-white text-[10px] font-bold rounded-md uppercase tracking-wider transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
