@@ -13,7 +13,8 @@ import {
   getAllOrdersAdmin,
   getOrderAdminById,
   updateOrderStatusAdmin,
-  updateOrderTrackingAdmin
+  updateOrderTrackingAdmin,
+  refundOrderAdmin
 } from '../controllers/adminController.js';
 import {
   getAllOffersAdmin,
@@ -56,6 +57,7 @@ router.get('/orders', getAllOrdersAdmin);
 router.get('/orders/:id', getOrderAdminById);
 router.put('/orders/:id/status', updateOrderStatusAdmin);
 router.put('/orders/:id/tracking', updateOrderTrackingAdmin);
+router.post('/orders/:id/refund', refundOrderAdmin);
 
 // ==================== OFFERS / COUPONS ====================
 router.get('/offers', getAllOffersAdmin);

@@ -66,7 +66,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'completed', 'failed', 'refunded', 'refund_required'],
+    enum: ['pending', 'completed', 'failed', 'refunded', 'refund_required', 'refund_pending', 'refund_failed'],
     default: 'pending'
   },
   razorpayOrderId: {
@@ -88,6 +88,24 @@ const orderSchema = new mongoose.Schema({
     default: null
   },
   razorpaySignature: { type: String, default: '' },
+  refundId: {
+    type: String,
+    sparse: true,
+    index: {
+      unique: true,
+      partialFilterExpression: { refundId: { $type: 'string', $gt: '' } }
+    },
+    default: null
+  },
+  refundAmount: { type: Number, default: 0 },
+  refundStatus: {
+    type: String,
+    enum: ['none', 'initiated', 'processed', 'failed'],
+    default: 'none'
+  },
+  refundedAt: { type: Date, default: null },
+  refundReason: { type: String, default: '' },
+  stockRestored: { type: Boolean, default: false },
   orderStatus: {
     type: String,
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],

@@ -2,7 +2,7 @@
 
 const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
 const configuredApiUrl = rawApiUrl.includes(',') ? rawApiUrl.split(',')[0].trim() : rawApiUrl;
-const DEPLOYED_API = 'https://pottery-rugs-api.onrender.com/api';
+const DEPLOYED_API = 'https://house-of-loom-craft-api.onrender.com/api';
 
 export const API_BASE = (
   (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
@@ -53,7 +53,9 @@ async function request(endpoint, options = {}) {
     }
   }
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('pottery_rugs_token') : null;
+  const token = typeof window !== 'undefined'
+    ? (localStorage.getItem('house_of_loom_token') || localStorage.getItem('pottery_rugs_token'))
+    : null;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -114,6 +116,7 @@ export const authAPI = {
   register: async (payload) => {
     const data = await request('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
     if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('house_of_loom_token', data.token);
       localStorage.setItem('pottery_rugs_token', data.token);
     }
     return data;
@@ -121,6 +124,7 @@ export const authAPI = {
   login: async (payload) => {
     const data = await request('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
     if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('house_of_loom_token', data.token);
       localStorage.setItem('pottery_rugs_token', data.token);
     }
     return data;
@@ -130,6 +134,7 @@ export const authAPI = {
       await request('/auth/logout', { method: 'POST' });
     } finally {
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('house_of_loom_token');
         localStorage.removeItem('pottery_rugs_token');
       }
     }
@@ -139,6 +144,7 @@ export const authAPI = {
   resetPassword: async (payload) => {
     const data = await request('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) });
     if (data?.token && typeof window !== 'undefined') {
+      localStorage.setItem('house_of_loom_token', data.token);
       localStorage.setItem('pottery_rugs_token', data.token);
     }
     return data;
@@ -267,6 +273,8 @@ export const adminAPI = {
     request(`/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ orderStatus, note }) }),
   updateOrderTracking: (id, trackingData) =>
     request(`/admin/orders/${id}/tracking`, { method: 'PUT', body: JSON.stringify(trackingData) }),
+  refundOrder: (id, amount, reason = '') =>
+    request(`/admin/orders/${id}/refund`, { method: 'POST', body: JSON.stringify({ amount, reason }) }),
 
   // Offers & Coupons
   getOffers: (params = {}) => {

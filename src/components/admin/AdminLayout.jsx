@@ -96,7 +96,7 @@ export default function AdminLayout() {
           {/* Real Live Database Indicator */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EFE8D8] border border-[#DACDB3] text-xs text-[#4E3C2B]">
             <Database className="w-3.5 h-3.5 text-[#55694A]" />
-            <span className="text-[11px] font-mono font-medium">pottery_rugs</span>
+            <span className="text-[11px] font-mono font-medium">house_of_loom</span>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Database Connected" />
           </div>
 
@@ -232,7 +232,7 @@ export default function AdminLayout() {
               <div className="pt-4 border-t border-[#DACDB3] text-xs text-[#4E3C2B] space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-[11px] font-mono">pottery_rugs live</span>
+                  <span className="text-[11px] font-mono">house_of_loom live</span>
                 </div>
                 <button
                   onClick={handleLogout}

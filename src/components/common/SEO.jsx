@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://potteryrugs.com';
-const DEFAULT_IMAGE = `${SITE_URL}/images/pottery-logo.jpg`;
+const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://houseofloomandcraft.com').replace(/\/$/, '');
+const DEFAULT_IMAGE = `${SITE_URL}/images/house-of-loom-craft-logo.png`;
 
 export default function SEO({
   title = 'House of Loom & Craft | Manufacturer & Exporter | Bhadohi',
@@ -68,7 +68,7 @@ export default function SEO({
       name: 'House of Loom & Craft',
       legalName: 'House of Loom & Craft',
       url: SITE_URL,
-      logo: `${SITE_URL}/images/pottery-logo.jpg`,
+      logo: `${SITE_URL}/images/house-of-loom-craft-logo.png`,
       contactPoint: [
         {
           '@type': 'ContactPoint',

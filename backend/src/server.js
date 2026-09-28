@@ -92,7 +92,9 @@ const devLocalOrigins = [
 ];
 
 const defaultProductionOrigins = [
-  'https://pottery-rugs.vercel.app'
+  'https://houseofloomandcraft.com',
+  'https://www.houseofloomandcraft.com',
+  'https://house-of-loom-craft.vercel.app'
 ];
 
 const allowedOrigins = Array.from(new Set([
@@ -103,7 +105,7 @@ const allowedOrigins = Array.from(new Set([
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow non-browser requests with no origin (e.g. server health checks, curl)
+    // Allow non-browser requests with no origin (e.g. server health checks, curl, webhooks)
     if (!origin) {
       return callback(null, true);
     }
@@ -126,11 +128,16 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-razorpay-signature']
 }));
 
-// Body & cookie parsers
-app.use(express.json({ limit: '10mb' }));
+// Body & cookie parsers (retains exact rawBody Buffer for cryptographic webhook signature verification)
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
@@ -159,7 +166,8 @@ const authLimiter = rateLimit({
 
 app.use('/api/', generalLimiter);
 app.use('/api/auth/', authLimiter);
-app.use('/api/payments/', authLimiter);
+app.use('/api/payments/create-order', authLimiter);
+app.use('/api/payments/verify', authLimiter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

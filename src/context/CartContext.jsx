@@ -17,7 +17,7 @@ export function CartProvider({ children }) {
       try {
         if (isAuthenticated && user) {
           // Check for any guest items in localStorage to merge
-          const savedGuestCart = localStorage.getItem('pottery_guest_cart');
+          const savedGuestCart = localStorage.getItem('house_of_loom_guest_cart') || localStorage.getItem('pottery_guest_cart');
           let guestItems = [];
           if (savedGuestCart) {
             try {
@@ -28,6 +28,7 @@ export function CartProvider({ children }) {
           if (guestItems.length > 0) {
             // Merge guest cart into DB
             const syncRes = await cartAPI.syncCart(guestItems);
+            localStorage.removeItem('house_of_loom_guest_cart');
             localStorage.removeItem('pottery_guest_cart');
             if (syncRes.success && syncRes.cart) {
               setCartItems(syncRes.cart.items || []);
@@ -43,7 +44,7 @@ export function CartProvider({ children }) {
           }
         } else {
           // Guest mode: load from localStorage
-          const local = localStorage.getItem('pottery_guest_cart');
+          const local = localStorage.getItem('house_of_loom_guest_cart') || localStorage.getItem('pottery_guest_cart');
           if (local) {
             try {
               setCartItems(JSON.parse(local));
@@ -51,7 +52,6 @@ export function CartProvider({ children }) {
               setCartItems([]);
             }
           } else {
-            // Default initial piece for immediate delight
             setCartItems([]);
           }
         }
@@ -68,7 +68,7 @@ export function CartProvider({ children }) {
   // Save to localStorage when in guest mode
   useEffect(() => {
     if (!isAuthenticated) {
-      localStorage.setItem('pottery_guest_cart', JSON.stringify(cartItems));
+      localStorage.setItem('house_of_loom_guest_cart', JSON.stringify(cartItems));
     }
   }, [cartItems, isAuthenticated]);
 
@@ -162,6 +162,7 @@ export function CartProvider({ children }) {
       } catch (e) {}
     }
     setCartItems([]);
+    localStorage.removeItem('house_of_loom_guest_cart');
     localStorage.removeItem('pottery_guest_cart');
   };
 

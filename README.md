@@ -35,7 +35,7 @@ The platform retains its core identity as an architectural, editorial showroom�
 ## 3. Project Structure
 
 ```
- House of Loom & Craft/
+house-of-loom-and-craft/
 │
 ├── backend/
 │   ├── src/
@@ -111,22 +111,23 @@ The platform retains its core identity as an architectural, editorial showroom�
 ```env
 # Server Configuration
 PORT=5000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-BACKEND_URL=http://localhost:5000
+NODE_ENV=production
+FRONTEND_URL=https://houseofloomandcraft.com
+BACKEND_URL=https://house-of-loom-craft-api.onrender.com
 # Optional comma-separated list of additional trusted origins
-ALLOWED_ORIGINS=
+ALLOWED_ORIGINS=https://house-of-loom-craft.vercel.app
 
-# MongoDB Database Connection (Atlas or local)
-MONGODB_URI=mongodb://127.0.0.1:27017/pottery_rugs
+# MongoDB Database Connection
+MONGODB_URI=mongodb+srv://<DB_USERNAME>:<DB_PASSWORD>@<CLUSTER_HOST>/house_of_loom?retryWrites=true&w=majority
 
-# JWT Authentication
-JWT_SECRET=pottery_rugs_luxury_secret_key_change_in_production
+# JWT Authentication (Cryptographically secure random secret, e.g. `openssl rand -hex 32`)
+JWT_SECRET=
 JWT_EXPIRES_IN=7d
 
-# Razorpay Payment Gateway
+# Razorpay Payment Gateway (Live production keys)
 RAZORPAY_KEY_ID=
 RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
 # Local development offline simulation toggle. MUST be false in production!
 RAZORPAY_SIMULATION=false
 
@@ -136,18 +137,15 @@ EMAIL_PROVIDER=resend
 EMAIL_API_KEY=
 EMAIL_FROM=House of Loom & Craft <Potteryrugs@gmail.com>
 
-# Initial Seed Credentials
-SEED_ADMIN_EMAIL=Potteryrugs@gmail.com
-SEED_ADMIN_PASSWORD=AtelierMaster2026!
-SEED_CLIENT_EMAIL=client@potteryrugs.com
-SEED_CLIENT_PASSWORD=AtelierClient2026!
+# Initial Seed Toggle (Disabled in production)
+SEED_DEMO_USERS=false
 ```
 
 ### Frontend (`.env`)
 ```env
-# In production on Vercel, point VITE_API_URL to your deployed Railway/Render backend URL
-VITE_API_URL=http://localhost:5000/api
-VITE_SITE_URL=https://potteryrugs.com
+# In production on Vercel, point VITE_API_URL to your deployed production backend URL ending in /api
+VITE_API_URL=https://house-of-loom-craft-api.onrender.com/api
+VITE_SITE_URL=https://houseofloomandcraft.com
 VITE_WHATSAPP_NUMBER=917460007382
 VITE_WHATSAPP_NUMBER_SECONDARY=919839116625
 
@@ -204,30 +202,33 @@ npm run dev
 4. Build Command: `npm run build`.
 5. Output Directory: `dist`.
 6. Configure Environment Variables in Vercel Project Settings:
-   - `VITE_API_URL`: `https://your-backend.railway.app/api`
-   - `VITE_SITE_URL`: `https://potteryrugs.com`
+   - `VITE_API_URL`: `https://house-of-loom-craft-api.onrender.com/api` (or your deployed backend API URL)
+   - `VITE_SITE_URL`: `https://houseofloomandcraft.com`
    - `VITE_WHATSAPP_NUMBER`: `917460007382` (Primary WhatsApp)
    - `VITE_WHATSAPP_NUMBER_SECONDARY`: `919839116625` (Secondary WhatsApp)
-   - `VITE_RAZORPAY_KEY_ID`: `rzp_live_...`
+   - `VITE_RAZORPAY_KEY_ID`: `rzp_live_...` (Your Live Razorpay Key ID)
 7. SPA routing is managed automatically by `vercel.json` (`rewrites: [ { "source": "/(.*)", "destination": "/index.html" } ]`).
 
-### Backend (Railway / Render / Heroku)
+### Backend (Railway / Render / Heroku / AWS)
 1. Deploy from the `backend/` directory or root with root directory specified as `backend`.
 2. Start Command: `node src/server.js`.
 3. Configure Environment Variables:
    - `NODE_ENV`: `production`
    - `PORT`: `5000` (or host provided `$PORT`)
-   - `FRONTEND_URL`: `https://potteryrugs.com` (your production frontend domain)
-   - `BACKEND_URL`: `https://your-backend.railway.app`
-   - `MONGODB_URI`: `mongodb+srv://<username>:<password>@cluster0.slnhlei.mongodb.net/pottery_rugs?appName=Cluster0`
-   - `JWT_SECRET`: A secure 64+ character random string
+   - `FRONTEND_URL`: `https://houseofloomandcraft.com` (your canonical production frontend domain)
+   - `BACKEND_URL`: `https://house-of-loom-craft-api.onrender.com` (your deployed backend URL)
+   - `ALLOWED_ORIGINS`: `https://house-of-loom-craft.vercel.app`
+   - `MONGODB_URI`: `mongodb+srv://<DB_USERNAME>:<DB_PASSWORD>@<CLUSTER_HOST>/house_of_loom?retryWrites=true&w=majority`
+   - `JWT_SECRET`: A secure 64+ character random string (e.g. from `openssl rand -hex 32`)
    - `JWT_EXPIRES_IN`: `7d`
    - `RAZORPAY_KEY_ID`: `rzp_live_...`
-   - `RAZORPAY_KEY_SECRET`: `your_live_razorpay_secret`
+   - `RAZORPAY_KEY_SECRET`: `your_live_razorpay_key_secret`
+   - `RAZORPAY_WEBHOOK_SECRET`: `your_razorpay_webhook_secret`
    - `RAZORPAY_SIMULATION`: `false`
    - `EMAIL_PROVIDER`: `resend` (or `sendgrid`)
    - `EMAIL_API_KEY`: `re_...` (Resend API key)
    - `EMAIL_FROM`: `House of Loom & Craft <Potteryrugs@gmail.com>`
+   - `GEMINI_API_KEY`: `your_google_gemini_api_key`
    - `SEED_DEMO_USERS`: `false`
 
 ---
@@ -238,10 +239,12 @@ npm run dev
 2. **Authoritative Server Pricing**: Prices in request bodies are ignored. Order items and totals are computed strictly from MongoDB Product records. Negative and zero quantities are rejected.
 3. **Atomic Stock Updates & Idempotency**:
    - Stock decrements use atomic MongoDB operations (`{ $inc: { stock: -qty } }`).
-   - Customer cancellations and curator cancellations restore inventory stock **exactly once**. Duplicate cancellation requests cannot double-restore inventory.
-4. **Live Razorpay Verification**:
+   - Customer cancellations and curator cancellations restore inventory stock **exactly once** guarded by `stockRestored`. Duplicate cancellation requests cannot double-restore inventory.
+4. **Live Razorpay Verification & Refunds**:
    - Signature verified via HMAC-SHA256 using server-only `RAZORPAY_KEY_SECRET`.
-   - Verified against Razorpay REST API for currency (`INR`), amount match, order ID match, and `captured`/`authorized` status.
+   - Verified against Razorpay REST API: strictly verifies status is `captured` (authorized payments are not treated as fulfilled).
+   - Server-side idempotent refunds with Razorpay API, recording refundId, amount, and timestamp.
+   - Secure webhook endpoint `/api/payments/webhook` with raw request body HMAC-SHA256 verification.
    - Simulation is strictly forbidden in production. Missing credentials return a 503 error rather than pretending payment succeeded.
 5. **Secure Password Reset**:
    - Uses cryptographically secure random 32-byte tokens.

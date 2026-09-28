@@ -1,7 +1,7 @@
 {
-  "name": "pottery-rugs-backend",
+  "name": "house-of-loom-and-craft-backend",
   "version": "1.0.0",
-  "description": "Luxury E-commerce API for Pottery Rugs & Home Decor",
+  "description": "Luxury E-commerce API for House of Loom & Craft",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

@@ -355,7 +355,7 @@ export const getOrderById = async (req, res, next) => {
 
 // Helper to atomically restore stock for cancelled order items
 export const restoreOrderStockSafely = async (order) => {
-  if (!order.items || !order.items.length) return;
+  if (!order || order.stockRestored || !order.items || !order.items.length) return;
   for (const item of order.items) {
     if (item.productId) {
       await Product.findByIdAndUpdate(item.productId, {
@@ -363,6 +363,7 @@ export const restoreOrderStockSafely = async (order) => {
       });
     }
   }
+  order.stockRestored = true;
 };
 
 export const cancelOrder = async (req, res, next) => {
@@ -411,21 +412,39 @@ export const cancelOrder = async (req, res, next) => {
       });
     }
 
-    // Atomically restore inventory stock exactly once
-    await restoreOrderStockSafely(order);
+    // Process refund if online paid order
+    let refundInfo = '';
+    if (order.paymentMethod === 'online' && (order.paymentStatus === 'completed' || order.razorpayPaymentId)) {
+      order.orderStatus = 'cancelled';
+      const { processOrderRefund } = await import('../services/refundService.js');
+      const refundResult = await processOrderRefund({
+        order,
+        reason: req.body.reason || 'Client requested cancellation',
+        initiatedBy: req.user.role === 'admin' ? `Admin (${req.user.email})` : 'Customer'
+      });
 
-    order.orderStatus = 'cancelled';
-    order.statusHistory.push({
-      status: 'cancelled',
-      timestamp: new Date(),
-      note: req.body.reason || 'Cancelled by client request'
-    });
-
-    await order.save();
+      if (refundResult.success) {
+        refundInfo = refundResult.alreadyRefunded
+          ? ' (Already refunded)'
+          : ` (Full refund initiated: ${refundResult.refundId || 'processed'})`;
+      } else {
+        refundInfo = ' (Refund flagged for manual concierge processing)';
+      }
+    } else {
+      // COD or unpaid order: safely restore stock exactly once
+      await restoreOrderStockSafely(order);
+      order.orderStatus = 'cancelled';
+      order.statusHistory.push({
+        status: 'cancelled',
+        timestamp: new Date(),
+        note: req.body.reason || 'Cancelled by client request'
+      });
+      await order.save();
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Your order cancellation has been processed.',
+      message: `Your order cancellation has been processed.${refundInfo}`,
       order
     });
   } catch (error) {

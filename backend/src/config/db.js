@@ -19,7 +19,7 @@ export const connectDB = async () => {
       throw new Error('MONGODB_URI environment variable is required in production.');
     }
 
-    const uriToConnect = mongoURI || 'mongodb://127.0.0.1:27017/pottery_rugs';
+    const uriToConnect = mongoURI || 'mongodb://127.0.0.1:27017/house_of_loom';
     const conn = await mongoose.connect(uriToConnect, {
       autoIndex: !isProduction,
     });

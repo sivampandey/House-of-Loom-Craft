@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pottery_rugs';
+const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/house_of_loom';
 
 const initialCarpets = [
   {
@@ -563,10 +563,15 @@ export const seedDatabase = async () => {
     // 2. Seed Initial Client & Admin - strictly disabled unless SEED_DEMO_USERS === 'true'
     if (process.env.SEED_DEMO_USERS === 'true') {
       console.log('[Seed] SEED_DEMO_USERS is enabled. Processing demo client and curator accounts...');
-      const clientEmail = process.env.SEED_CLIENT_EMAIL || 'client@potteryrugs.com';
-      const clientPass = process.env.SEED_CLIENT_PASSWORD || 'AtelierClient2026!';
-      const adminEmail = process.env.SEED_ADMIN_EMAIL || 'Potteryrugs@gmail.com';
-      const adminPass = process.env.SEED_ADMIN_PASSWORD || 'AtelierMaster2026!';
+      const clientEmail = process.env.SEED_CLIENT_EMAIL || 'client@houseofloomandcraft.com';
+      const clientPass = process.env.SEED_CLIENT_PASSWORD;
+      const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@houseofloomandcraft.com';
+      const adminPass = process.env.SEED_ADMIN_PASSWORD;
+
+      if (!clientPass || !adminPass) {
+        console.warn('[Seed Warning] SEED_CLIENT_PASSWORD and SEED_ADMIN_PASSWORD must be provided in env to seed accounts.');
+        return;
+      }
 
       // Seed Demo Client
       let clientUser = await User.findOne({ email: clientEmail.toLowerCase() });

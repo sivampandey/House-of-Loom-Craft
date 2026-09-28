@@ -491,6 +491,69 @@ export default function AdminOrderDetailPage() {
                   <span className="font-mono text-[11px]">{order.razorpayOrderId}</span>
                 </div>
               )}
+
+              {/* Refund Audit Details if applicable */}
+              {order.refundId && (
+                <div className="pt-2 border-t border-dashed border-[#DACDB3] space-y-1.5">
+                  <div className="flex justify-between text-rose-800 font-bold">
+                    <span>Refund ID:</span>
+                    <span className="font-mono text-[11px]">{order.refundId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8F6E50] font-bold">Refund Status:</span>
+                    <span className="uppercase font-bold text-rose-700">{order.refundStatus || 'Processed'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8F6E50] font-bold">Refund Amount:</span>
+                    <span className="font-mono font-bold text-rose-800">
+                      {order.currency && order.currency !== 'INR' ? `${order.currency} ` : '₹'}
+                      {order.refundAmount?.toLocaleString()}
+                    </span>
+                  </div>
+                  {order.refundedAt && (
+                    <div className="flex justify-between text-[10px] text-[#544131]/70">
+                      <span>Refunded At:</span>
+                      <span>{new Date(order.refundedAt).toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Admin Refund Trigger Button */}
+              {order.paymentMethod === 'online' && order.razorpayPaymentId && order.paymentStatus !== 'refunded' && (
+                <div className="pt-3 border-t border-[#DACDB3]">
+                  <button
+                    type="button"
+                    disabled={isUpdatingStatus}
+                    onClick={async () => {
+                      const reason = window.prompt('Please enter the reason for this Razorpay refund:', 'Curator approved refund');
+                      if (reason === null) return;
+                      if (!window.confirm(`Are you sure you want to issue a full Razorpay refund for order ${order.orderNumber}? This will immediately initiate a digital refund on the gateway.`)) {
+                        return;
+                      }
+
+                      setIsUpdatingStatus(true);
+                      try {
+                        const res = await adminAPI.refundOrder(order._id, undefined, reason);
+                        if (res.success && res.order) {
+                          setOrder(res.order);
+                          setStatusSuccess(`Razorpay refund (${res.refund?.refundId || 'processed'}) initiated successfully.`);
+                          setTimeout(() => setStatusSuccess(''), 4000);
+                        } else {
+                          alert(res.message || 'Refund failed.');
+                        }
+                      } catch (err) {
+                        alert(err.message || 'Unable to process refund.');
+                      } finally {
+                        setIsUpdatingStatus(false);
+                      }
+                    }}
+                    className="w-full py-2 px-3 rounded-xl border border-rose-400 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold uppercase tracking-wider text-[11px] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span>Issue Razorpay Refund</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

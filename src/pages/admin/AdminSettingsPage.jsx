@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">Database Cluster Target:</span>
             <span className="font-mono text-[#1E261B] font-medium bg-[#FAF7F2] px-2 py-1 rounded inline-block">
-              pottery_rugs
+              house_of_loom
             </span>
           </div>
           <div>
@@ -77,7 +77,7 @@ export default function AdminSettingsPage() {
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">Active Admin Account:</span>
             <span className="text-[#1E261B] font-medium font-mono">
-              {user?.email || 'Potteryrugs@gmail.com'}
+              {user?.email || 'admin@houseofloomandcraft.com'}
             </span>
           </div>
         </div>

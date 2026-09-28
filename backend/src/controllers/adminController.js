@@ -3,6 +3,7 @@ import { Order } from '../models/Order.js';
 import { User } from '../models/User.js';
 import { Offer } from '../models/Offer.js';
 import { restoreOrderStockSafely } from './orderController.js';
+import { processOrderRefund } from '../services/refundService.js';
 
 // ==================== DASHBOARD OVERVIEW ====================
 export const getDashboardStats = async (req, res, next) => {
@@ -413,7 +414,7 @@ export const deleteUserAdmin = async (req, res, next) => {
       // Anonymize user instead of deleting so historical order references remain valid
       targetUser.firstName = 'Deactivated';
       targetUser.lastName = 'Customer';
-      targetUser.email = `deactivated_${id}@potteryrugs.local`;
+      targetUser.email = `deactivated_${id}@houseofloom.local`;
       targetUser.phone = '';
       targetUser.addresses = [];
       await targetUser.save();
@@ -554,9 +555,17 @@ export const updateOrderStatusAdmin = async (req, res, next) => {
 
     const previousStatus = order.orderStatus;
 
-    // Stock management: if cancelling now, restore stock
+    // Stock & Refund management: if cancelling now
     if (orderStatus === 'cancelled' && previousStatus !== 'cancelled') {
-      await restoreOrderStockSafely(order);
+      if (order.paymentMethod === 'online' && (order.paymentStatus === 'completed' || order.razorpayPaymentId)) {
+        await processOrderRefund({
+          order,
+          reason: note || 'Cancelled by atelier administrator',
+          initiatedBy: `Admin (${req.user.email})`
+        });
+      } else {
+        await restoreOrderStockSafely(order);
+      }
     }
 
     order.orderStatus = orderStatus;
@@ -572,6 +581,58 @@ export const updateOrderStatusAdmin = async (req, res, next) => {
       success: true,
       message: `Order status updated to ${orderStatus}`,
       order
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refundOrderAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { amount, reason } = req.body;
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.paymentMethod !== 'online' || !order.razorpayPaymentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only orders paid online via Razorpay can receive a digital refund.'
+      });
+    }
+
+    if (order.paymentStatus === 'refunded' && order.refundStatus === 'processed') {
+      return res.status(200).json({
+        success: true,
+        message: 'This order has already been fully refunded.',
+        alreadyRefunded: true,
+        order
+      });
+    }
+
+    const refundResult = await processOrderRefund({
+      order,
+      refundAmount: amount ? Number(amount) : undefined,
+      reason: reason || 'Atelier curator initiated refund',
+      initiatedBy: `Admin (${req.user.email})`
+    });
+
+    if (!refundResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: refundResult.error || 'Gateway refund could not be completed.',
+        order
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Razorpay refund processed successfully.',
+      refund: refundResult,
+      order: refundResult.order
     });
   } catch (error) {
     next(error);

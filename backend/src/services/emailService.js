@@ -3,8 +3,8 @@
 
 export const sendPasswordResetEmail = async ({ toEmail, recipientName, resetToken }) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const defaultFrontendUrl = isProduction ? 'https://pottery-rugs.vercel.app' : 'http://localhost:5173';
-  const frontendUrl = (process.env.FRONTEND_URL || defaultFrontendUrl).replace(/\/$/, '');
+  const defaultFrontendUrl = isProduction ? 'https://houseofloomandcraft.com' : 'http://localhost:5173';
+  const frontendUrl = (process.env.FRONTEND_URL || defaultFrontendUrl).split(',')[0].trim().replace(/\/$/, '');
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
   const fromEmail = process.env.EMAIL_FROM || 'House of Loom & Craft <Potteryrugs@gmail.com>';
   const provider = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();

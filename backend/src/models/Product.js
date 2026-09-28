@@ -6,7 +6,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
   shortDescription: { type: String, default: '' },
   price: { type: Number, required: true, min: 0 },
-  compareAtPrice: { type: Number, default: null },
+  compareAtPrice: { type: Number, default: null, min: 0 },
   category: { type: String, required: true, index: true },
   collection: { type: String, required: true, index: true }, // e.g. 'hand-knotted', 'hand-tufted'
   collectionName: { type: String, default: '' },
@@ -37,5 +37,11 @@ productSchema.index({
   material: 'text',
   category: 'text'
 });
+
+// Performance compound indexes for public storefront catalog queries
+productSchema.index({ isActive: 1, createdAt: -1 });
+productSchema.index({ isActive: 1, price: 1 });
+productSchema.index({ isActive: 1, category: 1 });
+productSchema.index({ isActive: 1, collection: 1 });
 
 export const Product = mongoose.model('Product', productSchema);

@@ -15,7 +15,7 @@ export function WishlistProvider({ children }) {
       setLoading(true);
       try {
         if (isAuthenticated && user) {
-          const savedGuest = localStorage.getItem('pottery_guest_wishlist');
+          const savedGuest = localStorage.getItem('house_of_loom_guest_wishlist') || localStorage.getItem('pottery_guest_wishlist');
           let guestItems = [];
           if (savedGuest) {
             try {
@@ -25,6 +25,7 @@ export function WishlistProvider({ children }) {
 
           if (guestItems.length > 0) {
             const syncRes = await wishlistAPI.syncWishlist(guestItems);
+            localStorage.removeItem('house_of_loom_guest_wishlist');
             localStorage.removeItem('pottery_guest_wishlist');
             if (syncRes.success && syncRes.wishlist) {
               setWishlistItems(syncRes.wishlist);
@@ -39,7 +40,7 @@ export function WishlistProvider({ children }) {
           }
         } else {
           // Guest mode
-          const local = localStorage.getItem('pottery_guest_wishlist');
+          const local = localStorage.getItem('house_of_loom_guest_wishlist') || localStorage.getItem('pottery_guest_wishlist');
           if (local) {
             try {
               setWishlistItems(JSON.parse(local));
@@ -62,7 +63,7 @@ export function WishlistProvider({ children }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      localStorage.setItem('pottery_guest_wishlist', JSON.stringify(wishlistItems));
+      localStorage.setItem('house_of_loom_guest_wishlist', JSON.stringify(wishlistItems));
     }
   }, [wishlistItems, isAuthenticated]);
 

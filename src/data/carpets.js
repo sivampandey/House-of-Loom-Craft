@@ -10,7 +10,7 @@ export const companyInfo = {
   whatsappNumber2: '919839116625',
   instagram: 'https://www.instagram.com/potteryrugshome?stkn=MTRzMGxmMzdvaGozbA==',
   instagramHandle: '@potteryrugshome',
-  logo: '/images/pottery-logo.jpg',
+  logo: '/images/house-of-loom-craft-logo.png',
   email: 'Potteryrugs@gmail.com'
 };
 

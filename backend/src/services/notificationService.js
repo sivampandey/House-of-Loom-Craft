@@ -346,6 +346,9 @@ export const notifyCustomerStatusChanged = async (ticket, oldStatus, newStatus) 
     if (!customerEmail) return;
 
     const subject = `[Update: ${ticket.ticketId}] Your support ticket is now ${newStatus}`;
+    const isProd = process.env.NODE_ENV === 'production';
+    const baseUrl = (process.env.FRONTEND_URL || (isProd ? 'https://houseofloomandcraft.com' : 'http://localhost:5173')).split(',')[0].trim().replace(/\/$/, '');
+
     const textContent = `
 Dear ${customerName},
 
@@ -354,7 +357,7 @@ Your support request regarding "${ticket.subject}" (Ticket: ${ticket.ticketId}) 
 Status changed: ${oldStatus || 'Previous'} → ${newStatus}
 
 You can view your ticket timeline and reply directly from your account profile at:
-https://pottery-rugs.vercel.app/profile?tab=support
+${baseUrl}/profile?tab=support
 
 House of Loom & Craft Atelier Support
 Bhadohi, Uttar Pradesh

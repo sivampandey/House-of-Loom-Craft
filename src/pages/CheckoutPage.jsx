@@ -180,7 +180,7 @@ export default function CheckoutPage({ onShowToast }) {
           currency: razorpayOrderRes.currency || currency || 'INR',
           name: 'House of Loom & Craft',
           description: `Order (${itemsPayload.length} Pieces) [${razorpayOrderRes.currency || currency}]`,
-          image: '/images/pottery-logo.jpg',
+          image: '/images/house-of-loom-craft-logo.png',
           order_id: razorpayOrderRes.orderId,
           handler: async function (response) {
             try {

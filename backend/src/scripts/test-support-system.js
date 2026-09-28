@@ -36,7 +36,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pottery_rugs';
+const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/house_of_loom';
 
 function mockRes() {
   const res = {

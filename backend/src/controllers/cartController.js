@@ -19,8 +19,13 @@ const buildAuthoritativeCart = async (cartDoc) => {
   let priceChangesDetected = false;
   let outOfStockItemsRemoved = false;
 
+  // Batch query all products to avoid N+1 DB roundtrips
+  const productIds = cartDoc.items.map(item => item.product).filter(Boolean);
+  const products = await Product.find({ _id: { $in: productIds } });
+  const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
   for (const item of cartDoc.items) {
-    const product = await Product.findById(item.product);
+    const product = productMap.get(item.product?.toString());
     if (!product || !product.isActive || product.stock <= 0) {
       outOfStockItemsRemoved = true;
       continue;

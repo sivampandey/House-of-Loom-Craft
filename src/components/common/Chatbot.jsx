@@ -140,7 +140,7 @@ export default function Chatbot() {
   // Show small welcome message bubble above launcher once per session (without auto-opening full chat)
   useEffect(() => {
     try {
-      const hasSeen = sessionStorage.getItem('pottery_rugs_concierge_seen');
+      const hasSeen = sessionStorage.getItem('house_of_loom_concierge_seen') || sessionStorage.getItem('pottery_rugs_concierge_seen');
       if (!hasSeen) {
         const timer = setTimeout(() => {
           setShowWelcomeBubble(true);
@@ -156,7 +156,7 @@ export default function Chatbot() {
   const handleClose = () => {
     setIsOpen(false);
     try {
-      sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
+      sessionStorage.setItem('house_of_loom_concierge_seen', 'true');
     } catch (_) { }
   };
 
@@ -166,7 +166,7 @@ export default function Chatbot() {
     }
     setShowWelcomeBubble(false);
     try {
-      sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
+      sessionStorage.setItem('house_of_loom_concierge_seen', 'true');
     } catch (_) { }
   };
 
@@ -174,7 +174,7 @@ export default function Chatbot() {
     setShowWelcomeBubble(false);
     setIsOpen(true);
     try {
-      sessionStorage.setItem('pottery_rugs_concierge_seen', 'true');
+      sessionStorage.setItem('house_of_loom_concierge_seen', 'true');
     } catch (_) { }
   };
 
