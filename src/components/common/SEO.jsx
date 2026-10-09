@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://houseofloomandcraft.com').replace(/\/$/, '');
+const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://www.houseofloomcraft.com').replace(/\/$/, '');
 const DEFAULT_IMAGE = `${SITE_URL}/images/house-of-loom-craft-logo.png`;
 
 export default function SEO({

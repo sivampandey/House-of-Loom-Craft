@@ -347,7 +347,7 @@ export const notifyCustomerStatusChanged = async (ticket, oldStatus, newStatus) 
 
     const subject = `[Update: ${ticket.ticketId}] Your support ticket is now ${newStatus}`;
     const isProd = process.env.NODE_ENV === 'production';
-    const baseUrl = (process.env.FRONTEND_URL || (isProd ? 'https://houseofloomandcraft.com' : 'http://localhost:5173')).split(',')[0].trim().replace(/\/$/, '');
+    const baseUrl = (process.env.FRONTEND_URL || (isProd ? 'https://www.houseofloomcraft.com' : 'http://localhost:5173')).split(',')[0].trim().replace(/\/$/, '');
 
     const textContent = `
 Dear ${customerName},

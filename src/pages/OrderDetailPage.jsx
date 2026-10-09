@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Printer, ShieldCheck, Truck, CheckCircle2, 
+  ArrowLeft, ArrowRight, Printer, ShieldCheck, Truck, CheckCircle2, 
   Clock, Package, AlertCircle, MessageSquare, XCircle, Phone 
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
@@ -383,7 +383,7 @@ export default function OrderDetailPage({ onShowToast }) {
                       {item.product && (
                         <div className="mt-3">
                           <Link
-                            to={`/product/${item.product._id || item.product}`}
+                            to={`/products/${item.product.slug || item.product._id || item.product}`}
                             className="inline-flex items-center gap-1.5 text-xs text-[#55694A] hover:underline font-medium"
                           >
                             <span>View Product Details</span>

@@ -257,6 +257,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/product/:slug"
+          element={
+            <ProductDetailPage
+              onShowToast={showToast}
+            />
+          }
+        />
+        <Route
           path="/search"
           element={
             <SearchPage

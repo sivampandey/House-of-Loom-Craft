@@ -74,7 +74,11 @@ export const getProducts = async (req, res, next) => {
 export const getProductBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const product = await Product.findOne({ slug: slug.toLowerCase(), isActive: true });
+    let product = await Product.findOne({ slug: slug.toLowerCase(), isActive: true });
+
+    if (!product && slug.match(/^[0-9a-fA-F]{24}$/)) {
+      product = await Product.findOne({ _id: slug, isActive: true });
+    }
 
     if (!product) {
       return res.status(404).json({

@@ -77,7 +77,7 @@ export default function AdminSettingsPage() {
           <div>
             <span className="text-[#1E261B]/50 block mb-0.5">Active Admin Account:</span>
             <span className="text-[#1E261B] font-medium font-mono">
-              {user?.email || 'admin@houseofloomandcraft.com'}
+              {user?.email || 'admin@houseofloomcraft.com'}
             </span>
           </div>
         </div>

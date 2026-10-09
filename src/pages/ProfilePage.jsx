@@ -5,7 +5,7 @@ import {
   Edit3, Plus, Trash2, CheckCircle2, AlertCircle,
   Sparkles, Check, Phone, Mail, ArrowRight,
   MessageSquareQuote, LifeBuoy, Clock, Send, Image,
-  RefreshCw, X, ChevronRight, MessageCircle, FileText
+  RefreshCw, X, ChevronRight, MessageCircle, FileText, ExternalLink
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { useAuth } from '../context/AuthContext';

@@ -17,20 +17,6 @@ export default function CheckoutPage({ onShowToast }) {
   const { cartItems, clearCart, subtotal } = useCart();
   const { formatPrice, currency, convertPrice, rates } = useCurrency();
 
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      navigate('/collections');
-    }
-  }, [cartItems, navigate]);
-
-  // Restrict COD for international currencies
-  useEffect(() => {
-    if (currency !== 'INR' && paymentMethod === 'cod') {
-      setPaymentMethod('online');
-    }
-  }, [currency, paymentMethod]);
-
   // Saved addresses from user
   const [savedAddresses, setSavedAddresses] = useState(user?.addresses || []);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
@@ -59,6 +45,20 @@ export default function CheckoutPage({ onShowToast }) {
   const [appliedOffer, setAppliedOffer] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      navigate('/collections');
+    }
+  }, [cartItems, navigate]);
+
+  // Restrict COD for international currencies
+  useEffect(() => {
+    if (currency !== 'INR' && paymentMethod === 'cod') {
+      setPaymentMethod('online');
+    }
+  }, [currency, paymentMethod]);
 
   // Prefill primary address
   useEffect(() => {

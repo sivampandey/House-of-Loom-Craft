@@ -10,4 +10,4 @@ Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /api/
 
-Sitemap: https://houseofloomandcraft.com/sitemap.xml
+Sitemap: https://www.houseofloomcraft.com/sitemap.xml

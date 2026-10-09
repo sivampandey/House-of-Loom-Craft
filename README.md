@@ -112,7 +112,7 @@ house-of-loom-and-craft/
 # Server Configuration
 PORT=5000
 NODE_ENV=production
-FRONTEND_URL=https://houseofloomandcraft.com
+FRONTEND_URL=https://houseofloomcraft.com
 BACKEND_URL=https://house-of-loom-craft-api.onrender.com
 # Optional comma-separated list of additional trusted origins
 ALLOWED_ORIGINS=https://house-of-loom-craft.vercel.app
@@ -145,7 +145,7 @@ SEED_DEMO_USERS=false
 ```env
 # In production on Vercel, point VITE_API_URL to your deployed production backend URL ending in /api
 VITE_API_URL=https://house-of-loom-craft-api.onrender.com/api
-VITE_SITE_URL=https://houseofloomandcraft.com
+VITE_SITE_URL=https://houseofloomcraft.com
 VITE_WHATSAPP_NUMBER=917460007382
 VITE_WHATSAPP_NUMBER_SECONDARY=919839116625
 
@@ -203,7 +203,7 @@ npm run dev
 5. Output Directory: `dist`.
 6. Configure Environment Variables in Vercel Project Settings:
    - `VITE_API_URL`: `https://house-of-loom-craft-api.onrender.com/api` (or your deployed backend API URL)
-   - `VITE_SITE_URL`: `https://houseofloomandcraft.com`
+   - `VITE_SITE_URL`: `https://houseofloomcraft.com`
    - `VITE_WHATSAPP_NUMBER`: `917460007382` (Primary WhatsApp)
    - `VITE_WHATSAPP_NUMBER_SECONDARY`: `919839116625` (Secondary WhatsApp)
    - `VITE_RAZORPAY_KEY_ID`: `rzp_live_...` (Your Live Razorpay Key ID)
@@ -215,7 +215,7 @@ npm run dev
 3. Configure Environment Variables:
    - `NODE_ENV`: `production`
    - `PORT`: `5000` (or host provided `$PORT`)
-   - `FRONTEND_URL`: `https://houseofloomandcraft.com` (your canonical production frontend domain)
+   - `FRONTEND_URL`: `https://houseofloomcraft.com` (your canonical production frontend domain)
    - `BACKEND_URL`: `https://house-of-loom-craft-api.onrender.com` (your deployed backend URL)
    - `ALLOWED_ORIGINS`: `https://house-of-loom-craft.vercel.app`
    - `MONGODB_URI`: `mongodb+srv://<DB_USERNAME>:<DB_PASSWORD>@<CLUSTER_HOST>/house_of_loom?retryWrites=true&w=majority`

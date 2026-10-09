@@ -17,6 +17,7 @@ router.get('/', getProducts);
 router.get('/search', searchProducts);
 router.get('/collections', getCollections);
 router.get('/id/:id', getProductById);
+router.get('/slug/:slug', getProductBySlug);
 router.get('/:slug', getProductBySlug);
 
 // Admin-only endpoints
