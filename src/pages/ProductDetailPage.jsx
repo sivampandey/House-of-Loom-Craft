@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Heart, ShoppingBag, ArrowLeft, ShieldCheck, Truck, 
-  RotateCcw, Check, MessageSquare, Phone 
+  RotateCcw, Check, MessageSquare, Phone, Sparkles 
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { productsAPI } from '../services/api';

@@ -63,24 +63,25 @@ if (process.env.NODE_ENV !== 'test') {
 // CORS setup
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Parse configured origins from environment
-const configuredOrigins = [];
-if (process.env.FRONTEND_URL) {
-  process.env.FRONTEND_URL.split(',').forEach(o => {
-    const trimmed = o.trim().replace(/\/$/, '');
-    if (trimmed && !configuredOrigins.includes(trimmed)) {
-      configuredOrigins.push(trimmed);
-    }
-  });
-}
-if (process.env.ALLOWED_ORIGINS) {
-  process.env.ALLOWED_ORIGINS.split(',').forEach(o => {
-    const trimmed = o.trim().replace(/\/$/, '');
-    if (trimmed && !configuredOrigins.includes(trimmed)) {
-      configuredOrigins.push(trimmed);
-    }
-  });
-}
+// Helper to normalize origin string (remove trailing slash and whitespace)
+const normalizeOrigin = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  return url.trim().replace(/\/+$/, '');
+};
+
+// Parse configured origins from environment variables (comma, semicolon, or whitespace separated)
+const parseOrigins = (val) => {
+  if (!val) return [];
+  return val
+    .split(/[,;\s]+/)
+    .map(normalizeOrigin)
+    .filter(Boolean);
+};
+
+const configuredOrigins = [
+  ...parseOrigins(process.env.FRONTEND_URL),
+  ...parseOrigins(process.env.ALLOWED_ORIGINS)
+];
 
 // Development local origins
 const devLocalOrigins = [
@@ -91,9 +92,12 @@ const devLocalOrigins = [
   'http://127.0.0.1:5174'
 ];
 
+// Production origins: strictly include both apex and www domains for House of Loom & Craft
 const defaultProductionOrigins = [
-  'https://houseofloomandcraft.com',
+  'https://www.houseofloomcraft.com',
+  'https://houseofloomcraft.com',
   'https://www.houseofloomandcraft.com',
+  'https://houseofloomandcraft.com',
   'https://house-of-loom-craft.vercel.app'
 ];
 
@@ -101,35 +105,52 @@ const allowedOrigins = Array.from(new Set([
   ...defaultProductionOrigins,
   ...configuredOrigins,
   ...devLocalOrigins
-]));
+])).map(normalizeOrigin).filter(Boolean);
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // Allow non-browser requests with no origin (e.g. server health checks, curl, webhooks)
+    // Allow non-browser requests with no origin (e.g. server health checks, curl, webhooks, mobile clients)
     if (!origin) {
       return callback(null, true);
     }
 
-    const cleanOrigin = origin.replace(/\/$/, '');
-    if (
-      allowedOrigins.includes(cleanOrigin) ||
-      cleanOrigin.endsWith('.vercel.app') ||
-      cleanOrigin.includes('localhost') ||
-      cleanOrigin.includes('127.0.0.1')
-    ) {
-      return callback(null, true);
+    const cleanOrigin = normalizeOrigin(origin);
+
+    const isExplicitlyAllowed = allowedOrigins.includes(cleanOrigin);
+    const isVercelPreview = cleanOrigin.endsWith('.vercel.app');
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin);
+
+    if (isExplicitlyAllowed || isVercelPreview || isLocalhost) {
+      // Reflect exact requesting origin to support credentials (wildcards disallowed with credentials)
+      return callback(null, cleanOrigin);
     }
 
-    if (isProduction) {
-      return callback(new Error(`CORS blocked for untrusted origin: ${origin}`));
-    } else {
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    }
+    // Do NOT pass an Error to callback in production!
+    // Passing callback(new Error(...)) causes Express to trigger 500 error on preflight.
+    // Returning callback(null, false) safely rejects CORS without crashing or returning 500.
+    return callback(null, false);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-razorpay-signature']
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'x-razorpay-signature',
+    'x-currency',
+    'Cache-Control',
+    'Pragma'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 204,
+  maxAge: 86400
+};
+
+// Apply CORS middleware and handle preflight OPTIONS requests early before any body parsing or rate limiting
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Body & cookie parsers (retains exact rawBody Buffer for cryptographic webhook signature verification)
 app.use(express.json({
@@ -141,12 +162,13 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Rate Limiting
+// Rate Limiting (Skip preflight OPTIONS requests so they are never throttled or blocked)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many requests from this client. Please try again in 15 minutes.'
@@ -158,6 +180,7 @@ const authLimiter = rateLimit({
   max: 40,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many authentication attempts. Please wait 15 minutes before trying again.'
