@@ -23,6 +23,8 @@ export default function ProductDetailPage({ onShowToast }) {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [selectedImage, setSelectedImage] = useState('');
+  const [selectedVariantId, setSelectedVariantId] = useState('');
+  const [sizeError, setSizeError] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -38,6 +40,13 @@ export default function ProductDetailPage({ onShowToast }) {
           setProduct(norm);
           setRelated(normalizeProductList(res.related || []));
           setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
+
+          // If product has size variants, initialize default variant if set
+          const activeVars = norm.hasVariants && Array.isArray(norm.variants)
+            ? norm.variants.filter(v => v.active !== false)
+            : [];
+          const defaultVar = activeVars.find(v => v.isDefault);
+          setSelectedVariantId(defaultVar ? defaultVar.id : '');
         } else {
           // Fallback to local data
           const local = carpetsData.find(c => c.slug === slug || c.id === slug);
@@ -46,6 +55,11 @@ export default function ProductDetailPage({ onShowToast }) {
             setProduct(norm);
             setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
             setRelated(normalizeProductList(carpetsData.filter(c => c.id !== local.id).slice(0, 3)));
+            const activeVars = norm.hasVariants && Array.isArray(norm.variants)
+              ? norm.variants.filter(v => v.active !== false)
+              : [];
+            const defaultVar = activeVars.find(v => v.isDefault);
+            setSelectedVariantId(defaultVar ? defaultVar.id : '');
           }
         }
       } catch (err) {
@@ -55,6 +69,11 @@ export default function ProductDetailPage({ onShowToast }) {
           setProduct(norm);
           setSelectedImage(norm.image || DEFAULT_FALLBACK_IMAGE);
           setRelated(normalizeProductList(carpetsData.filter(c => c.id !== local.id).slice(0, 3)));
+          const activeVars = norm.hasVariants && Array.isArray(norm.variants)
+            ? norm.variants.filter(v => v.active !== false)
+            : [];
+          const defaultVar = activeVars.find(v => v.isDefault);
+          setSelectedVariantId(defaultVar ? defaultVar.id : '');
         }
       } finally {
         setLoading(false);
@@ -94,15 +113,52 @@ export default function ProductDetailPage({ onShowToast }) {
 
   const pId = product.slug || product.id || product._id;
   const wishlisted = isWishlisted(pId);
-  const isOutOfStock = (product.stock !== undefined && Number(product.stock) <= 0) || product.isAvailable === false;
+
+  // Active variants
+  const activeVariants = product.hasVariants && Array.isArray(product.variants)
+    ? product.variants.filter(v => v.active !== false)
+    : [];
+
+  const selectedVariant = activeVariants.find(v => v.id === selectedVariantId) || null;
+
+  // Resolve dynamic price and stock based on variant selection
+  const displayedPrice = selectedVariant
+    ? selectedVariant.price
+    : (activeVariants.length > 0 && product.hasPriceRange ? product.minVariantPrice : product.price);
+
+  const displayedComparePrice = selectedVariant
+    ? selectedVariant.compareAtPrice
+    : (!selectedVariantId && product.hasPriceRange ? null : product.compareAtPrice);
+
+  const availableStock = selectedVariant
+    ? (typeof selectedVariant.stock === 'number' ? selectedVariant.stock : product.stock)
+    : product.stock;
+
+  const isOutOfStock = (availableStock !== undefined && Number(availableStock) <= 0) || product.isAvailable === false;
 
   const handleAddToCart = async () => {
+    if (activeVariants.length > 0 && !selectedVariantId) {
+      setSizeError(true);
+      if (onShowToast) {
+        onShowToast('error', 'Select Size', 'Please choose a rug size to place in your bag.');
+      }
+      return;
+    }
+
     if (isOutOfStock) return;
     setIsAdding(true);
     try {
-      await addToCart(product, quantity);
+      await addToCart(
+        product,
+        quantity,
+        selectedVariant ? selectedVariant.size : '',
+        selectedVariant ? selectedVariant.id : '',
+        selectedVariant ? selectedVariant.price : product.price,
+        selectedVariant ? selectedVariant.size : ''
+      );
       if (onShowToast) {
-        onShowToast('cart', 'Added to Bag', `${quantity}x ${product.name} placed in your shopping bag.`);
+        const sizeTag = selectedVariant ? ` (${selectedVariant.size})` : '';
+        onShowToast('cart', 'Added to Bag', `${quantity}x ${product.name}${sizeTag} placed in your shopping bag.`);
       }
     } catch (err) {
       if (onShowToast) {
@@ -114,9 +170,24 @@ export default function ProductDetailPage({ onShowToast }) {
   };
 
   const handleBuyNow = async () => {
+    if (activeVariants.length > 0 && !selectedVariantId) {
+      setSizeError(true);
+      if (onShowToast) {
+        onShowToast('error', 'Select Size', 'Please choose a rug size to proceed.');
+      }
+      return;
+    }
+
     if (isOutOfStock) return;
     try {
-      await addToCart(product, quantity);
+      await addToCart(
+        product,
+        quantity,
+        selectedVariant ? selectedVariant.size : '',
+        selectedVariant ? selectedVariant.id : '',
+        selectedVariant ? selectedVariant.price : product.price,
+        selectedVariant ? selectedVariant.size : ''
+      );
       navigate('/checkout');
     } catch (err) {
       if (onShowToast) {
@@ -145,8 +216,9 @@ export default function ProductDetailPage({ onShowToast }) {
     ...(product.images || [])
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
+  const selectedSizeDescriptor = selectedVariant ? selectedVariant.size : product.dimensions || 'N/A';
   const whatsappConciergeMsg = encodeURIComponent(
-    `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Price: ${formatPrice(product.price)}, Dimensions: ${product.dimensions || 'N/A'}).\nCould you provide more details regarding custom sizing or delivery?`
+    `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Selected Size: ${selectedSizeDescriptor}, Price: ${formatPrice(displayedPrice)}).\nCould you provide more details regarding custom weaving or delivery?`
   );
 
   return (
@@ -284,7 +356,7 @@ export default function ProductDetailPage({ onShowToast }) {
             <div className="p-6 rounded-2xl bg-[#EFE8D8] border border-[#DACDB3] space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#DACDB3]/70">
                 <span className="text-[10px] uppercase tracking-widest text-[#4E3C2B]/70 font-sans font-semibold">
-                  PRICE (Inclusive of all duties)
+                  {activeVariants.length > 0 && !selectedVariantId && product.hasPriceRange ? 'STARTING PRICE' : 'PRICE (Inclusive of all duties)'}
                 </span>
                 <CurrencySelector variant="editorial" />
               </div>
@@ -293,14 +365,21 @@ export default function ProductDetailPage({ onShowToast }) {
                 <div>
                   <div className="flex items-baseline gap-3">
                     <span className="font-sans text-3xl font-bold text-[#362B21]">
-                      {formatPrice(product.price || 0)}
+                      {activeVariants.length > 0 && !selectedVariantId && product.hasPriceRange
+                        ? `From ${formatPrice(product.minVariantPrice)}`
+                        : formatPrice(displayedPrice || 0)}
                     </span>
-                    {product.compareAtPrice && (
+                    {displayedComparePrice && (
                       <span className="font-sans text-sm text-[#4E3C2B]/60 line-through">
-                        {formatPrice(product.compareAtPrice)}
+                        {formatPrice(displayedComparePrice)}
                       </span>
                     )}
                   </div>
+                  {activeVariants.length > 0 && !selectedVariantId && (
+                    <span className="text-[11px] text-[#55694A] font-sans font-semibold mt-1 block">
+                      Select a size below to view exact piece price
+                    </span>
+                  )}
                 </div>
 
                 <div className="text-right">
@@ -312,7 +391,7 @@ export default function ProductDetailPage({ onShowToast }) {
                   ) : (
                     <span className="text-xs text-[#55694A] font-sans font-bold flex items-center justify-end gap-1">
                       <span className="w-2 h-2 rounded-full bg-[#55694A] inline-block animate-pulse" />
-                      In Stock ({product.stock} available)
+                      In Stock ({availableStock} available)
                     </span>
                   )}
                   <span className="text-[10px] text-[#4E3C2B]/80 block font-mono mt-0.5">
@@ -322,12 +401,92 @@ export default function ProductDetailPage({ onShowToast }) {
               </div>
             </div>
 
+            {/* Size & Pricing Variant Selector */}
+            {activeVariants.length > 0 && (
+              <div
+                className={`p-5 rounded-2xl bg-[#EFE8D8] border transition-all ${
+                  sizeError && !selectedVariantId ? 'border-[#8A3324] ring-2 ring-[#8A3324]/30' : 'border-[#DACDB3]'
+                } space-y-3.5`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs uppercase tracking-wider font-sans font-bold text-[#362B21]">
+                      Available Sizes
+                    </span>
+                    <span className="text-[#8A3324] font-bold">*</span>
+                  </div>
+                  {selectedVariant ? (
+                    <span className="text-xs text-[#55694A] font-bold font-mono bg-[#FAF7F0] px-2.5 py-0.5 rounded-full border border-[#DACDB3]">
+                      Selected: {selectedVariant.size}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-[#8A3324] font-sans font-medium">
+                      Select size
+                    </span>
+                  )}
+                </div>
+
+                {sizeError && !selectedVariantId && (
+                  <p className="text-xs text-[#8A3324] font-sans font-bold bg-[#8A3324]/10 p-2 rounded-lg border border-[#8A3324]/20">
+                    Please select an available rug size variant to place in your bag.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {activeVariants.map((v) => {
+                    const isSelected = selectedVariantId === v.id;
+                    const isVarOutOfStock = typeof v.stock === 'number' && v.stock <= 0;
+
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={isVarOutOfStock}
+                        onClick={() => {
+                          setSelectedVariantId(v.id);
+                          setSizeError(false);
+                        }}
+                        className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-[#55694A] text-[#FAF7F0] border-[#44543B] shadow-md scale-[1.02]'
+                            : isVarOutOfStock
+                            ? 'bg-[#E5DDCB]/50 border-[#DACDB3]/50 text-[#8C7E6C] cursor-not-allowed opacity-60'
+                            : 'bg-[#FAF7F0] border-[#DACDB3] text-[#362B21] hover:border-[#55694A] hover:bg-[#FAF7F0]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <span className={`text-xs font-mono font-bold ${isSelected ? 'text-[#FAF7F0]' : 'text-[#362B21]'}`}>
+                            {v.size}
+                          </span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#D4BC9F]" />}
+                        </div>
+                        <div className="flex items-baseline justify-between mt-1">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-[#D4BC9F]' : 'text-[#55694A]'}`}>
+                            {formatPrice(v.price)}
+                          </span>
+                          {isVarOutOfStock ? (
+                            <span className="text-[9px] uppercase tracking-wider text-[#8A3324] font-bold">Sold Out</span>
+                          ) : v.stock <= 3 ? (
+                            <span className={`text-[9px] uppercase tracking-wider ${isSelected ? 'text-amber-200' : 'text-amber-800'} font-medium`}>
+                              Only {v.stock} left
+                            </span>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Specifications Matrix */}
             <div className="bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] p-6 divide-y divide-[#DACDB3]/60 text-xs">
-              {product.dimensions && (
+              {(selectedVariant?.size || product.dimensions) && (
                 <div className="py-2.5 flex justify-between">
                   <span className="text-[#4E3C2B] font-medium">Dimensions</span>
-                  <span className="font-mono text-[#362B21] font-bold text-right">{product.dimensions}</span>
+                  <span className="font-mono text-[#362B21] font-bold text-right">
+                    {selectedVariant ? selectedVariant.size : product.dimensions}
+                  </span>
                 </div>
               )}
               {product.material && (
@@ -370,7 +529,7 @@ export default function ProductDetailPage({ onShowToast }) {
                   </button>
                   <span className="w-8 text-center text-sm font-bold font-sans">{isOutOfStock ? 0 : quantity}</span>
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock || 10, quantity + 1))}
+                    onClick={() => setQuantity(Math.min(availableStock || 10, quantity + 1))}
                     disabled={isOutOfStock}
                     className="w-7 h-7 rounded-full text-base font-bold flex items-center justify-center hover:bg-[#DACDB3]/50 transition-colors disabled:cursor-not-allowed"
                   >

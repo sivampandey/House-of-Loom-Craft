@@ -2,7 +2,7 @@ import { Cart } from '../models/Cart.js';
 import { Product } from '../models/Product.js';
 
 // Helper to format cart with authoritative product data and server-calculated totals
-const buildAuthoritativeCart = async (cartDoc) => {
+export const buildAuthoritativeCart = async (cartDoc) => {
   if (!cartDoc || !cartDoc.items.length) {
     return {
       items: [],
@@ -31,30 +31,74 @@ const buildAuthoritativeCart = async (cartDoc) => {
       continue;
     }
 
+    let unitPrice = product.price;
+    let comparePrice = product.compareAtPrice;
+    let availableStock = product.stock;
+    let variantSize = item.size || item.selectedVariant || product.dimensions || '';
+    let variantId = item.variantId || '';
+
+    // If product has size-wise variants, resolve the authoritative variant
+    if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+      let matchedVariant = null;
+      if (item.variantId) {
+        matchedVariant = product.variants.find(v => v.id === item.variantId);
+      }
+      if (!matchedVariant && (item.selectedVariant || item.size)) {
+        const querySize = (item.selectedVariant || item.size).trim().toLowerCase();
+        matchedVariant = product.variants.find(v => (v.size || '').trim().toLowerCase() === querySize);
+      }
+      if (!matchedVariant) {
+        matchedVariant = product.variants.find(v => v.isDefault && v.active !== false) ||
+                         product.variants.find(v => v.active !== false);
+      }
+
+      if (matchedVariant) {
+        if (matchedVariant.active === false) {
+          outOfStockItemsRemoved = true;
+          continue; // Inactive variant cannot be placed in bag
+        }
+        unitPrice = matchedVariant.price;
+        comparePrice = matchedVariant.compareAtPrice ?? null;
+        if (typeof matchedVariant.stock === 'number') {
+          availableStock = matchedVariant.stock;
+        }
+        variantSize = matchedVariant.size;
+        variantId = matchedVariant.id;
+      }
+    }
+
+    if (availableStock <= 0) {
+      outOfStockItemsRemoved = true;
+      continue;
+    }
+
     // Ensure requested quantity does not exceed available stock
-    const validQty = Math.min(item.quantity, product.stock);
-    const itemSubtotal = product.price * validQty;
+    const validQty = Math.min(item.quantity, availableStock);
+    const itemSubtotal = unitPrice * validQty;
 
     subtotal += itemSubtotal;
     totalCount += validQty;
 
     populatedItems.push({
       _id: item._id,
+      cartItemId: `${product._id}_${variantId || 'base'}`,
       productId: product._id,
       id: product.slug, // For frontend compatibility
       slug: product.slug,
       name: product.name,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
+      price: unitPrice,
+      compareAtPrice: comparePrice,
       image: product.thumbnail || (product.images && product.images[0]) || product.texture,
       texture: product.texture,
-      dimensions: product.dimensions,
+      dimensions: variantSize || product.dimensions,
       material: product.material,
       collection: product.collection,
       collectionName: product.collectionName,
-      stock: product.stock,
+      stock: availableStock,
       quantity: validQty,
-      selectedVariant: item.selectedVariant || ''
+      variantId,
+      size: variantSize,
+      selectedVariant: variantSize
     });
   }
 
@@ -87,10 +131,10 @@ export const getCart = async (req, res, next) => {
 
 export const addToCart = async (req, res, next) => {
   try {
-    const { productId, quantity = 1, selectedVariant = '' } = req.body;
+    const { productId, quantity = 1, selectedVariant = '', variantId = '', size = '' } = req.body;
 
     const product = await Product.findOne({
-      $or: [{ _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }],
+      $or: [{ _id: productId && productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }],
       isActive: true
     });
 
@@ -101,10 +145,40 @@ export const addToCart = async (req, res, next) => {
       });
     }
 
-    if (product.stock < quantity) {
+    let targetVariantId = variantId || '';
+    let targetSize = size || selectedVariant || '';
+    let availableStock = product.stock;
+
+    if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+      let matched = null;
+      if (targetVariantId) {
+        matched = product.variants.find(v => v.id === targetVariantId);
+      }
+      if (!matched && targetSize) {
+        matched = product.variants.find(v => (v.size || '').trim().toLowerCase() === targetSize.trim().toLowerCase());
+      }
+      if (!matched) {
+        matched = product.variants.find(v => v.isDefault && v.active !== false) || product.variants.find(v => v.active !== false);
+      }
+
+      if (!matched || matched.active === false) {
+        return res.status(400).json({
+          success: false,
+          message: 'The requested size variant is unavailable or inactive.'
+        });
+      }
+
+      targetVariantId = matched.id;
+      targetSize = matched.size;
+      if (typeof matched.stock === 'number') {
+        availableStock = matched.stock;
+      }
+    }
+
+    if (availableStock < quantity) {
       return res.status(400).json({
         success: false,
-        message: `Only ${product.stock} piece(s) available in atelier inventory.`
+        message: `Only ${availableStock} piece(s) available in atelier inventory.`
       });
     }
 
@@ -113,16 +187,20 @@ export const addToCart = async (req, res, next) => {
       cart = new Cart({ userId: req.user._id, items: [] });
     }
 
-    const existingIndex = cart.items.findIndex(
-      item => item.product.toString() === product._id.toString()
-    );
+    // Match on product AND variant so different sizes of the same product are distinct items
+    const existingIndex = cart.items.findIndex(item => {
+      const isSameProduct = item.product.toString() === product._id.toString();
+      const isSameVariant = (item.variantId || '') === (targetVariantId || '') &&
+                            (item.size || item.selectedVariant || '') === (targetSize || '');
+      return isSameProduct && isSameVariant;
+    });
 
     if (existingIndex > -1) {
       const newQty = cart.items[existingIndex].quantity + Number(quantity);
-      if (newQty > product.stock) {
+      if (newQty > availableStock) {
         return res.status(400).json({
           success: false,
-          message: `Cannot add more than ${product.stock} available units.`
+          message: `Cannot add more than ${availableStock} available units.`
         });
       }
       cart.items[existingIndex].quantity = newQty;
@@ -130,7 +208,9 @@ export const addToCart = async (req, res, next) => {
       cart.items.push({
         product: product._id,
         quantity: Number(quantity),
-        selectedVariant
+        variantId: targetVariantId,
+        size: targetSize,
+        selectedVariant: targetSize
       });
     }
 
@@ -139,7 +219,7 @@ export const addToCart = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `${product.name} placed in your Atelier Bag.`,
+      message: `${product.name}${targetSize ? ` (${targetSize})` : ''} placed in your Atelier Bag.`,
       cart: calculatedCart
     });
   } catch (error) {
@@ -150,7 +230,7 @@ export const addToCart = async (req, res, next) => {
 export const updateCartItem = async (req, res, next) => {
   try {
     const { productId } = req.params;
-    const { quantity } = req.body;
+    const { quantity, variantId = '', size = '', itemId = '' } = req.body;
 
     if (!quantity || quantity < 1) {
       return res.status(400).json({
@@ -159,29 +239,54 @@ export const updateCartItem = async (req, res, next) => {
       });
     }
 
-    const product = await Product.findOne({
-      $or: [{ _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }]
-    });
-
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    if (quantity > product.stock) {
-      return res.status(400).json({
-        success: false,
-        message: `Only ${product.stock} units available in stock.`
-      });
-    }
-
     const cart = await Cart.findOne({ userId: req.user._id });
     if (!cart) {
       return res.status(404).json({ success: false, message: 'Cart not found' });
     }
 
-    const item = cart.items.find(i => i.product.toString() === product._id.toString());
+    let item = null;
+    if (itemId) {
+      item = cart.items.id(itemId);
+    }
+    if (!item && productId) {
+      item = cart.items.id(productId);
+    }
+    if (!item) {
+      const product = await Product.findOne({
+        $or: [{ _id: productId && productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }]
+      });
+      if (product) {
+        item = cart.items.find(i => {
+          const sameProd = i.product.toString() === product._id.toString();
+          const sameVar = !variantId || i.variantId === variantId;
+          const sameSize = !size || (i.size || i.selectedVariant) === size;
+          return sameProd && sameVar && sameSize;
+        });
+      }
+    }
+
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not in cart' });
+    }
+
+    const product = await Product.findById(item.product);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    let availableStock = product.stock;
+    if (product.hasVariants && item.variantId) {
+      const v = product.variants.find(v => v.id === item.variantId);
+      if (v && typeof v.stock === 'number') {
+        availableStock = v.stock;
+      }
+    }
+
+    if (quantity > availableStock) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${availableStock} units available in stock.`
+      });
     }
 
     item.quantity = Number(quantity);
@@ -200,16 +305,25 @@ export const updateCartItem = async (req, res, next) => {
 export const removeCartItem = async (req, res, next) => {
   try {
     const { productId } = req.params;
-
-    const product = await Product.findOne({
-      $or: [{ _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }]
-    });
-
-    const targetId = product ? product._id.toString() : productId;
+    const { variantId = '', itemId = '' } = req.query;
 
     const cart = await Cart.findOne({ userId: req.user._id });
     if (cart) {
-      cart.items = cart.items.filter(i => i.product.toString() !== targetId);
+      if (itemId) {
+        cart.items = cart.items.filter(i => i._id.toString() !== itemId);
+      } else if (productId.match(/^[0-9a-fA-F]{24}$/) && cart.items.some(i => i._id.toString() === productId)) {
+        cart.items = cart.items.filter(i => i._id.toString() !== productId);
+      } else {
+        const product = await Product.findOne({
+          $or: [{ _id: productId && productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null }, { slug: productId }]
+        });
+        const targetId = product ? product._id.toString() : productId;
+        cart.items = cart.items.filter(i => {
+          const isSameProd = i.product.toString() === targetId;
+          const isSameVar = !variantId || i.variantId === variantId;
+          return !(isSameProd && isSameVar);
+        });
+      }
       await cart.save();
     }
 
@@ -261,8 +375,28 @@ export const syncCart = async (req, res, next) => {
 
       if (!product || product.stock <= 0) continue;
 
+      let gVariantId = gItem.variantId || '';
+      let gSize = gItem.size || gItem.selectedVariant || '';
+      let availableStock = product.stock;
+
+      if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+        let matched = null;
+        if (gVariantId) matched = product.variants.find(v => v.id === gVariantId);
+        if (!matched && gSize) matched = product.variants.find(v => (v.size || '').trim().toLowerCase() === gSize.trim().toLowerCase());
+        if (!matched) matched = product.variants.find(v => v.isDefault && v.active !== false) || product.variants.find(v => v.active !== false);
+
+        if (!matched || matched.active === false) continue;
+        gVariantId = matched.id;
+        gSize = matched.size;
+        if (typeof matched.stock === 'number') {
+          availableStock = matched.stock;
+        }
+      }
+
       const existingIndex = cart.items.findIndex(
-        i => i.product.toString() === product._id.toString()
+        i => i.product.toString() === product._id.toString() &&
+             (i.variantId || '') === (gVariantId || '') &&
+             (i.size || i.selectedVariant || '') === (gSize || '')
       );
 
       const qtyToAdd = Number(gItem.quantity) || 1;
@@ -270,13 +404,15 @@ export const syncCart = async (req, res, next) => {
       if (existingIndex > -1) {
         cart.items[existingIndex].quantity = Math.min(
           cart.items[existingIndex].quantity + qtyToAdd,
-          product.stock
+          availableStock
         );
       } else {
         cart.items.push({
           product: product._id,
-          quantity: Math.min(qtyToAdd, product.stock),
-          selectedVariant: gItem.selectedVariant || ''
+          quantity: Math.min(qtyToAdd, availableStock),
+          variantId: gVariantId,
+          size: gSize,
+          selectedVariant: gSize
         });
       }
     }

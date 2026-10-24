@@ -12,6 +12,14 @@ const cartItemSchema = new mongoose.Schema({
     min: 1,
     default: 1
   },
+  variantId: {
+    type: String,
+    default: ''
+  },
+  size: {
+    type: String,
+    default: ''
+  },
   selectedVariant: {
     type: String,
     default: ''

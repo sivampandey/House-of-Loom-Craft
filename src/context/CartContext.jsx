@@ -72,28 +72,49 @@ export function CartProvider({ children }) {
     }
   }, [cartItems, isAuthenticated]);
 
-  const addToCart = async (product, quantity = 1, selectedVariant = '') => {
+  const getItemIdentifier = (item) => {
+    if (!item) return '';
+    return item.cartItemId || `${item.productId || item.slug || item.id || item._id}_${item.variantId || 'base'}`;
+  };
+
+  const addToCart = async (product, quantity = 1, selectedVariant = '', variantId = '', variantPrice = null, variantSize = '') => {
+    const targetVariantId = variantId || product.variantId || '';
+    const targetSize = variantSize || selectedVariant || product.selectedVariant || product.size || '';
+    const pId = product.slug || product.id || product._id;
+    const prodIdForApi = product._id || product.slug || product.id;
+    const itemKey = `${prodIdForApi}_${targetVariantId || 'base'}`;
+
     if (isAuthenticated) {
       try {
-        const res = await cartAPI.addItem(product._id || product.slug || product.id, quantity, selectedVariant);
+        const res = await cartAPI.addItem(prodIdForApi, quantity, targetSize, targetVariantId, targetSize);
         if (res.success && res.cart) {
-          setCartItems(res.cart.items);
+          setCartItems(res.cart.items || []);
         }
       } catch (err) {
         throw err;
       }
     } else {
-      // Guest cart
+      // Guest cart: distinct item per product + variant
       setCartItems(prev => {
-        const pId = product.slug || product.id || product._id;
-        const existing = prev.find(i => (i.slug || i.id || i._id) === pId);
-        if (existing) {
-          return prev.map(i =>
-            (i.slug || i.id || i._id) === pId
-              ? { ...i, quantity: (i.quantity || 1) + Number(quantity) }
-              : i
+        const existingIndex = prev.findIndex(i => {
+          const isSameProd = (i.slug || i.id || i._id || i.productId) === pId;
+          const isSameVar = (i.variantId || '') === (targetVariantId || '') &&
+                            (i.size || i.selectedVariant || '') === (targetSize || '');
+          return isSameProd && isSameVar;
+        });
+
+        if (existingIndex > -1) {
+          return prev.map((item, idx) =>
+            idx === existingIndex
+              ? { ...item, quantity: (item.quantity || 1) + Number(quantity) }
+              : item
           );
         }
+
+        const effectivePrice = (variantPrice !== null && variantPrice !== undefined)
+          ? Number(variantPrice)
+          : (Number(product.price) || 0);
+
         return [
           ...prev,
           {
@@ -102,55 +123,82 @@ export function CartProvider({ children }) {
             slug: product.slug || pId,
             productId: product._id || null,
             quantity: Number(quantity),
-            selectedVariant
+            variantId: targetVariantId,
+            size: targetSize,
+            selectedVariant: targetSize,
+            cartItemId: itemKey,
+            price: effectivePrice,
+            dimensions: targetSize || product.dimensions || ''
           }
         ];
       });
     }
   };
 
-  const updateQuantity = async (productId, newQuantity) => {
+  const updateQuantity = async (targetId, newQuantity, variantId = '') => {
     if (newQuantity < 1) return;
+
+    // Resolve target cart item
+    const targetItem = cartItems.find(i => 
+      i._id === targetId || 
+      i.cartItemId === targetId || 
+      ( (i.productId === targetId || i.slug === targetId || i.id === targetId) && (!variantId || i.variantId === variantId) )
+    );
+
+    const productId = targetItem?.productId || targetItem?._id || targetId;
+    const vId = variantId || targetItem?.variantId || '';
+    const size = targetItem?.size || targetItem?.selectedVariant || '';
+    const itemId = targetItem?._id || '';
 
     if (isAuthenticated) {
       try {
-        const res = await cartAPI.updateItem(productId, newQuantity);
+        const res = await cartAPI.updateItem(productId, newQuantity, vId, size, itemId);
         if (res.success && res.cart) {
-          setCartItems(res.cart.items);
+          setCartItems(res.cart.items || []);
         }
       } catch (err) {
         console.error('Failed to update quantity on server', err);
       }
     } else {
       setCartItems(prev =>
-        prev.map(item =>
-          (item.productId === productId || item.slug === productId || item.id === productId || item._id === productId)
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
+        prev.map(item => {
+          const matches = item._id === targetId ||
+                          item.cartItemId === targetId ||
+                          ( (item.productId === targetId || item.slug === targetId || item.id === targetId) && (!vId || item.variantId === vId) );
+          return matches ? { ...item, quantity: newQuantity } : item;
+        })
       );
     }
   };
 
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (targetId, variantId = '') => {
+    const targetItem = cartItems.find(i => 
+      i._id === targetId || 
+      i.cartItemId === targetId || 
+      ( (i.productId === targetId || i.slug === targetId || i.id === targetId) && (!variantId || i.variantId === variantId) )
+    );
+
+    const productId = targetItem?.productId || targetItem?._id || targetId;
+    const vId = variantId || targetItem?.variantId || '';
+    const itemId = targetItem?._id || '';
+
     if (isAuthenticated) {
       try {
-        const res = await cartAPI.removeItem(productId);
+        const res = await cartAPI.removeItem(productId, vId, itemId);
         if (res.success && res.cart) {
-          setCartItems(res.cart.items);
+          setCartItems(res.cart.items || []);
         }
       } catch (err) {
         console.error('Failed to remove cart item on server', err);
       }
     } else {
       setCartItems(prev =>
-        prev.filter(
-          item =>
-            item.productId !== productId &&
-            item.slug !== productId &&
-            item.id !== productId &&
-            item._id !== productId
-        )
+        prev.filter(item => {
+          const matches = item._id === targetId ||
+                          item.cartItemId === targetId ||
+                          ( (item.productId === targetId || item.slug === targetId || item.id === targetId) && (!vId || item.variantId === vId) );
+          return !matches;
+        })
       );
     }
   };

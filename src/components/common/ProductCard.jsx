@@ -143,13 +143,15 @@ export default function ProductCard({
         <div className="pt-4 border-t border-[#DACDB3]/70 flex items-center justify-between gap-3">
           <div>
             <span className="text-[10px] uppercase tracking-wider text-[#55694A] block font-sans font-bold">
-              PRICE
+              {product.hasVariants && product.hasPriceRange ? 'STARTING FROM' : 'PRICE'}
             </span>
             <div className="flex items-baseline gap-2">
               <span className="font-sans font-bold text-lg sm:text-xl text-[#362B21]">
-                {formatPrice(product.price)}
+                {product.hasVariants && product.hasPriceRange && product.minVariantPrice !== null
+                  ? `From ${formatPrice(product.minVariantPrice)}`
+                  : formatPrice(product.price)}
               </span>
-              {product.compareAtPrice && (
+              {product.compareAtPrice && !product.hasPriceRange && (
                 <span className="text-[10px] text-[#4E3C2B]/60 line-through">
                   {formatPrice(product.compareAtPrice)}
                 </span>

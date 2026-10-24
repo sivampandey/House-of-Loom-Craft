@@ -54,57 +54,80 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                 </button>
               </div>
             ) : (
-              items.map((item) => (
-                <div key={item.id} className="py-5 flex gap-4">
-                  <div className="w-20 h-20 bg-[#3C4A34] rounded overflow-hidden flex-shrink-0 border border-[#6D7F62]/50">
-                    <img 
-                      src={getProductImage(item)} 
-                      alt={item.name} 
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
-                      }}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-serif text-base text-[#FAF7F0] leading-snug font-medium">{item.name}</h4>
-                        <button
-                          onClick={() => onRemove(item.id)}
-                          className="text-[#FAF7F0]/50 hover:text-[#D4BC9F] p-1 transition-colors"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <p className="text-xs text-[#D4BC9F] mt-0.5">{item.dimensions || item.collectionName}</p>
-                    </div>
+              items.map((item, idx) => {
+                const itemKey = item.cartItemId || item._id || `${item.id || item.slug}_${item.variantId || idx}`;
+                const itemIdentifier = item._id || item.cartItemId || item.id || item.slug;
+                const sizeLabel = item.size || item.selectedVariant || '';
 
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center border border-[#6D7F62] rounded bg-[#3C4A34]">
-                        <button
-                          onClick={() => onUpdateQty(item.id, Math.max(1, (item.quantity || 1) - 1))}
-                          className="px-2.5 py-0.5 text-xs text-[#FAF7F0] hover:text-[#D4BC9F]"
-                        >
-                          -
-                        </button>
-                        <span className="px-2 text-xs text-[#FAF7F0] font-bold">{item.quantity || 1}</span>
-                        <button
-                          onClick={() => onUpdateQty(item.id, (item.quantity || 1) + 1)}
-                          className="px-2.5 py-0.5 text-xs text-[#FAF7F0] hover:text-[#D4BC9F]"
-                        >
-                          +
-                        </button>
+                return (
+                  <div key={itemKey} className="py-5 flex gap-4">
+                    <div className="w-20 h-20 bg-[#3C4A34] rounded overflow-hidden flex-shrink-0 border border-[#6D7F62]/50">
+                      <img 
+                        src={getProductImage(item)} 
+                        alt={item.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = DEFAULT_FALLBACK_IMAGE;
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="font-serif text-base text-[#FAF7F0] leading-snug font-medium">{item.name}</h4>
+                          <button
+                            onClick={() => onRemove(itemIdentifier, item.variantId)}
+                            className="text-[#FAF7F0]/50 hover:text-[#D4BC9F] p-1 transition-colors"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                          {sizeLabel && (
+                            <span className="text-[10px] bg-[#34402D] text-[#D4BC9F] px-2 py-0.5 rounded border border-[#6D7F62]/60 font-mono font-medium">
+                              Size: {sizeLabel}
+                            </span>
+                          )}
+                          {item.dimensions && item.dimensions !== sizeLabel && (
+                            <span className="text-xs text-[#D4BC9F]/80">{item.dimensions}</span>
+                          )}
+                        </div>
                       </div>
-                      <p className="font-sans font-bold text-sm text-[#D4BC9F]">
-                        {formatPrice((item.price) * (item.quantity || 1))}
-                      </p>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center border border-[#6D7F62] rounded bg-[#3C4A34]">
+                          <button
+                            onClick={() => onUpdateQty(itemIdentifier, Math.max(1, (item.quantity || 1) - 1), item.variantId)}
+                            className="px-2.5 py-0.5 text-xs text-[#FAF7F0] hover:text-[#D4BC9F]"
+                          >
+                            -
+                          </button>
+                          <span className="px-2 text-xs text-[#FAF7F0] font-bold">{item.quantity || 1}</span>
+                          <button
+                            onClick={() => onUpdateQty(itemIdentifier, (item.quantity || 1) + 1, item.variantId)}
+                            className="px-2.5 py-0.5 text-xs text-[#FAF7F0] hover:text-[#D4BC9F]"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-sans font-bold text-sm text-[#D4BC9F]">
+                            {formatPrice((item.price) * (item.quantity || 1))}
+                          </p>
+                          {item.quantity > 1 && (
+                            <span className="text-[10px] text-[#FAF7F0]/60 block font-sans">
+                              {formatPrice(item.price)} each
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

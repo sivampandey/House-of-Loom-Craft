@@ -57,14 +57,54 @@ export const createRazorpayOrder = async (req, res, next) => {
       }
 
       const qty = Number(item.quantity) || 1;
-      if (product.stock < qty) {
+      if (qty < 1) {
         return res.status(400).json({
           success: false,
-          message: `Only ${product.stock} units available for "${product.name}".`
+          message: `Invalid quantity for piece "${product.name}".`
         });
       }
 
-      subtotal += product.price * qty;
+      let authoritativePrice = product.price;
+      let availableStock = product.stock;
+      let sizeLabel = item.size || item.selectedVariant || product.dimensions || '';
+
+      // Authoritative variant price lookup
+      if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+        let matchedVariant = null;
+        if (item.variantId) {
+          matchedVariant = product.variants.find(v => v.id === item.variantId);
+        }
+        if (!matchedVariant && (item.selectedVariant || item.size)) {
+          const querySize = (item.selectedVariant || item.size).trim().toLowerCase();
+          matchedVariant = product.variants.find(v => (v.size || '').trim().toLowerCase() === querySize);
+        }
+        if (!matchedVariant) {
+          matchedVariant = product.variants.find(v => v.isDefault && v.active !== false) ||
+                           product.variants.find(v => v.active !== false);
+        }
+
+        if (!matchedVariant || matchedVariant.active === false) {
+          return res.status(400).json({
+            success: false,
+            message: `Selected size variant for "${product.name}" is unavailable or inactive.`
+          });
+        }
+
+        authoritativePrice = matchedVariant.price;
+        sizeLabel = matchedVariant.size;
+        if (typeof matchedVariant.stock === 'number') {
+          availableStock = matchedVariant.stock;
+        }
+      }
+
+      if (availableStock < qty) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${availableStock} units available for "${product.name}${sizeLabel ? ` (${sizeLabel})` : ''}".`
+        });
+      }
+
+      subtotal += authoritativePrice * qty;
     }
 
     // Calculate coupon discount if applicable
@@ -252,17 +292,68 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       }
 
       const reqQty = Number(item.quantity) || 1;
-      calculatedSubtotal += product.price * reqQty;
+      if (reqQty < 1) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid quantity for piece "${product.name}".`
+        });
+      }
+
+      let authoritativePrice = product.price;
+      let variantId = item.variantId || '';
+      let sizeLabel = item.size || item.selectedVariant || product.dimensions || '';
+      let availableStock = product.stock;
+
+      // Authoritative variant price lookup
+      if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+        let matchedVariant = null;
+        if (item.variantId) {
+          matchedVariant = product.variants.find(v => v.id === item.variantId);
+        }
+        if (!matchedVariant && (item.selectedVariant || item.size)) {
+          const querySize = (item.selectedVariant || item.size).trim().toLowerCase();
+          matchedVariant = product.variants.find(v => (v.size || '').trim().toLowerCase() === querySize);
+        }
+        if (!matchedVariant) {
+          matchedVariant = product.variants.find(v => v.isDefault && v.active !== false) ||
+                           product.variants.find(v => v.active !== false);
+        }
+
+        if (!matchedVariant || matchedVariant.active === false) {
+          return res.status(400).json({
+            success: false,
+            message: `Selected size variant for "${product.name}" is unavailable or inactive.`
+          });
+        }
+
+        authoritativePrice = matchedVariant.price;
+        variantId = matchedVariant.id;
+        sizeLabel = matchedVariant.size;
+        if (typeof matchedVariant.stock === 'number') {
+          availableStock = matchedVariant.stock;
+        }
+      }
+
+      if (availableStock < reqQty) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${availableStock} available for "${product.name}${sizeLabel ? ` (${sizeLabel})` : ''}".`
+        });
+      }
+
+      calculatedSubtotal += authoritativePrice * reqQty;
 
       validatedItems.push({
         productId: product._id,
         name: product.name,
         image: product.thumbnail || (product.images && product.images[0]) || product.texture,
-        price: product.price,
+        price: authoritativePrice,
         quantity: reqQty,
-        dimensions: product.dimensions,
+        dimensions: sizeLabel || product.dimensions,
         material: product.material,
-        selectedVariant: item.selectedVariant || ''
+        variantId,
+        size: sizeLabel,
+        selectedVariant: sizeLabel
       });
     }
 

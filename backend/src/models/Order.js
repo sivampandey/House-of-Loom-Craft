@@ -11,6 +11,8 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
   dimensions: { type: String, default: '' },
   material: { type: String, default: '' },
+  variantId: { type: String, default: '' },
+  size: { type: String, default: '' },
   selectedVariant: { type: String, default: '' }
 }, { _id: false });
 

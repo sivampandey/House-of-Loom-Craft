@@ -59,14 +59,53 @@ export function normalizeProduct(raw) {
     ? raw.stock 
     : (raw.inStock === false ? 0 : 10);
 
+  // Normalize size-wise variants if present
+  const hasVariants = Boolean(raw.hasVariants && Array.isArray(raw.variants) && raw.variants.length > 0);
+  let normalizedVariants = [];
+  let minVariantPrice = null;
+  let maxVariantPrice = null;
+  let hasPriceRange = false;
+  let defaultVariant = null;
+
+  if (hasVariants) {
+    normalizedVariants = raw.variants.map((v, idx) => ({
+      id: v.id || `var_${idx}`,
+      size: (v.size || '').trim(),
+      price: Number(v.price) || 0,
+      compareAtPrice: v.compareAtPrice !== null && v.compareAtPrice !== undefined ? Number(v.compareAtPrice) : null,
+      stock: typeof v.stock === 'number' ? v.stock : 10,
+      active: v.active !== false,
+      isDefault: Boolean(v.isDefault)
+    }));
+
+    const activeVariants = normalizedVariants.filter(v => v.active !== false);
+    if (activeVariants.length > 0) {
+      const prices = activeVariants.map(v => v.price);
+      minVariantPrice = Math.min(...prices);
+      maxVariantPrice = Math.max(...prices);
+      hasPriceRange = minVariantPrice !== maxVariantPrice;
+      defaultVariant = activeVariants.find(v => v.isDefault) || null;
+    }
+  }
+
+  const basePrice = hasVariants && minVariantPrice !== null
+    ? (Number(raw.price) || minVariantPrice)
+    : (Number(raw.price) || 0);
+
   return {
     ...raw,
     id: pId,
     _id: raw._id || pId,
     slug: raw.slug || pId,
     name: raw.name || 'Untitled Piece',
-    price: Number(raw.price) || 0,
+    price: basePrice,
     compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : null,
+    hasVariants,
+    variants: normalizedVariants,
+    minVariantPrice,
+    maxVariantPrice,
+    hasPriceRange,
+    defaultVariant,
     image: primaryImage,
     thumbnail: primaryImage,
     images: allImages,
@@ -89,6 +128,36 @@ export function normalizeProduct(raw) {
     details: Array.isArray(raw.details) ? raw.details : [],
     leadTime: raw.leadTime || (numericStock > 0 ? 'In Stock - Dispatches in 24-48 Hours' : 'Made to Order - 4-8 Weeks')
   };
+}
+
+/**
+ * Returns active variants for a given normalized product
+ */
+export function getActiveVariants(product) {
+  if (!product || !product.hasVariants || !Array.isArray(product.variants)) {
+    return [];
+  }
+  return product.variants.filter(v => v.active !== false);
+}
+
+/**
+ * Returns the default or first active variant
+ */
+export function getDefaultVariant(product) {
+  const active = getActiveVariants(product);
+  if (active.length === 0) return null;
+  return active.find(v => v.isDefault) || null;
+}
+
+/**
+ * Returns the starting / minimum price for a product
+ */
+export function getStartingPrice(product) {
+  if (!product) return 0;
+  if (product.hasVariants && product.minVariantPrice !== null) {
+    return product.minVariantPrice;
+  }
+  return product.price || 0;
 }
 
 /**

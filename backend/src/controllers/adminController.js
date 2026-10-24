@@ -172,7 +172,88 @@ export const createProductAdmin = async (req, res, next) => {
   try {
     const data = { ...req.body };
 
-    if (!data.name || !data.price || !data.category) {
+    // Format and sanitize variants if present
+    if (data.hasVariants) {
+      if (!Array.isArray(data.variants) || data.variants.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'At least one size variant is required when size-wise pricing is enabled.'
+        });
+      }
+      const sanitizedVariants = [];
+      const seenSizes = new Set();
+      let defaultCount = 0;
+
+      for (let i = 0; i < data.variants.length; i++) {
+        const v = data.variants[i];
+        const size = (v.size || '').trim();
+        if (!size) {
+          return res.status(400).json({
+            success: false,
+            message: 'All size variants must have a non-empty size label (e.g. "5 × 8 ft").'
+          });
+        }
+
+        const normSize = size.toLowerCase();
+        if (seenSizes.has(normSize)) {
+          return res.status(400).json({
+            success: false,
+            message: `Duplicate size "${size}" detected. Each variant must represent a unique size.`
+          });
+        }
+        seenSizes.add(normSize);
+
+        const price = Number(v.price);
+        if (!Number.isFinite(price) || price < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid price for size "${size}". Price must be a finite non-negative number.`
+          });
+        }
+
+        const stock = v.stock !== undefined && v.stock !== null ? Number(v.stock) : 10;
+        if (!Number.isFinite(stock) || stock < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid stock for size "${size}". Stock must be a non-negative number.`
+          });
+        }
+
+        const compareAtPrice = v.compareAtPrice !== undefined && v.compareAtPrice !== null && v.compareAtPrice !== ''
+          ? Number(v.compareAtPrice)
+          : null;
+
+        const isDefault = Boolean(v.isDefault);
+        if (isDefault) defaultCount++;
+
+        sanitizedVariants.push({
+          id: v.id && String(v.id).trim() ? String(v.id).trim() : `var_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`,
+          size,
+          price,
+          compareAtPrice,
+          stock,
+          active: v.active !== false,
+          isDefault
+        });
+      }
+
+      if (defaultCount > 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'At most one default variant can be selected.'
+        });
+      }
+
+      data.variants = sanitizedVariants;
+
+      // Base price automatically reflects lowest active variant price for catalog sorting
+      const activeVars = sanitizedVariants.filter(v => v.active !== false);
+      if (activeVars.length > 0) {
+        data.price = Math.min(...activeVars.map(v => v.price));
+      }
+    }
+
+    if (!data.name || data.price === undefined || data.price === null || !data.category) {
       return res.status(400).json({
         success: false,
         message: 'Product name, price, and category are required.'
@@ -220,6 +301,11 @@ export const updateProductAdmin = async (req, res, next) => {
     const { id } = req.params;
     const data = { ...req.body };
 
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
     // If slug is provided, check collision
     if (data.slug) {
       data.slug = data.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
@@ -232,19 +318,109 @@ export const updateProductAdmin = async (req, res, next) => {
       }
     }
 
+    // Format and sanitize variants if present
+    if (data.hasVariants !== undefined) {
+      if (data.hasVariants) {
+        if (!Array.isArray(data.variants) || data.variants.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'At least one size variant is required when size-wise pricing is enabled.'
+          });
+        }
+        product.hasVariants = true;
+      } else {
+        product.hasVariants = false;
+        product.variants = [];
+      }
+    }
+
+    if (data.hasVariants && Array.isArray(data.variants) && data.variants.length > 0) {
+      const sanitizedVariants = [];
+      const seenSizes = new Set();
+      let defaultCount = 0;
+
+      for (let i = 0; i < data.variants.length; i++) {
+        const v = data.variants[i];
+        const size = (v.size || '').trim();
+        if (!size) {
+          return res.status(400).json({
+            success: false,
+            message: 'All size variants must have a non-empty size label (e.g. "5 × 8 ft").'
+          });
+        }
+
+        const normSize = size.toLowerCase();
+        if (seenSizes.has(normSize)) {
+          return res.status(400).json({
+            success: false,
+            message: `Duplicate size "${size}" detected. Each variant must represent a unique size.`
+          });
+        }
+        seenSizes.add(normSize);
+
+        const price = Number(v.price);
+        if (!Number.isFinite(price) || price < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid price for size "${size}". Price must be a finite non-negative number.`
+          });
+        }
+
+        const stock = v.stock !== undefined && v.stock !== null ? Number(v.stock) : 10;
+        if (!Number.isFinite(stock) || stock < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid stock for size "${size}". Stock must be a non-negative number.`
+          });
+        }
+
+        const compareAtPrice = v.compareAtPrice !== undefined && v.compareAtPrice !== null && v.compareAtPrice !== ''
+          ? Number(v.compareAtPrice)
+          : null;
+
+        const isDefault = Boolean(v.isDefault);
+        if (isDefault) defaultCount++;
+
+        sanitizedVariants.push({
+          id: v.id && String(v.id).trim() ? String(v.id).trim() : `var_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`,
+          size,
+          price,
+          compareAtPrice,
+          stock,
+          active: v.active !== false,
+          isDefault
+        });
+      }
+
+      if (defaultCount > 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'At most one default variant can be selected.'
+        });
+      }
+
+      data.variants = sanitizedVariants;
+      product.variants = sanitizedVariants;
+
+      // Base price automatically reflects lowest active variant price for catalog sorting
+      const activeVars = sanitizedVariants.filter(v => v.active !== false);
+      if (activeVars.length > 0) {
+        data.price = Math.min(...activeVars.map(v => v.price));
+      }
+    } else if (data.hasVariants === false) {
+      product.hasVariants = false;
+      if (Array.isArray(data.variants)) {
+        product.variants = data.variants;
+      }
+    }
+
     // Set thumbnail to first image if images exists
     if (Array.isArray(data.images) && data.images.length > 0 && !data.thumbnail) {
       data.thumbnail = data.images[0];
     }
 
-    const product = await Product.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true
-    });
-
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
+    Object.assign(product, data);
+    await product.save();
 
     res.status(200).json({
       success: true,

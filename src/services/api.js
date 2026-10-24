@@ -176,14 +176,20 @@ export const productsAPI = {
 };
 
 // ==================== CART (PERSISTENT & VALIDATED) ====================
+// ==================== CART (PERSISTENT & VALIDATED) ====================
 export const cartAPI = {
   getCart: () => request('/cart'),
-  addItem: (productId, quantity = 1, selectedVariant = '') =>
-    request('/cart/items', { method: 'POST', body: JSON.stringify({ productId, quantity, selectedVariant }) }),
-  updateItem: (productId, quantity) =>
-    request(`/cart/items/${productId}`, { method: 'PUT', body: JSON.stringify({ quantity }) }),
-  removeItem: (productId) =>
-    request(`/cart/items/${productId}`, { method: 'DELETE' }),
+  addItem: (productId, quantity = 1, selectedVariant = '', variantId = '', size = '') =>
+    request('/cart/items', { method: 'POST', body: JSON.stringify({ productId, quantity, selectedVariant, variantId, size }) }),
+  updateItem: (productId, quantity, variantId = '', size = '', itemId = '') =>
+    request(`/cart/items/${productId}`, { method: 'PUT', body: JSON.stringify({ quantity, variantId, size, itemId }) }),
+  removeItem: (productId, variantId = '', itemId = '') => {
+    const params = new URLSearchParams();
+    if (variantId) params.append('variantId', variantId);
+    if (itemId) params.append('itemId', itemId);
+    const qs = params.toString();
+    return request(`/cart/items/${productId}${qs ? `?${qs}` : ''}`, { method: 'DELETE' });
+  },
   clearCart: () =>
     request('/cart', { method: 'DELETE' }),
   syncCart: (guestItems) =>

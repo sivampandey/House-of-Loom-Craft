@@ -9,7 +9,11 @@ import {
   Image as ImageIcon,
   Check,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Layers,
+  CheckCircle2,
+  Sliders,
+  DollarSign
 } from 'lucide-react';
 
 export const CATEGORIES = [
@@ -34,6 +38,17 @@ export const CATEGORY_COLLECTION_MAP = {
   'Architectural Accents': { collection: 'home-decor', collectionName: 'Architectural Accents' }
 };
 
+export const COMMON_SIZE_PRESETS = [
+  '4 × 6 ft',
+  '5 × 8 ft',
+  '6 × 9 ft',
+  '8 × 10 ft',
+  '9 × 12 ft',
+  '10 × 14 ft',
+  'Runner 2.5 × 10 ft',
+  'Round 6 ft'
+];
+
 export default function AdminProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -48,6 +63,8 @@ export default function AdminProductFormPage() {
     price: '',
     compareAtPrice: '',
     stock: 10,
+    hasVariants: false,
+    variants: [],
     dimensions: '',
     material: '',
     knotDensity: '',
@@ -79,6 +96,20 @@ export default function AdminProductFormPage() {
           const res = await adminAPI.getProductById(id);
           if (res?.success && res.product) {
             const p = res.product;
+            const parsedVariants = Array.isArray(p.variants) && p.variants.length > 0
+              ? p.variants.map((v, i) => ({
+                  id: v.id || v._id || `var_${Date.now()}_${i}`,
+                  size: v.size || '',
+                  price: v.price !== undefined && v.price !== null ? v.price : '',
+                  compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : '',
+                  stock: v.stock !== undefined && v.stock !== null ? v.stock : 10,
+                  active: v.active !== false,
+                  isDefault: Boolean(v.isDefault)
+                }))
+              : [];
+
+            const hasVars = Boolean(p.hasVariants || parsedVariants.length > 0);
+
             setFormData({
               name: p.name || '',
               slug: p.slug || '',
@@ -88,6 +119,8 @@ export default function AdminProductFormPage() {
               price: p.price ?? '',
               compareAtPrice: p.compareAtPrice ?? '',
               stock: p.stock ?? 10,
+              hasVariants: hasVars,
+              variants: parsedVariants,
               dimensions: p.dimensions || '',
               material: p.material || '',
               knotDensity: p.knotDensity || '',
@@ -135,6 +168,126 @@ export default function AdminProductFormPage() {
       collection: mapping.collection,
       collectionName: mapping.collectionName
     }));
+  };
+
+  // Toggle variant mode
+  const handleToggleVariants = (enabled) => {
+    setFormData((prev) => {
+      let currentVariants = [...prev.variants];
+      if (enabled && currentVariants.length === 0) {
+        // Prepopulate with first variant based on current base price & dimension
+        currentVariants = [
+          {
+            id: `var_${Date.now()}_1`,
+            size: prev.dimensions || '5 × 8 ft',
+            price: prev.price || '',
+            compareAtPrice: prev.compareAtPrice || '',
+            stock: prev.stock || 10,
+            active: true,
+            isDefault: true
+          }
+        ];
+      }
+      return {
+        ...prev,
+        hasVariants: enabled,
+        variants: currentVariants
+      };
+    });
+  };
+
+  // Add new variant
+  const handleAddVariant = (presetSize = '') => {
+    setFormData((prev) => {
+      const isFirst = prev.variants.length === 0;
+      const newVar = {
+        id: `var_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        size: presetSize || '',
+        price: prev.price || '',
+        compareAtPrice: prev.compareAtPrice || '',
+        stock: 10,
+        active: true,
+        isDefault: isFirst
+      };
+      return {
+        ...prev,
+        variants: [...prev.variants, newVar]
+      };
+    });
+  };
+
+  // Remove variant
+  const handleRemoveVariant = (indexToRemove) => {
+    setFormData((prev) => {
+      const updated = prev.variants.filter((_, idx) => idx !== indexToRemove);
+      // If we removed the default variant, set first remaining active variant as default
+      if (updated.length > 0 && !updated.some((v) => v.isDefault)) {
+        const firstActive = updated.find((v) => v.active) || updated[0];
+        firstActive.isDefault = true;
+      }
+      return {
+        ...prev,
+        variants: updated
+      };
+    });
+  };
+
+  // Modify variant field
+  const handleVariantChange = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = prev.variants.map((v, idx) => {
+        if (idx === index) {
+          return { ...v, [field]: value };
+        }
+        return v;
+      });
+      return {
+        ...prev,
+        variants: updated
+      };
+    });
+  };
+
+  // Set default variant
+  const handleSetDefaultVariant = (index) => {
+    setFormData((prev) => {
+      const updated = prev.variants.map((v, idx) => ({
+        ...v,
+        isDefault: idx === index
+      }));
+      return {
+        ...prev,
+        variants: updated
+      };
+    });
+  };
+
+  // Toggle active status for variant
+  const handleToggleVariantActive = (index) => {
+    setFormData((prev) => {
+      const updated = prev.variants.map((v, idx) => {
+        if (idx === index) {
+          const newActive = !v.active;
+          return {
+            ...v,
+            active: newActive,
+            isDefault: !newActive ? false : v.isDefault
+          };
+        }
+        return v;
+      });
+
+      // If active status turned off default, reassign default to first active variant
+      if (!updated.some((v) => v.isDefault && v.active)) {
+        const nextActive = updated.find((v) => v.active);
+        if (nextActive) nextActive.isDefault = true;
+      }
+
+      return {
+        ...prev,
+        variants: updated
+      };
+    });
   };
 
   const handleAddImage = () => {
@@ -200,22 +353,101 @@ export default function AdminProductFormPage() {
     setSaving(true);
 
     try {
+      if (!formData.name.trim()) {
+        throw new Error('Product name is required.');
+      }
+
+      let payloadVariants = [];
+      let calculatedBasePrice = Number(formData.price);
+      let calculatedStock = Number(formData.stock);
+
+      if (formData.hasVariants) {
+        if (!Array.isArray(formData.variants) || formData.variants.length === 0) {
+          throw new Error('Please add at least one size variant or disable variant pricing.');
+        }
+
+        const seenSizes = new Set();
+        let hasDefault = false;
+
+        payloadVariants = formData.variants.map((v, idx) => {
+          const trimmedSize = (v.size || '').trim();
+          if (!trimmedSize) {
+            throw new Error(`Variant #${idx + 1} is missing a size label (e.g. "5 × 8 ft").`);
+          }
+
+          const lowerSize = trimmedSize.toLowerCase();
+          if (seenSizes.has(lowerSize)) {
+            throw new Error(`Duplicate size "${trimmedSize}" detected. Each variant must have a unique size.`);
+          }
+          seenSizes.add(lowerSize);
+
+          const vPrice = Number(v.price);
+          if (isNaN(vPrice) || vPrice < 0 || !isFinite(vPrice)) {
+            throw new Error(`Variant "${trimmedSize}" must have a valid non-negative price.`);
+          }
+
+          const vCompareAtPrice = v.compareAtPrice !== '' && v.compareAtPrice !== null && v.compareAtPrice !== undefined
+            ? Number(v.compareAtPrice)
+            : null;
+          if (vCompareAtPrice !== null && (isNaN(vCompareAtPrice) || vCompareAtPrice < 0)) {
+            throw new Error(`Variant "${trimmedSize}" compare-at price must be a valid non-negative number.`);
+          }
+
+          const vStock = Number(v.stock);
+          if (isNaN(vStock) || vStock < 0) {
+            throw new Error(`Variant "${trimmedSize}" stock cannot be negative.`);
+          }
+
+          if (v.isDefault && v.active) {
+            hasDefault = true;
+          }
+
+          return {
+            id: v.id || `var_${Date.now()}_${idx}`,
+            size: trimmedSize,
+            price: vPrice,
+            compareAtPrice: vCompareAtPrice,
+            stock: vStock,
+            active: v.active !== false,
+            isDefault: Boolean(v.isDefault)
+          };
+        });
+
+        // Ensure at least one active variant is marked default
+        const activeVariants = payloadVariants.filter((v) => v.active);
+        if (!hasDefault && activeVariants.length > 0) {
+          activeVariants[0].isDefault = true;
+        }
+
+        // Align base price to the minimum active variant price for catalog sorting
+        if (activeVariants.length > 0) {
+          calculatedBasePrice = Math.min(...activeVariants.map((v) => v.price));
+        } else if (payloadVariants.length > 0) {
+          calculatedBasePrice = payloadVariants[0].price;
+        }
+
+        // Base stock can represent the sum of variant stock
+        calculatedStock = payloadVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+      } else {
+        if (formData.price === undefined || formData.price === null || formData.price === '' || isNaN(Number(formData.price))) {
+          throw new Error('A valid selling price is required.');
+        }
+        if (calculatedBasePrice < 0) {
+          throw new Error('Price cannot be negative.');
+        }
+        if (calculatedStock < 0) {
+          throw new Error('Stock quantity cannot be negative.');
+        }
+      }
+
       const payload = {
         ...formData,
-        price: Number(formData.price),
+        hasVariants: Boolean(formData.hasVariants),
+        variants: payloadVariants,
+        price: calculatedBasePrice,
         compareAtPrice: formData.compareAtPrice ? Number(formData.compareAtPrice) : null,
-        stock: Number(formData.stock)
+        stock: calculatedStock
       };
-
-      if (!payload.name.trim() || payload.price === undefined || payload.price === null || isNaN(payload.price)) {
-        throw new Error('Product name and a valid price are mandatory fields.');
-      }
-      if (payload.price < 0) {
-        throw new Error('Price cannot be negative.');
-      }
-      if (payload.stock < 0) {
-        throw new Error('Stock quantity cannot be negative.');
-      }
 
       if (isEditing) {
         await adminAPI.updateProduct(id, payload);
@@ -374,63 +606,297 @@ export default function AdminProductFormPage() {
           </div>
         </div>
 
-        {/* Section 2: Pricing & Inventory */}
-        <div className="bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-6 space-y-5 shadow-sm">
-          <h2 className="font-serif text-xl text-[#362B21] font-medium border-b border-[#DACDB3] pb-2">
-            2. Pricing & Stock
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Price */}
-            <div className="space-y-1.5">
-              <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
-                Selling Price (INR ₹) *
-              </label>
-              <input
-                type="number"
-                name="price"
-                required
-                min="0"
-                value={formData.price}
-                onChange={handleChange}
-                placeholder="38500"
-                className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm font-bold text-[#362B21] focus:outline-none focus:border-[#55694A]"
-              />
+        {/* Section 2: Size & Pricing Manager */}
+        <div className="bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-6 space-y-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DACDB3] pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif text-xl text-[#362B21] font-medium">
+                  2. Size & Pricing
+                </h2>
+                {formData.hasVariants && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider bg-[#55694A]/15 text-[#55694A] border border-[#55694A]/30">
+                    {formData.variants.filter((v) => v.active).length} Active Sizes
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#544131]/75 font-sans mt-0.5">
+                Configure size-wise variants with independent prices, or use a uniform single price.
+              </p>
             </div>
 
-            {/* Compare-At Price */}
-            <div className="space-y-1.5">
-              <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
-                Compare-at Price (INR ₹)
-              </label>
-              <input
-                type="number"
-                name="compareAtPrice"
-                min="0"
-                value={formData.compareAtPrice}
-                onChange={handleChange}
-                placeholder="48500"
-                className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm text-[#362B21] focus:outline-none focus:border-[#55694A]"
-              />
-            </div>
-
-            {/* Stock Quantity */}
-            <div className="space-y-1.5">
-              <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
-                Stock Quantity *
-              </label>
-              <input
-                type="number"
-                name="stock"
-                required
-                min="0"
-                value={formData.stock}
-                onChange={handleChange}
-                placeholder="10"
-                className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm font-bold text-[#362B21] focus:outline-none focus:border-[#55694A]"
-              />
+            {/* Mode Toggle Button */}
+            <div className="flex items-center gap-3 self-start sm:self-auto bg-[#FAF7F0] p-1.5 rounded-xl border border-[#DACDB3]">
+              <button
+                type="button"
+                onClick={() => handleToggleVariants(false)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${
+                  !formData.hasVariants
+                    ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
+                    : 'text-[#544131] hover:text-[#362B21]'
+                }`}
+              >
+                Single Price
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleVariants(true)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${
+                  formData.hasVariants
+                    ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
+                    : 'text-[#544131] hover:text-[#362B21]'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Multiple Sizes</span>
+              </button>
             </div>
           </div>
+
+          {!formData.hasVariants ? (
+            /* Single Price View */
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
+                  Selling Price (INR ₹) *
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  required
+                  min="0"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="38500"
+                  className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm font-bold text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
+                  Compare-at Price (INR ₹)
+                </label>
+                <input
+                  type="number"
+                  name="compareAtPrice"
+                  min="0"
+                  value={formData.compareAtPrice}
+                  onChange={handleChange}
+                  placeholder="48500"
+                  className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
+                  Stock Quantity *
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  required
+                  min="0"
+                  value={formData.stock}
+                  onChange={handleChange}
+                  placeholder="10"
+                  className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2.5 text-sm font-bold text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                />
+              </div>
+            </div>
+          ) : (
+            /* Multi-Size Variant View */
+            <div className="space-y-5">
+              {/* Preset Shortcuts */}
+              <div className="space-y-2 bg-[#FAF7F0] p-3.5 rounded-xl border border-[#DACDB3]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-sans font-bold text-[#4E3C2B] uppercase tracking-wider">
+                    Quick Add Common Rug Sizes:
+                  </span>
+                  <span className="text-[11px] text-[#544131]/60 font-sans">
+                    Click to add a size variant
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {COMMON_SIZE_PRESETS.map((preset) => {
+                    const alreadyAdded = formData.variants.some(
+                      (v) => (v.size || '').trim().toLowerCase() === preset.toLowerCase()
+                    );
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        disabled={alreadyAdded}
+                        onClick={() => handleAddVariant(preset)}
+                        className={`text-xs px-2.5 py-1 rounded-lg border font-sans font-medium transition-colors ${
+                          alreadyAdded
+                            ? 'bg-[#EAE2D2] text-[#544131]/50 border-transparent cursor-not-allowed'
+                            : 'bg-[#FAF7F0] text-[#362B21] border-[#DACDB3] hover:border-[#55694A] hover:bg-[#55694A]/10'
+                        }`}
+                      >
+                        + {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Variants List / Table */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
+                    Configured Size Variants ({formData.variants.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleAddVariant('')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#55694A] text-[#FAF7F0] text-xs font-sans font-bold rounded-lg hover:bg-[#657C58] transition-colors shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Custom Size</span>
+                  </button>
+                </div>
+
+                {formData.variants.length === 0 ? (
+                  <div className="p-8 border-2 border-dashed border-[#DACDB3] rounded-2xl text-center space-y-2 bg-[#FAF7F0]">
+                    <Layers className="w-8 h-8 text-[#8F6E50]/50 mx-auto" />
+                    <p className="text-xs text-[#544131]/75 font-sans">
+                      No size variants added yet. Click a quick size preset above or &ldquo;Add Custom Size&rdquo;.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {formData.variants.map((variant, index) => (
+                      <div
+                        key={variant.id || index}
+                        className={`p-4 rounded-xl border transition-all ${
+                          variant.active
+                            ? variant.isDefault
+                              ? 'bg-[#FAF7F0] border-[#55694A] ring-1 ring-[#55694A]/30'
+                              : 'bg-[#FAF7F0] border-[#DACDB3]'
+                            : 'bg-[#FAF7F0]/60 border-[#DACDB3]/60 opacity-60'
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                          {/* Size Label */}
+                          <div className="sm:col-span-3 space-y-1">
+                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
+                              Size Label *
+                            </label>
+                            <input
+                              type="text"
+                              value={variant.size}
+                              onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                              placeholder="e.g. 5 × 8 ft"
+                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-semibold focus:outline-none focus:border-[#55694A]"
+                            />
+                          </div>
+
+                          {/* Price */}
+                          <div className="sm:col-span-3 space-y-1">
+                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
+                              Price (INR ₹) *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.price}
+                              onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
+                              placeholder="24000"
+                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-bold focus:outline-none focus:border-[#55694A]"
+                            />
+                          </div>
+
+                          {/* Compare At Price */}
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
+                              Compare (₹)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.compareAtPrice}
+                              onChange={(e) => handleVariantChange(index, 'compareAtPrice', e.target.value)}
+                              placeholder="30000"
+                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#544131]/80 focus:outline-none focus:border-[#55694A]"
+                            />
+                          </div>
+
+                          {/* Stock */}
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
+                              Stock *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.stock}
+                              onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
+                              placeholder="5"
+                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-semibold focus:outline-none focus:border-[#55694A]"
+                            />
+                          </div>
+
+                          {/* Actions: Default, Active, Delete */}
+                          <div className="sm:col-span-2 flex items-center justify-end gap-2 pt-2 sm:pt-4">
+                            {/* Default Radio */}
+                            <button
+                              type="button"
+                              onClick={() => handleSetDefaultVariant(index)}
+                              title={variant.isDefault ? 'Default variant' : 'Click to make default'}
+                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${
+                                variant.isDefault
+                                  ? 'bg-[#55694A] text-[#FAF7F0]'
+                                  : 'border border-[#DACDB3] text-[#544131] hover:bg-[#EAE2D2]'
+                              }`}
+                            >
+                              {variant.isDefault ? 'Default' : 'Set Default'}
+                            </button>
+
+                            {/* Active Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleVariantActive(index)}
+                              title={variant.active ? 'Deactivate variant' : 'Activate variant'}
+                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${
+                                variant.active
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : 'bg-zinc-200 text-zinc-600 border border-zinc-300'
+                              }`}
+                            >
+                              {variant.active ? 'Active' : 'Off'}
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVariant(index)}
+                              className="p-1 rounded text-[#B24C40] hover:bg-[#B24C40]/10 transition-colors"
+                              title="Delete variant"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Informational Guidance */}
+              <div className="p-3.5 rounded-xl bg-[#FAF7F0] border border-[#DACDB3] flex items-start gap-2.5 text-xs text-[#544131]">
+                <Sparkles className="w-4 h-4 text-[#55694A] shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-[#362B21]">
+                    Starting Catalog Price Calculation
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-[#544131]/80">
+                    Product cards on the storefront catalog will dynamically display starting prices (e.g. &ldquo;From ₹...&rdquo;) based on the lowest active variant price. Only active size variants will be selectable by clients during purchase.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section 3: Craft Specifications */}

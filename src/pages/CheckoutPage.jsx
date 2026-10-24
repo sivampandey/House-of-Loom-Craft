@@ -133,7 +133,9 @@ export default function CheckoutPage({ onShowToast }) {
         slug: item.slug || item.id,
         name: item.name,
         quantity: item.quantity || 1,
-        selectedVariant: item.selectedVariant || ''
+        variantId: item.variantId || '',
+        size: item.size || item.selectedVariant || '',
+        selectedVariant: item.selectedVariant || item.size || ''
       }));
 
       // ================= PAYMENT FLOW =================
@@ -555,7 +557,10 @@ export default function CheckoutPage({ onShowToast }) {
               {/* Items List */}
               <div className="divide-y divide-[#DACDB3]/60 max-h-72 overflow-y-auto pr-1">
                 {cartItems.map((item) => (
-                  <div key={item.slug || item.id} className="py-3 flex gap-3 first:pt-0">
+                  <div
+                    key={item.cartItemId || `${item.slug || item.id}_${item.variantId || item.selectedVariant || 'default'}`}
+                    className="py-3 flex gap-3 first:pt-0"
+                  >
                     <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#3C4A34] flex-shrink-0 border border-[#DACDB3]">
                       <img
                         src={item.thumbnail || (item.images && item.images[0]) || item.texture || item.image}
@@ -567,6 +572,11 @@ export default function CheckoutPage({ onShowToast }) {
                       <p className="font-serif text-sm text-[#362B21] font-medium truncate">
                         {item.name}
                       </p>
+                      {(item.size || item.selectedVariant) && (
+                        <p className="text-[11px] font-sans font-semibold text-[#55694A]">
+                          Size: {item.size || item.selectedVariant}
+                        </p>
+                      )}
                       <p className="text-[11px] text-[#4E3C2B]">Qty: {item.quantity || 1}</p>
                       <p className="text-xs font-bold font-sans text-[#55694A]">
                         {formatPrice((item.price || 0) * (item.quantity || 1))}

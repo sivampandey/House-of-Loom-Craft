@@ -4,39 +4,110 @@ import { Cart } from '../models/Cart.js';
 import { Offer } from '../models/Offer.js';
 import { getExchangeRate, convertFromINR, SUPPORTED_CURRENCY_CODES } from '../services/currencyService.js';
 
-// Helper to atomically decrement stock for order items
+// Helper to atomically decrement stock for order items (supporting product and variant stock)
 export const decrementStockSafely = async (items) => {
   const decremented = [];
   try {
     for (const item of items) {
-      const updatedProduct = await Product.findOneAndUpdate(
-        { _id: item.productId, stock: { $gte: item.quantity }, isActive: true },
-        { $inc: { stock: -item.quantity } },
-        { new: true }
-      );
+      const pId = item.productId || item.product || item._id;
+      let updatedProduct = null;
+
+      if (item.variantId) {
+        // Atomic decrement on both product stock and matching variant stock
+        updatedProduct = await Product.findOneAndUpdate(
+          {
+            _id: pId,
+            stock: { $gte: item.quantity },
+            isActive: true,
+            variants: {
+              $elemMatch: {
+                id: item.variantId,
+                stock: { $gte: item.quantity },
+                active: true
+              }
+            }
+          },
+          {
+            $inc: {
+              stock: -item.quantity,
+              'variants.$.stock': -item.quantity
+            }
+          },
+          { new: true }
+        );
+
+        // Fallback for edge cases where product has variants but variant condition needed checking
+        if (!updatedProduct) {
+          const p = await Product.findOne({ _id: pId, isActive: true });
+          const v = p?.variants?.find(varDoc => varDoc.id === item.variantId);
+          if (v && v.active !== false && v.stock >= item.quantity && p.stock >= item.quantity) {
+            updatedProduct = await Product.findOneAndUpdate(
+              { _id: pId, stock: { $gte: item.quantity }, 'variants.id': item.variantId },
+              {
+                $inc: {
+                  stock: -item.quantity,
+                  'variants.$.stock': -item.quantity
+                }
+              },
+              { new: true }
+            );
+          }
+        }
+      } else {
+        // Legacy product without variants
+        updatedProduct = await Product.findOneAndUpdate(
+          { _id: pId, stock: { $gte: item.quantity }, isActive: true },
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
+      }
 
       if (!updatedProduct) {
         // Rollback already decremented items
         for (const rolled of decremented) {
-          await Product.findByIdAndUpdate(rolled.productId, {
-            $inc: { stock: rolled.quantity }
-          });
+          if (rolled.variantId) {
+            await Product.findOneAndUpdate(
+              { _id: rolled.productId, 'variants.id': rolled.variantId },
+              {
+                $inc: {
+                  stock: rolled.quantity,
+                  'variants.$.stock': rolled.quantity
+                }
+              }
+            );
+          } else {
+            await Product.findByIdAndUpdate(rolled.productId, {
+              $inc: { stock: rolled.quantity }
+            });
+          }
         }
         return {
           success: false,
-          error: `Insufficient inventory for piece "${item.name}". Stock was acquired during checkout.`
+          error: `Insufficient inventory for piece "${item.name || 'Selected piece'}${item.size ? ` (${item.size})` : ''}". Stock was acquired during checkout.`
         };
       }
 
-      decremented.push(item);
+      decremented.push({ ...item, productId: pId });
     }
     return { success: true };
   } catch (err) {
     // Rollback
     for (const rolled of decremented) {
-      await Product.findByIdAndUpdate(rolled.productId, {
-        $inc: { stock: rolled.quantity }
-      });
+      if (rolled.variantId) {
+        await Product.findOneAndUpdate(
+          { _id: rolled.productId, 'variants.id': rolled.variantId },
+          {
+            $inc: {
+              stock: rolled.quantity,
+              'variants.$.stock': rolled.quantity
+            }
+          }
+        );
+      } else {
+        await Product.findByIdAndUpdate(rolled.productId, {
+          $inc: { stock: rolled.quantity }
+        });
+      }
     }
     return { success: false, error: err.message };
   }
@@ -128,27 +199,63 @@ export const createOrder = async (req, res, next) => {
         });
       }
 
-      if (product.stock < reqQty) {
+      let authoritativePrice = product.price;
+      let variantId = item.variantId || '';
+      let sizeLabel = item.size || item.selectedVariant || product.dimensions || '';
+      let availableStock = product.stock;
+
+      // Authoritative size variant price resolution
+      if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
+        let matchedVariant = null;
+        if (item.variantId) {
+          matchedVariant = product.variants.find(v => v.id === item.variantId);
+        }
+        if (!matchedVariant && (item.selectedVariant || item.size)) {
+          const querySize = (item.selectedVariant || item.size).trim().toLowerCase();
+          matchedVariant = product.variants.find(v => (v.size || '').trim().toLowerCase() === querySize);
+        }
+        if (!matchedVariant) {
+          matchedVariant = product.variants.find(v => v.isDefault && v.active !== false) ||
+                           product.variants.find(v => v.active !== false);
+        }
+
+        if (!matchedVariant || matchedVariant.active === false) {
+          return res.status(400).json({
+            success: false,
+            message: `The selected size variant for "${product.name}" is unavailable or inactive.`
+          });
+        }
+
+        authoritativePrice = matchedVariant.price;
+        variantId = matchedVariant.id;
+        sizeLabel = matchedVariant.size;
+        if (typeof matchedVariant.stock === 'number') {
+          availableStock = matchedVariant.stock;
+        }
+      }
+
+      if (availableStock < reqQty) {
         return res.status(400).json({
           success: false,
-          message: `Only ${product.stock} available for "${product.name}". Please adjust your order.`
+          message: `Only ${availableStock} available for "${product.name}${sizeLabel ? ` (${sizeLabel})` : ''}". Please adjust your order.`
         });
       }
 
       // Read price strictly from authoritative DB record
-      const itemPrice = product.price;
-      calculatedSubtotal += itemPrice * reqQty;
+      calculatedSubtotal += authoritativePrice * reqQty;
 
       // Historical immutable snapshot of ordered piece
       validatedItems.push({
         productId: product._id,
         name: product.name,
         image: product.thumbnail || (product.images && product.images[0]) || product.texture,
-        price: itemPrice,
+        price: authoritativePrice,
         quantity: reqQty,
-        dimensions: product.dimensions,
+        dimensions: sizeLabel || product.dimensions,
         material: product.material,
-        selectedVariant: item.selectedVariant || ''
+        variantId,
+        size: sizeLabel,
+        selectedVariant: sizeLabel
       });
     }
 
@@ -353,17 +460,35 @@ export const getOrderById = async (req, res, next) => {
   }
 };
 
-// Helper to atomically restore stock for cancelled order items
+// Helper to atomically restore stock for cancelled order items (supporting product and variant stock)
 export const restoreOrderStockSafely = async (order) => {
-  if (!order || order.stockRestored || !order.items || !order.items.length) return;
-  for (const item of order.items) {
-    if (item.productId) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: item.quantity }
-      });
+  if (!order) return;
+  const items = Array.isArray(order) ? order : (order.items || []);
+  if (!items.length || order.stockRestored) return;
+
+  for (const item of items) {
+    const pId = item.productId || item.product;
+    if (pId) {
+      if (item.variantId) {
+        await Product.findOneAndUpdate(
+          { _id: pId, 'variants.id': item.variantId },
+          {
+            $inc: {
+              stock: item.quantity,
+              'variants.$.stock': item.quantity
+            }
+          }
+        );
+      } else {
+        await Product.findByIdAndUpdate(pId, {
+          $inc: { stock: item.quantity }
+        });
+      }
     }
   }
-  order.stockRestored = true;
+  if (!Array.isArray(order)) {
+    order.stockRestored = true;
+  }
 };
 
 export const cancelOrder = async (req, res, next) => {
