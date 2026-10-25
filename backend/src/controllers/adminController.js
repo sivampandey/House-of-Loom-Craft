@@ -4,6 +4,7 @@ import { User } from '../models/User.js';
 import { Offer } from '../models/Offer.js';
 import { restoreOrderStockSafely } from './orderController.js';
 import { processOrderRefund } from '../services/refundService.js';
+import { uploadBufferToCloudinary, isCloudinaryConfigured, deleteFromCloudinary } from '../config/cloudinary.js';
 
 // ==================== DASHBOARD OVERVIEW ====================
 export const getDashboardStats = async (req, res, next) => {
@@ -846,3 +847,86 @@ export const updateOrderTrackingAdmin = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==================== IMAGE ASSET MANAGEMENT (CLOUDINARY) ====================
+
+/**
+ * Check if Cloudinary credentials are configured on Render/environment
+ */
+export const getCloudinaryStatusAdmin = async (req, res) => {
+  const configured = isCloudinaryConfigured();
+  res.status(200).json({
+    success: true,
+    configured,
+    cloudName: configured ? (process.env.CLOUDINARY_CLOUD_NAME || 'configured') : null
+  });
+};
+
+/**
+ * Upload a single product photograph directly to Cloudinary
+ */
+export const uploadProductImageAdmin = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file was received. Please select a JPG, JPEG, PNG, or WEBP file.'
+      });
+    }
+
+    const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
+      folder: 'house-of-loom/products'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Product photograph successfully uploaded to Cloudinary.',
+      url: uploadResult.url,
+      publicId: uploadResult.publicId,
+      width: uploadResult.width,
+      height: uploadResult.height,
+      format: uploadResult.format,
+      bytes: uploadResult.bytes
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload multiple product photographs directly to Cloudinary in batch
+ */
+export const uploadMultipleProductImagesAdmin = async (req, res, next) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image files were received. Please select one or more image files.'
+      });
+    }
+
+    const uploadPromises = req.files.map((file) =>
+      uploadBufferToCloudinary(file.buffer, {
+        folder: 'house-of-loom/products'
+      })
+    );
+
+    const results = await Promise.all(uploadPromises);
+
+    res.status(200).json({
+      success: true,
+      message: `${results.length} photograph(s) successfully uploaded to Cloudinary.`,
+      images: results.map((r) => ({
+        url: r.url,
+        publicId: r.publicId,
+        width: r.width,
+        height: r.height,
+        format: r.format,
+        bytes: r.bytes
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

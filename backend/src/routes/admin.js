@@ -14,8 +14,12 @@ import {
   getOrderAdminById,
   updateOrderStatusAdmin,
   updateOrderTrackingAdmin,
-  refundOrderAdmin
+  refundOrderAdmin,
+  uploadProductImageAdmin,
+  uploadMultipleProductImagesAdmin,
+  getCloudinaryStatusAdmin
 } from '../controllers/adminController.js';
+import { handleSingleImageUpload, handleMultipleImageUpload } from '../middleware/upload.js';
 import {
   getAllOffersAdmin,
   getOfferAdminById,
@@ -46,6 +50,11 @@ router.get('/products/:id', getProductAdminById);
 router.post('/products', createProductAdmin);
 router.put('/products/:id', updateProductAdmin);
 router.delete('/products/:id', deleteProductAdmin);
+
+// ==================== IMAGE UPLOADS (CLOUDINARY) ====================
+router.post('/upload-image', handleSingleImageUpload, uploadProductImageAdmin);
+router.post('/upload-images', handleMultipleImageUpload, uploadMultipleProductImagesAdmin);
+router.get('/cloudinary-status', getCloudinaryStatusAdmin);
 
 // ==================== USERS ====================
 router.get('/users', getAllUsersAdmin);

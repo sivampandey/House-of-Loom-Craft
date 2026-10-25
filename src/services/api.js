@@ -57,8 +57,10 @@ async function request(endpoint, options = {}) {
     ? (localStorage.getItem('house_of_loom_token') || localStorage.getItem('pottery_rugs_token'))
     : null;
 
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...(options.headers || {})
   };
@@ -259,6 +261,29 @@ export const adminAPI = {
     clearApiCache();
     return res;
   },
+
+  // Image Uploads (Cloudinary)
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return request('/admin/upload-image', {
+      method: 'POST',
+      body: formData,
+      timeout: 60000 // 60s timeout for high-resolution images
+    });
+  },
+  uploadImages: async (files) => {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('images', file);
+    }
+    return request('/admin/upload-images', {
+      method: 'POST',
+      body: formData,
+      timeout: 120000
+    });
+  },
+  getCloudinaryStatus: () => request('/admin/cloudinary-status'),
 
   // Users
   getUsers: (params = {}) => {

@@ -15,6 +15,7 @@ import {
   Sliders,
   DollarSign
 } from 'lucide-react';
+import ProductImageUploader from '../../components/admin/ProductImageUploader';
 
 export const CATEGORIES = [
   'Hand Knotted Rugs',
@@ -79,6 +80,7 @@ export default function AdminProductFormPage() {
     isActive: true,
     thumbnail: '',
     images: [],
+    imageAssets: [],
     details: []
   });
 
@@ -98,14 +100,14 @@ export default function AdminProductFormPage() {
             const p = res.product;
             const parsedVariants = Array.isArray(p.variants) && p.variants.length > 0
               ? p.variants.map((v, i) => ({
-                  id: v.id || v._id || `var_${Date.now()}_${i}`,
-                  size: v.size || '',
-                  price: v.price !== undefined && v.price !== null ? v.price : '',
-                  compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : '',
-                  stock: v.stock !== undefined && v.stock !== null ? v.stock : 10,
-                  active: v.active !== false,
-                  isDefault: Boolean(v.isDefault)
-                }))
+                id: v.id || v._id || `var_${Date.now()}_${i}`,
+                size: v.size || '',
+                price: v.price !== undefined && v.price !== null ? v.price : '',
+                compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : '',
+                stock: v.stock !== undefined && v.stock !== null ? v.stock : 10,
+                active: v.active !== false,
+                isDefault: Boolean(v.isDefault)
+              }))
               : [];
 
             const hasVars = Boolean(p.hasVariants || parsedVariants.length > 0);
@@ -135,6 +137,7 @@ export default function AdminProductFormPage() {
               isActive: Boolean(p.isActive),
               thumbnail: p.thumbnail || '',
               images: Array.isArray(p.images) ? p.images : [],
+              imageAssets: Array.isArray(p.imageAssets) ? p.imageAssets : [],
               details: Array.isArray(p.details) ? p.details : []
             });
           }
@@ -440,8 +443,15 @@ export default function AdminProductFormPage() {
         }
       }
 
+      const resolvedThumbnail = formData.thumbnail || (formData.images && formData.images[0]) || '';
+      if (!resolvedThumbnail && (!formData.images || formData.images.length === 0)) {
+        throw new Error('Please upload at least one product photograph before publishing.');
+      }
+
       const payload = {
         ...formData,
+        thumbnail: resolvedThumbnail,
+        images: Array.isArray(formData.images) && formData.images.length > 0 ? formData.images : [resolvedThumbnail],
         hasVariants: Boolean(formData.hasVariants),
         variants: payloadVariants,
         price: calculatedBasePrice,
@@ -630,22 +640,20 @@ export default function AdminProductFormPage() {
               <button
                 type="button"
                 onClick={() => handleToggleVariants(false)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${
-                  !formData.hasVariants
-                    ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
-                    : 'text-[#544131] hover:text-[#362B21]'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${!formData.hasVariants
+                  ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
+                  : 'text-[#544131] hover:text-[#362B21]'
+                  }`}
               >
                 Single Price
               </button>
               <button
                 type="button"
                 onClick={() => handleToggleVariants(true)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${
-                  formData.hasVariants
-                    ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
-                    : 'text-[#544131] hover:text-[#362B21]'
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-bold transition-all ${formData.hasVariants
+                  ? 'bg-[#55694A] text-[#FAF7F0] shadow-sm'
+                  : 'text-[#544131] hover:text-[#362B21]'
+                  }`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>Multiple Sizes</span>
@@ -727,11 +735,10 @@ export default function AdminProductFormPage() {
                         type="button"
                         disabled={alreadyAdded}
                         onClick={() => handleAddVariant(preset)}
-                        className={`text-xs px-2.5 py-1 rounded-lg border font-sans font-medium transition-colors ${
-                          alreadyAdded
-                            ? 'bg-[#EAE2D2] text-[#544131]/50 border-transparent cursor-not-allowed'
-                            : 'bg-[#FAF7F0] text-[#362B21] border-[#DACDB3] hover:border-[#55694A] hover:bg-[#55694A]/10'
-                        }`}
+                        className={`text-xs px-2.5 py-1 rounded-lg border font-sans font-medium transition-colors ${alreadyAdded
+                          ? 'bg-[#EAE2D2] text-[#544131]/50 border-transparent cursor-not-allowed'
+                          : 'bg-[#FAF7F0] text-[#362B21] border-[#DACDB3] hover:border-[#55694A] hover:bg-[#55694A]/10'
+                          }`}
                       >
                         + {preset}
                       </button>
@@ -768,13 +775,12 @@ export default function AdminProductFormPage() {
                     {formData.variants.map((variant, index) => (
                       <div
                         key={variant.id || index}
-                        className={`p-4 rounded-xl border transition-all ${
-                          variant.active
-                            ? variant.isDefault
-                              ? 'bg-[#FAF7F0] border-[#55694A] ring-1 ring-[#55694A]/30'
-                              : 'bg-[#FAF7F0] border-[#DACDB3]'
-                            : 'bg-[#FAF7F0]/60 border-[#DACDB3]/60 opacity-60'
-                        }`}
+                        className={`p-4 rounded-xl border transition-all ${variant.active
+                          ? variant.isDefault
+                            ? 'bg-[#FAF7F0] border-[#55694A] ring-1 ring-[#55694A]/30'
+                            : 'bg-[#FAF7F0] border-[#DACDB3]'
+                          : 'bg-[#FAF7F0]/60 border-[#DACDB3]/60 opacity-60'
+                          }`}
                       >
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                           {/* Size Label */}
@@ -843,11 +849,10 @@ export default function AdminProductFormPage() {
                               type="button"
                               onClick={() => handleSetDefaultVariant(index)}
                               title={variant.isDefault ? 'Default variant' : 'Click to make default'}
-                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${
-                                variant.isDefault
-                                  ? 'bg-[#55694A] text-[#FAF7F0]'
-                                  : 'border border-[#DACDB3] text-[#544131] hover:bg-[#EAE2D2]'
-                              }`}
+                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${variant.isDefault
+                                ? 'bg-[#55694A] text-[#FAF7F0]'
+                                : 'border border-[#DACDB3] text-[#544131] hover:bg-[#EAE2D2]'
+                                }`}
                             >
                               {variant.isDefault ? 'Default' : 'Set Default'}
                             </button>
@@ -857,11 +862,10 @@ export default function AdminProductFormPage() {
                               type="button"
                               onClick={() => handleToggleVariantActive(index)}
                               title={variant.active ? 'Deactivate variant' : 'Activate variant'}
-                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${
-                                variant.active
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                  : 'bg-zinc-200 text-zinc-600 border border-zinc-300'
-                              }`}
+                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${variant.active
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-zinc-200 text-zinc-600 border border-zinc-300'
+                                }`}
                             >
                               {variant.active ? 'Active' : 'Off'}
                             </button>
@@ -995,89 +999,33 @@ export default function AdminProductFormPage() {
         {/* Section 4: Imagery Management */}
         <div className="bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-6 space-y-5 shadow-sm">
           <div className="flex items-center justify-between border-b border-[#DACDB3] pb-2">
-            <h2 className="font-serif text-xl text-[#362B21] font-medium">
-              4. Product Images
-            </h2>
-            <span className="text-xs text-[#8F6E50] font-sans">
-              {formData.images.length} Image URLs registered
+            <div>
+              <h2 className="font-serif text-xl text-[#362B21] font-medium">
+                4. Product Images & Master Loom Photography
+              </h2>
+              <p className="text-xs text-[#544131]/70 font-sans mt-0.5">
+                Upload authentic high-resolution photographs from mobile galleries, phones, laptops, and desktop computers.
+              </p>
+            </div>
+            <span className="text-xs text-[#8F6E50] font-sans font-bold">
+              {formData.images.length} Image{formData.images.length === 1 ? '' : 's'} registered
             </span>
           </div>
 
-          {/* Add Image URL Row */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="Enter public image URL (e.g. /images/carpets/dune-saffron.jpg or https://...)"
-              className="flex-1 bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2 text-xs text-[#362B21] focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={handleAddImage}
-              className="px-4 py-2 bg-[#55694A] text-[#FAF7F0] rounded-xl text-xs uppercase tracking-wider font-bold inline-flex items-center gap-1 shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add URL</span>
-            </button>
-          </div>
-
-          {/* Image Previews Grid */}
-          {formData.images.length === 0 ? (
-            <div className="p-8 border-2 border-dashed border-[#DACDB3] rounded-2xl text-center space-y-2">
-              <ImageIcon className="w-8 h-8 text-[#8F6E50]/50 mx-auto" />
-              <p className="text-xs text-[#544131]/70 font-sans">
-                No images added yet. Enter an image URL above and click "Add URL".
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {formData.images.map((img, idx) => {
-                const isPrimary = formData.thumbnail === img;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`relative rounded-xl overflow-hidden border p-2 bg-[#FAF7F0] space-y-2 group ${
-                      isPrimary ? 'border-[#55694A] ring-2 ring-[#55694A]/30' : 'border-[#DACDB3]'
-                    }`}
-                  >
-                    <div className="aspect-[4/3] rounded-lg overflow-hidden bg-[#EAE2D2] flex items-center justify-center">
-                      <img
-                        src={img}
-                        alt={`Preview ${idx + 1}`}
-                        className="w-full h-full object-contain"
-                        onError={(e) => { e.target.src = '/images/room-after.jpg'; }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between gap-1 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handleSetPrimary(img)}
-                        className={`text-[9.5px] uppercase font-bold px-2 py-0.5 rounded transition-colors ${
-                          isPrimary
-                            ? 'bg-[#55694A] text-[#FAF7F0]'
-                            : 'border border-[#DACDB3] text-[#4E3C2B] hover:bg-[#EAE2D2]'
-                        }`}
-                      >
-                        {isPrimary ? 'Primary' : 'Set Primary'}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="p-1 rounded text-[#B24C40] hover:bg-[#B24C40]/10"
-                        title="Remove image"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <ProductImageUploader
+            images={formData.images}
+            thumbnail={formData.thumbnail}
+            imageAssets={formData.imageAssets}
+            onChange={({ images, thumbnail, imageAssets }) => {
+              setFormData((prev) => ({
+                ...prev,
+                images,
+                thumbnail,
+                imageAssets: imageAssets || prev.imageAssets
+              }));
+            }}
+            onError={(msg) => setError(msg)}
+          />
         </div>
 
         {/* Section 5: Descriptions & Highlights */}
