@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { User } from '../models/User.js';
@@ -98,9 +99,16 @@ export const getAllProductsAdmin = async (req, res, next) => {
 
     const query = {};
 
-    // Active status filter
-    if (status === 'active') query.isActive = true;
-    else if (status === 'inactive') query.isActive = false;
+    // Visibility status filter
+    if (status === 'active') {
+      query.isActive = true;
+      query.isArchived = { $ne: true };
+    } else if (status === 'inactive') {
+      query.isActive = false;
+      query.isArchived = { $ne: true };
+    } else if (status === 'archived') {
+      query.isArchived = true;
+    }
 
     // Category & Collection
     if (category && category !== 'all') {
@@ -438,9 +446,13 @@ export const deleteProductAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+    }
+
     const product = await Product.findById(id);
     if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
+      return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
     // Safe soft-delete check: Does this product exist in historical orders?
@@ -448,14 +460,26 @@ export const deleteProductAdmin = async (req, res, next) => {
     if (orderWithProduct) {
       // Soft-delete to preserve historical order records and customer receipts
       product.isActive = false;
+      product.isArchived = true;
+      product.archiveReason = `Referenced in customer order #${orderWithProduct.orderNumber}`;
       await product.save();
       return res.status(200).json({
         success: true,
-        message: 'Product is referenced in historical customer orders and has been safely unpublished (set to inactive) to preserve order history.',
+        message: `Product is referenced in historical customer order #${orderWithProduct.orderNumber} and has been safely archived (unpublished) to preserve order history.`,
         softDeleted: true,
+        productId: product._id.toString(),
+        orderNumber: orderWithProduct.orderNumber,
+        product: {
+          _id: product._id,
+          name: product.name,
+          slug: product.slug,
+          isActive: false,
+          isArchived: true,
+          archiveReason: product.archiveReason
+        },
         cleanup: {
           skipped: true,
-          reason: 'Product was soft-deleted to preserve customer order history; Cloudinary photographs retained.'
+          reason: `Product was soft-deleted/archived to preserve customer order #${orderWithProduct.orderNumber} history; Cloudinary photographs retained.`
         }
       });
     }
@@ -477,6 +501,7 @@ export const deleteProductAdmin = async (req, res, next) => {
       success: true,
       message: 'Product permanently removed from database.',
       softDeleted: false,
+      productId: id,
       cleanup: {
         totalAssets: cleanupReport.totalAssetsFound,
         deleted: cleanupReport.deletedCount,

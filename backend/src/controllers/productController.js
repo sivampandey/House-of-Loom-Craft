@@ -1,4 +1,5 @@
 import { Product } from '../models/Product.js';
+import { deleteProductAdmin } from './adminController.js';
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -223,17 +224,5 @@ export const updateProduct = async (req, res, next) => {
   }
 };
 
-export const deleteProduct = async (req, res, next) => {
-  try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-    res.status(200).json({
-      success: true,
-      message: 'Product deleted successfully'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+// Delegate deletion to admin controller to enforce historical order protection and Cloudinary cleanup
+export const deleteProduct = deleteProductAdmin;

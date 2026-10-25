@@ -20,7 +20,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { User } from '../models/User.js';
-import { deleteProductAdmin } from '../controllers/adminController.js';
+import { deleteProductAdmin, getAllProductsAdmin } from '../controllers/adminController.js';
 import {
   extractCloudinaryPublicId,
   isCloudinaryUrl,
@@ -302,10 +302,14 @@ async function runCleanupTests() {
 
     assert(delRes.statusCode === 200, 'Delete controller responded with 200');
     assert(delRes.data?.softDeleted === true, 'Recognized historical order and executed safe soft-delete (isActive=false)');
+    assert(delRes.data?.productId === orderedProduct._id.toString(), 'Response returned productId for frontend state synchronization');
+    assert(delRes.data?.orderNumber === testOrder.orderNumber, 'Response returned orderNumber explaining reason for archiving');
     assert(delRes.data?.cleanup?.skipped === true, 'Skipped Cloudinary deletion to preserve customer order invoice photograph');
 
     const softDeletedCheck = await Product.findById(orderedProduct._id);
     assert(softDeletedCheck !== null && softDeletedCheck.isActive === false, 'Product remains in DB as inactive (unpublished) without breaking order history');
+    assert(softDeletedCheck.isArchived === true, 'Product is marked isArchived: true');
+    assert(softDeletedCheck.archiveReason.includes(testOrder.orderNumber), 'Product archiveReason contains reference to order number');
 
     // -------------------------------------------------------------
     // TEST 5: Permanent Deletion & Cleanup Response Protocol
@@ -322,10 +326,51 @@ async function runCleanupTests() {
 
     assert(delResB.statusCode === 200 && delResB.data?.success === true, 'Admin deleteProductAdmin responded 200 for unreferenced product');
     assert(delResB.data?.softDeleted === false, 'Marked softDeleted: false (permanently removed)');
+    assert(delResB.data?.productId === productB._id.toString(), 'Response contains deleted productId');
     assert(typeof delResB.data?.cleanup?.totalAssets === 'number', 'Response contains cleanup statistics');
 
     const productBCheck = await Product.findById(productB._id);
     assert(productBCheck === null, 'Product B completely removed from MongoDB');
+
+    // -------------------------------------------------------------
+    // TEST 6: Backend Deletion Validation & Catalog Status Filtering
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 6: Error Handling & Catalog Status Filtering ---');
+
+    // 6.1 Invalid product ID
+    const badIdRes = mockRes();
+    await deleteProductAdmin({ params: { id: 'invalid-id' } }, badIdRes);
+    assert(badIdRes.statusCode === 400 && badIdRes.data?.success === false, 'Rejects invalid product ObjectId with 400');
+
+    // 6.2 Non-existent product ID
+    const notFoundRes = mockRes();
+    await deleteProductAdmin({ params: { id: '000000000000000000000000' } }, notFoundRes);
+    if (notFoundRes.statusCode !== 404) {
+      console.log('DEBUG notFoundRes:', notFoundRes.statusCode, notFoundRes.data);
+    }
+    assert(notFoundRes.statusCode === 404 && notFoundRes.data?.success === false, 'Returns 404 for non-existent product');
+
+    // 6.3 Catalog status filtering for active items excludes archived product
+    const activeReq = { query: { status: 'active', search: testSuffix } };
+    const activeRes = mockRes();
+    await getAllProductsAdmin(activeReq, activeRes);
+    const activeList = activeRes.data?.products || [];
+    assert(activeList.every(p => p._id.toString() !== orderedProduct._id.toString()), 'Active products filter strictly excludes archived product');
+
+    // 6.4 Catalog status filtering for archived items includes archived product
+    const archivedReq = { query: { status: 'archived', search: testSuffix } };
+    const archivedRes = mockRes();
+    await getAllProductsAdmin(archivedReq, archivedRes);
+    const archivedList = archivedRes.data?.products || [];
+    assert(archivedList.some(p => p._id.toString() === orderedProduct._id.toString()), 'Archived products filter returns archived product with isArchived: true');
+
+    // 6.5 Catalog status filtering for all items returns archived product with isArchived flag
+    const allReq = { query: { status: 'all', search: testSuffix } };
+    const allRes = mockRes();
+    await getAllProductsAdmin(allReq, allRes);
+    const allList = allRes.data?.products || [];
+    const foundInAll = allList.find(p => p._id.toString() === orderedProduct._id.toString());
+    assert(foundInAll !== undefined && foundInAll.isArchived === true && foundInAll.isActive === false, 'All products filter returns archived item clearly flagged with isArchived: true');
 
   } catch (err) {
     console.error('Test execution error:', err);

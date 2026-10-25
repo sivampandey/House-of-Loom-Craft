@@ -82,6 +82,8 @@ const productSchema = new mongoose.Schema({
   stock: { type: Number, required: true, default: 10, min: 0 },
   isFeatured: { type: Boolean, default: false, index: true },
   isActive: { type: Boolean, default: true, index: true },
+  isArchived: { type: Boolean, default: false, index: true },
+  archiveReason: { type: String, default: '' },
   details: [{ type: String }],
   leadTime: { type: String, default: 'In Stock - Dispatches in 24-48 Hours' },
   seoTitle: { type: String, default: '' },

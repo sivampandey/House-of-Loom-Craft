@@ -2,7 +2,7 @@
 
 const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
 const configuredApiUrl = rawApiUrl.includes(',') ? rawApiUrl.split(',')[0].trim() : rawApiUrl;
-const DEPLOYED_API = 'https://house-of-loom-craft-api.onrender.com/api';
+const DEPLOYED_API = 'https://pottery-rugs-api.onrender.com/api';
 
 export const API_BASE = (
   (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
@@ -59,9 +59,11 @@ async function request(endpoint, options = {}) {
 
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
 
+  const isAdmin = endpoint.includes('/admin/');
   const headers = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(isAdmin ? { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } : {}),
     ...(options.headers || {})
   };
 
@@ -73,7 +75,8 @@ async function request(endpoint, options = {}) {
     ...options,
     headers,
     signal: options.signal || controller?.signal,
-    credentials: 'include' // Strictly authenticates via secure httpOnly cookies
+    credentials: 'include', // Strictly authenticates via secure httpOnly cookies
+    cache: options.cache || (isAdmin || !isGet ? 'no-store' : 'default')
   };
 
   try {
@@ -243,21 +246,21 @@ export const adminAPI = {
   // Products
   getProducts: (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    return request(`/admin/products${query ? `?${query}` : ''}`);
+    return request(`/admin/products${query ? `?${query}` : ''}`, { cache: 'no-store' });
   },
-  getProductById: (id) => request(`/admin/products/${id}`),
+  getProductById: (id) => request(`/admin/products/${id}`, { cache: 'no-store' }),
   createProduct: async (data) => {
-    const res = await request('/admin/products', { method: 'POST', body: JSON.stringify(data) });
+    const res = await request('/admin/products', { method: 'POST', body: JSON.stringify(data), cache: 'no-store' });
     clearApiCache();
     return res;
   },
   updateProduct: async (id, data) => {
-    const res = await request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    const res = await request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data), cache: 'no-store' });
     clearApiCache();
     return res;
   },
   deleteProduct: async (id) => {
-    const res = await request(`/admin/products/${id}`, { method: 'DELETE' });
+    const res = await request(`/admin/products/${id}`, { method: 'DELETE', cache: 'no-store' });
     clearApiCache();
     return res;
   },

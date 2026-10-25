@@ -209,7 +209,14 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/payments', paymentRoutes);
+// Ensure admin endpoints are never cached by browsers or intermediate CDNs
+app.use('/api/admin', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+  next();
+});
 app.use('/api/admin', adminRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/chat', chatRoutes);

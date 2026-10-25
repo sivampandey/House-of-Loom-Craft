@@ -13,7 +13,9 @@ import {
   XCircle,
   Eye,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Archive,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function AdminProductsPage() {
@@ -24,15 +26,16 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [stockStatus, setStockStatus] = useState('all');
-  const [status, setStatus] = useState('all'); // 'all', 'active', 'inactive'
+  const [status, setStatus] = useState('all'); // 'all', 'active', 'inactive', 'archived'
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Delete modal state
+  // Delete & archive modal states
   const [deleteModalProduct, setDeleteModalProduct] = useState(null);
+  const [archivedInfoProduct, setArchivedInfoProduct] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toast, setToast] = useState(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -71,22 +74,70 @@ export default function AdminProductsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteModalProduct) return;
+    const target = deleteModalProduct;
     setIsDeleting(true);
+    setError('');
     try {
-      const res = await adminAPI.deleteProduct(deleteModalProduct._id);
-      let msg = res.message || 'Product updated successfully.';
-      if (res.cleanup && typeof res.cleanup.deleted === 'number' && res.cleanup.deleted > 0) {
-        msg += ` (${res.cleanup.deleted} Cloudinary image${res.cleanup.deleted === 1 ? '' : 's'} cleaned up)`;
+      const res = await adminAPI.deleteProduct(target._id);
+
+      if (res?.softDeleted) {
+        const orderRef = res.orderNumber ? `order #${res.orderNumber}` : 'customer order records';
+        const msg = res.message || `Product "${target.name}" was safely archived and unpublished to protect historical ${orderRef}.`;
+
+        setToast({
+          type: 'warning',
+          title: 'Product Archived (Order Protected)',
+          message: msg
+        });
+
+        // If filtering by active, remove it immediately since it's no longer active
+        if (status === 'active') {
+          setProducts((prev) => prev.filter((p) => p._id !== target._id));
+          setTotal((prev) => Math.max(0, prev - 1));
+        } else {
+          // Otherwise update its status in-place to archived
+          setProducts((prev) =>
+            prev.map((p) =>
+              p._id === target._id
+                ? {
+                    ...p,
+                    isActive: false,
+                    isArchived: true,
+                    archiveReason: res.product?.archiveReason || `Referenced in ${orderRef}`
+                  }
+                : p
+            )
+          );
+        }
+      } else {
+        let msg = `"${target.name}" was permanently removed from database.`;
+        if (res.cleanup && typeof res.cleanup.deleted === 'number' && res.cleanup.deleted > 0) {
+          msg += ` (${res.cleanup.deleted} Cloudinary image${res.cleanup.deleted === 1 ? '' : 's'} cleaned up)`;
+        }
+        if (res.cleanup && typeof res.cleanup.retainedShared === 'number' && res.cleanup.retainedShared > 0) {
+          msg += ` [${res.cleanup.retainedShared} shared image${res.cleanup.retainedShared === 1 ? '' : 's'} retained]`;
+        }
+
+        setToast({
+          type: 'success',
+          title: 'Product Permanently Deleted',
+          message: msg
+        });
+
+        // Immediately remove permanently deleted item from state
+        setProducts((prev) => prev.filter((p) => p._id !== target._id));
+        setTotal((prev) => Math.max(0, prev - 1));
+
+        // Adjust page if current page became empty
+        if (products.length <= 1 && page > 1) {
+          setPage((p) => Math.max(1, p - 1));
+        }
       }
-      if (res.cleanup && typeof res.cleanup.retainedShared === 'number' && res.cleanup.retainedShared > 0) {
-        msg += ` [${res.cleanup.retainedShared} shared image${res.cleanup.retainedShared === 1 ? '' : 's'} retained]`;
-      }
-      setToastMessage(msg);
+
       setDeleteModalProduct(null);
-      fetchProducts();
-      setTimeout(() => setToastMessage(''), 5000);
+      setTimeout(() => setToast(null), 8000);
     } catch (err) {
-      alert(err.message || 'Unable to delete product.');
+      setError(err.message || 'Unable to delete product.');
     } finally {
       setIsDeleting(false);
     }
@@ -132,10 +183,26 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-sans flex items-center justify-between">
-          <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage('')} className="font-bold">&times;</button>
+      {toast && (
+        <div
+          className={`p-3.5 rounded-xl border text-xs font-sans flex items-start justify-between gap-3 shadow-sm ${
+            toast.type === 'warning'
+              ? 'bg-amber-50 border-amber-300 text-amber-900'
+              : toast.type === 'error'
+              ? 'bg-[#B24C40]/10 border-[#B24C40]/30 text-[#B24C40]'
+              : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+          }`}
+        >
+          <div className="space-y-0.5">
+            {toast.title && <p className="font-bold text-xs uppercase tracking-wide">{toast.title}</p>}
+            <p className="text-xs leading-relaxed">{toast.message}</p>
+          </div>
+          <button
+            onClick={() => setToast(null)}
+            className="text-stone-400 hover:text-stone-700 text-sm font-bold shrink-0 ml-2"
+          >
+            &times;
+          </button>
         </div>
       )}
 
@@ -186,9 +253,10 @@ export default function AdminProductsPage() {
               onChange={(e) => { setStatus(e.target.value); setPage(1); }}
               className="bg-[#FAF7F0] border border-[#DACDB3] text-xs rounded-xl px-3 py-2 text-[#362B21] font-sans focus:outline-none"
             >
-              <option value="all">All Visibility</option>
+              <option value="all">All Items (Active, Draft, Archived)</option>
               <option value="active">Active / Published</option>
-              <option value="inactive">Inactive / Draft</option>
+              <option value="inactive">Draft / Unpublished</option>
+              <option value="archived">Archived (Order Protected)</option>
             </select>
 
             {/* Sort */}
@@ -307,9 +375,17 @@ export default function AdminProductsPage() {
                         </span>
                       </td>
 
-                      {/* Active / Draft */}
+                      {/* Active / Draft / Archived */}
                       <td className="py-3 px-4">
-                        {p.isActive ? (
+                        {p.isArchived ? (
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-amber-800 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-full"
+                            title={p.archiveReason || 'Retained to preserve historical customer orders'}
+                          >
+                            <Archive className="w-3.5 h-3.5 text-amber-700" />
+                            <span>Archived</span>
+                          </span>
+                        ) : p.isActive ? (
                           <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-emerald-700">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span>Active</span>
@@ -354,13 +430,23 @@ export default function AdminProductsPage() {
                             <Edit2 className="w-3.5 h-3.5" />
                           </Link>
 
-                          <button
-                            onClick={() => setDeleteModalProduct(p)}
-                            className="p-1.5 rounded-lg border border-[#DACDB3] text-[#B24C40] hover:bg-[#B24C40]/10 transition-colors"
-                            title="Delete or unpublish product"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {p.isArchived ? (
+                            <button
+                              onClick={() => setArchivedInfoProduct(p)}
+                              className="p-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
+                              title="Product is archived for historical orders (Click for info)"
+                            >
+                              <Archive className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setDeleteModalProduct(p)}
+                              className="p-1.5 rounded-lg border border-[#DACDB3] text-[#B24C40] hover:bg-[#B24C40]/10 transition-colors"
+                              title="Delete product"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -413,7 +499,7 @@ export default function AdminProductsPage() {
                 Are you sure you want to remove <strong className="text-[#362B21]">"{deleteModalProduct.name}"</strong>?
               </p>
               <p className="text-[11px] text-[#8F6E50] bg-[#FAF7F0] p-3 rounded-xl border border-[#DACDB3] text-left">
-                Safety Protocol: If this item has existing historical orders, it will be safely unpublished to preserve customer records. For permanently deleted items, exclusive Cloudinary images are automatically cleaned up while shared images are protected.
+                Safety Protocol: If this item has existing historical orders, it will be safely unpublished and archived to preserve customer records and accounting invoices. For permanently deleted items without orders, exclusive Cloudinary images are automatically cleaned up while shared images are protected.
               </p>
             </div>
 
@@ -431,6 +517,44 @@ export default function AdminProductsPage() {
                 className="w-full py-2.5 rounded-xl bg-[#B24C40] hover:bg-[#993E34] text-[#FAF7F0] text-xs uppercase tracking-wider font-bold shadow-md disabled:opacity-50"
               >
                 {isDeleting ? 'Processing...' : 'Confirm Deletion'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archived Info Modal */}
+      {archivedInfoProduct && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="max-w-md w-full bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-6 shadow-2xl space-y-5">
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto border border-amber-300">
+              <Archive className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-2">
+              <span className="text-[10px] uppercase tracking-widest text-[#8F6E50] font-bold block">
+                Accounting & Order Safeguard
+              </span>
+              <h2 className="font-serif text-xl text-[#362B21]">
+                Order-Protected Piece
+              </h2>
+              <p className="text-xs text-[#544131]/80 leading-relaxed">
+                <strong className="text-[#362B21]">"{archivedInfoProduct.name}"</strong> is safely archived and unpublished from the storefront.
+              </p>
+              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-amber-200 text-left text-xs space-y-1 text-[#544131]">
+                <p className="font-semibold text-amber-900">Why can't this be permanently deleted?</p>
+                <p className="text-[11px] leading-relaxed">
+                  {archivedInfoProduct.archiveReason || 'This product is referenced in customer order records.'} Purging it from the database would break historical order receipts, packing slips, and customer invoice records.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setArchivedInfoProduct(null)}
+                className="w-full py-2.5 rounded-xl bg-[#55694A] hover:bg-[#657C58] text-[#FAF7F0] text-xs uppercase tracking-wider font-bold shadow-md"
+              >
+                Understood
               </button>
             </div>
           </div>
