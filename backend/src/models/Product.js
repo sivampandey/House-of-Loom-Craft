@@ -48,6 +48,14 @@ const variantSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const imageAssetSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  publicId: { type: String, default: '' },
+  width: { type: Number },
+  height: { type: Number },
+  format: { type: String }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -69,6 +77,7 @@ const productSchema = new mongoose.Schema({
   images: [{ type: String }],
   thumbnail: { type: String, default: '' },
   texture: { type: String, default: '' },
+  imageAssets: [imageAssetSchema],
   badge: { type: String, default: '' },
   stock: { type: Number, required: true, default: 10, min: 0 },
   isFeatured: { type: Boolean, default: false, index: true },

@@ -74,10 +74,17 @@ export default function AdminProductsPage() {
     setIsDeleting(true);
     try {
       const res = await adminAPI.deleteProduct(deleteModalProduct._id);
-      setToastMessage(res.message || 'Product updated successfully.');
+      let msg = res.message || 'Product updated successfully.';
+      if (res.cleanup && typeof res.cleanup.deleted === 'number' && res.cleanup.deleted > 0) {
+        msg += ` (${res.cleanup.deleted} Cloudinary image${res.cleanup.deleted === 1 ? '' : 's'} cleaned up)`;
+      }
+      if (res.cleanup && typeof res.cleanup.retainedShared === 'number' && res.cleanup.retainedShared > 0) {
+        msg += ` [${res.cleanup.retainedShared} shared image${res.cleanup.retainedShared === 1 ? '' : 's'} retained]`;
+      }
+      setToastMessage(msg);
       setDeleteModalProduct(null);
       fetchProducts();
-      setTimeout(() => setToastMessage(''), 4000);
+      setTimeout(() => setToastMessage(''), 5000);
     } catch (err) {
       alert(err.message || 'Unable to delete product.');
     } finally {
@@ -406,7 +413,7 @@ export default function AdminProductsPage() {
                 Are you sure you want to remove <strong className="text-[#362B21]">"{deleteModalProduct.name}"</strong>?
               </p>
               <p className="text-[11px] text-[#8F6E50] bg-[#FAF7F0] p-3 rounded-xl border border-[#DACDB3] text-left">
-                Safety Protocol: If this item has existing historical orders, the database will safely unpublish (set to inactive) rather than break customer order records.
+                Safety Protocol: If this item has existing historical orders, it will be safely unpublished to preserve customer records. For permanently deleted items, exclusive Cloudinary images are automatically cleaned up while shared images are protected.
               </p>
             </div>
 

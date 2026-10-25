@@ -5,6 +5,7 @@ import { Offer } from '../models/Offer.js';
 import { restoreOrderStockSafely } from './orderController.js';
 import { processOrderRefund } from '../services/refundService.js';
 import { uploadBufferToCloudinary, isCloudinaryConfigured, deleteFromCloudinary } from '../config/cloudinary.js';
+import { cleanupProductAssets } from '../services/imageCleanupService.js';
 
 // ==================== DASHBOARD OVERVIEW ====================
 export const getDashboardStats = async (req, res, next) => {
@@ -445,22 +446,44 @@ export const deleteProductAdmin = async (req, res, next) => {
     // Safe soft-delete check: Does this product exist in historical orders?
     const orderWithProduct = await Order.findOne({ 'items.productId': id });
     if (orderWithProduct) {
-      // Soft-delete to preserve historical order records
+      // Soft-delete to preserve historical order records and customer receipts
       product.isActive = false;
       await product.save();
       return res.status(200).json({
         success: true,
         message: 'Product is referenced in historical customer orders and has been safely unpublished (set to inactive) to preserve order history.',
-        softDeleted: true
+        softDeleted: true,
+        cleanup: {
+          skipped: true,
+          reason: 'Product was soft-deleted to preserve customer order history; Cloudinary photographs retained.'
+        }
       });
     }
 
-    // If no order history, permanently delete
+    // Permanently delete product from database
     await Product.findByIdAndDelete(id);
+
+    // Safely cleanup exclusively owned Cloudinary assets
+    const cleanupReport = await cleanupProductAssets(product);
+
+    if (cleanupReport.failedCount > 0) {
+      console.warn(
+        `[Product Delete Cleanup Warning]: Product ${id} was deleted from database, but ${cleanupReport.failedCount} Cloudinary asset(s) failed cleanup:`,
+        cleanupReport.failedAssets
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: 'Product permanently removed from database.',
-      softDeleted: false
+      softDeleted: false,
+      cleanup: {
+        totalAssets: cleanupReport.totalAssetsFound,
+        deleted: cleanupReport.deletedCount,
+        retainedShared: cleanupReport.retainedSharedCount,
+        failed: cleanupReport.failedCount,
+        details: cleanupReport
+      }
     });
   } catch (error) {
     next(error);
