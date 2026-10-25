@@ -91,7 +91,8 @@ export const getAllProductsAdmin = async (req, res, next) => {
       category,
       collection,
       stockStatus,
-      status, // 'active', 'inactive', 'all'
+      status, // 'active', 'inactive', 'archived', 'all'
+      hideArchived,
       sort = 'newest',
       page = 1,
       limit = 20
@@ -108,6 +109,11 @@ export const getAllProductsAdmin = async (req, res, next) => {
       query.isArchived = { $ne: true };
     } else if (status === 'archived') {
       query.isArchived = true;
+    } else {
+      // 'all' items: hide archived if hideArchived flag is enabled
+      if (hideArchived === 'true' || hideArchived === true) {
+        query.isArchived = { $ne: true };
+      }
     }
 
     // Category & Collection

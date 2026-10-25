@@ -12,10 +12,12 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
+  EyeOff,
   RefreshCw,
   ExternalLink,
   Archive,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 
 export default function AdminProductsPage() {
@@ -27,6 +29,7 @@ export default function AdminProductsPage() {
   const [category, setCategory] = useState('all');
   const [stockStatus, setStockStatus] = useState('all');
   const [status, setStatus] = useState('all'); // 'all', 'active', 'inactive', 'archived'
+  const [hideArchived, setHideArchived] = useState(false);
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,6 +49,7 @@ export default function AdminProductsPage() {
         category,
         stockStatus,
         status,
+        hideArchived: hideArchived ? 'true' : 'false',
         sort,
         page,
         limit: 15
@@ -64,7 +68,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [category, stockStatus, status, sort, page]);
+  }, [category, stockStatus, status, hideArchived, sort, page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -235,6 +239,21 @@ export default function AdminProductsPage() {
 
           {/* Quick Filters */}
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Hide Archived Toggle Control */}
+            <button
+              type="button"
+              onClick={() => { setHideArchived(!hideArchived); setPage(1); }}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs rounded-xl border transition-all font-sans font-medium ${
+                hideArchived
+                  ? 'bg-[#55694A] text-[#FAF7F0] border-[#55694A] shadow-sm'
+                  : 'bg-[#FAF7F0] text-[#362B21] border-[#DACDB3] hover:bg-[#EAE2D2]'
+              }`}
+              title={hideArchived ? 'Archived items are currently hidden. Click to show all.' : 'Click to hide archived items from this view'}
+            >
+              {hideArchived ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              <span>{hideArchived ? 'Archived Hidden' : 'Hide Archived'}</span>
+            </button>
+
             {/* Stock Status Dropdown */}
             <select
               value={stockStatus}
@@ -431,18 +450,28 @@ export default function AdminProductsPage() {
                           </Link>
 
                           {p.isArchived ? (
-                            <button
-                              onClick={() => setArchivedInfoProduct(p)}
-                              className="p-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
-                              title="Product is archived for historical orders (Click for info)"
-                            >
-                              <Archive className="w-3.5 h-3.5" />
-                            </button>
+                            <>
+                              <button
+                                onClick={() => setArchivedInfoProduct(p)}
+                                className="p-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
+                                title="Archive Info: View why permanent deletion is restricted"
+                              >
+                                <Archive className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => setArchivedInfoProduct(p)}
+                                className="p-1.5 rounded-lg border border-[#DACDB3] bg-[#EAE2D2]/60 text-stone-400 hover:text-amber-800 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                                title="Permanent deletion restricted: Linked to customer order history (Click for details)"
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                              </button>
+                            </>
                           ) : (
                             <button
                               onClick={() => setDeleteModalProduct(p)}
                               className="p-1.5 rounded-lg border border-[#DACDB3] text-[#B24C40] hover:bg-[#B24C40]/10 transition-colors"
-                              title="Delete product"
+                              title="Permanently delete product (Safe: No customer orders)"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -493,13 +522,13 @@ export default function AdminProductsPage() {
 
             <div className="text-center space-y-2">
               <h2 className="font-serif text-xl text-[#362B21]">
-                Delete this Product?
+                Permanently Delete Product?
               </h2>
               <p className="text-xs text-[#544131]/80 leading-relaxed">
-                Are you sure you want to remove <strong className="text-[#362B21]">"{deleteModalProduct.name}"</strong>?
+                Are you sure you want to permanently delete <strong className="text-[#362B21]">"{deleteModalProduct.name}"</strong> from the database?
               </p>
               <p className="text-[11px] text-[#8F6E50] bg-[#FAF7F0] p-3 rounded-xl border border-[#DACDB3] text-left">
-                Safety Protocol: If this item has existing historical orders, it will be safely unpublished and archived to preserve customer records and accounting invoices. For permanently deleted items without orders, exclusive Cloudinary images are automatically cleaned up while shared images are protected.
+                Safety Protocol: This product is not referenced in historical customer orders. Deleting it will permanently purge it from MongoDB and clean up exclusively owned Cloudinary images while protecting any shared photographs.
               </p>
             </div>
 
@@ -516,14 +545,14 @@ export default function AdminProductsPage() {
                 disabled={isDeleting}
                 className="w-full py-2.5 rounded-xl bg-[#B24C40] hover:bg-[#993E34] text-[#FAF7F0] text-xs uppercase tracking-wider font-bold shadow-md disabled:opacity-50"
               >
-                {isDeleting ? 'Processing...' : 'Confirm Deletion'}
+                {isDeleting ? 'Processing...' : 'Permanently Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Archived Info Modal */}
+      {/* Archived Info / Deletion Restriction Modal */}
       {archivedInfoProduct && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="max-w-md w-full bg-[#EFE8D8] rounded-2xl border border-[#DACDB3] p-6 shadow-2xl space-y-5">
@@ -536,15 +565,21 @@ export default function AdminProductsPage() {
                 Accounting & Order Safeguard
               </span>
               <h2 className="font-serif text-xl text-[#362B21]">
-                Order-Protected Piece
+                Permanent Deletion Restricted
               </h2>
               <p className="text-xs text-[#544131]/80 leading-relaxed">
-                <strong className="text-[#362B21]">"{archivedInfoProduct.name}"</strong> is safely archived and unpublished from the storefront.
+                <strong className="text-[#362B21]">"{archivedInfoProduct.name}"</strong> is archived and permanently deactivated from the public storefront.
               </p>
-              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-amber-200 text-left text-xs space-y-1 text-[#544131]">
-                <p className="font-semibold text-amber-900">Why can't this be permanently deleted?</p>
+              <div className="p-3.5 bg-[#FAF7F0] rounded-xl border border-amber-200 text-left text-xs space-y-2 text-[#544131]">
+                <p className="font-bold text-amber-900 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Why is permanent deletion restricted?</span>
+                </p>
                 <p className="text-[11px] leading-relaxed">
-                  {archivedInfoProduct.archiveReason || 'This product is referenced in customer order records.'} Purging it from the database would break historical order receipts, packing slips, and customer invoice records.
+                  {archivedInfoProduct.archiveReason || 'This product is referenced in customer purchase orders.'}
+                </p>
+                <p className="text-[11px] leading-relaxed text-[#544131]/80 border-t border-amber-200/60 pt-1.5">
+                  Purging this record from the database would corrupt customer order histories, packing slips, and legal tax invoice receipts. To protect accounting integrity, this product is safely retained in the database while remaining completely unpublished from the public storefront.
                 </p>
               </div>
             </div>

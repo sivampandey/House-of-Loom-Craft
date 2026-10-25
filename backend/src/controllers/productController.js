@@ -15,7 +15,7 @@ export const getProducts = async (req, res, next) => {
       page = 1
     } = req.query;
 
-    const query = { isActive: true };
+    const query = { isActive: true, isArchived: { $ne: true } };
 
     if (category && category !== 'all' && category !== 'All Decor') {
       query.category = { $regex: new RegExp(`^${category}$`, 'i') };
@@ -75,10 +75,10 @@ export const getProducts = async (req, res, next) => {
 export const getProductBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
-    let product = await Product.findOne({ slug: slug.toLowerCase(), isActive: true });
+    let product = await Product.findOne({ slug: slug.toLowerCase(), isActive: true, isArchived: { $ne: true } });
 
     if (!product && slug.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findOne({ _id: slug, isActive: true });
+      product = await Product.findOne({ _id: slug, isActive: true, isArchived: { $ne: true } });
     }
 
     if (!product) {

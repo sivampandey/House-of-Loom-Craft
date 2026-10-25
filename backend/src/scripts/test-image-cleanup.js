@@ -372,6 +372,13 @@ async function runCleanupTests() {
     const foundInAll = allList.find(p => p._id.toString() === orderedProduct._id.toString());
     assert(foundInAll !== undefined && foundInAll.isArchived === true && foundInAll.isActive === false, 'All products filter returns archived item clearly flagged with isArchived: true');
 
+    // 6.6 Catalog hideArchived filter removes archived items from view
+    const hideArchivedReq = { query: { status: 'all', search: testSuffix, hideArchived: 'true' } };
+    const hideArchivedRes = mockRes();
+    await getAllProductsAdmin(hideArchivedReq, hideArchivedRes);
+    const hideArchivedList = hideArchivedRes.data?.products || [];
+    assert(hideArchivedList.every(p => p._id.toString() !== orderedProduct._id.toString()), 'Hide Archived view control successfully filters out archived products from the current list');
+
   } catch (err) {
     console.error('Test execution error:', err);
     failed++;
