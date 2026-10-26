@@ -53,7 +53,7 @@ export default function MobileMenu({
       <div className="flex items-center justify-between border-b border-[#89A17A]/60 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-0.5 shadow-md flex-shrink-0">
-            <img src={companyInfo.logo} alt="House of Loom & Craft Logo" className="w-full h-full object-contain" />
+            <img src="/images/pottery-logo.jpg" alt="House of Loom & Craft Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="font-serif text-base tracking-[0.06em] text-[#FAF7F0] font-medium block leading-tight">

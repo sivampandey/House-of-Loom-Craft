@@ -88,7 +88,7 @@ export default function Navbar({
           >
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-[#D4BC9F]/60 bg-[#FAF7F0] p-0.5 shadow-md shrink-0 group-hover:scale-105 transition-transform">
               <img
-                src={companyInfo.logo}
+                src="/images/pottery-logo.jpg"
                 alt="House of Loom & Craft Logo"
                 className="w-full h-full object-contain"
               />
