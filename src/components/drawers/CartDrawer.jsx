@@ -94,6 +94,11 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove, onUpdateQ
                           {item.dimensions && item.dimensions !== sizeLabel && (
                             <span className="text-xs text-[#D4BC9F]/80">{item.dimensions}</span>
                           )}
+                          {item.dispatchTime && (
+                            <span className="text-[10px] text-[#FAF7F0]/70 font-sans block w-full mt-0.5">
+                              Dispatch: {item.dispatchTime}
+                            </span>
+                          )}
                         </div>
                       </div>
 

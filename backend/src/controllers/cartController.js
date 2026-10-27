@@ -38,8 +38,8 @@ export const buildAuthoritativeCart = async (cartDoc) => {
     let variantId = item.variantId || '';
 
     // If product has size-wise variants, resolve the authoritative variant
+    let matchedVariant = null;
     if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
-      let matchedVariant = null;
       if (item.variantId) {
         matchedVariant = product.variants.find(v => v.id === item.variantId);
       }
@@ -79,6 +79,10 @@ export const buildAuthoritativeCart = async (cartDoc) => {
     subtotal += itemSubtotal;
     totalCount += validQty;
 
+    const itemDimensions = matchedVariant
+      ? (matchedVariant.dimensions || (matchedVariant.length && matchedVariant.width ? `${matchedVariant.length} × ${matchedVariant.width} ${matchedVariant.unit || 'cm'}` : matchedVariant.size))
+      : (product.dimensions || variantSize || '');
+
     populatedItems.push({
       _id: item._id,
       cartItemId: `${product._id}_${variantId || 'base'}`,
@@ -90,7 +94,7 @@ export const buildAuthoritativeCart = async (cartDoc) => {
       compareAtPrice: comparePrice,
       image: product.thumbnail || (product.images && product.images[0]) || product.texture,
       texture: product.texture,
-      dimensions: variantSize || product.dimensions,
+      dimensions: itemDimensions,
       material: product.material,
       collection: product.collection,
       collectionName: product.collectionName,
@@ -98,7 +102,14 @@ export const buildAuthoritativeCart = async (cartDoc) => {
       quantity: validQty,
       variantId,
       size: variantSize,
-      selectedVariant: variantSize
+      selectedVariant: variantSize,
+      sku: matchedVariant?.sku || product.sku || '',
+      length: matchedVariant?.length ?? null,
+      width: matchedVariant?.width ?? null,
+      unit: matchedVariant?.unit || 'cm',
+      dispatchTime: matchedVariant?.dispatchTime || product.dispatchTime || product.leadTime || '',
+      leadTime: matchedVariant?.leadTime || product.leadTime || '',
+      weaveTime: matchedVariant?.weaveTime || product.weaveTime || ''
     });
   }
 

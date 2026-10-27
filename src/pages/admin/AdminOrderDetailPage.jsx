@@ -192,10 +192,44 @@ export default function AdminOrderDetailPage() {
                       <h3 className="font-serif text-sm font-medium text-[#362B21]">
                         {item.name}
                       </h3>
-                      <p className="text-[10px] text-[#544131]/70 font-sans">
-                        {item.material || item.dimensions}
-                      </p>
-                      <span className="text-xs font-bold text-[#55694A] font-sans mt-0.5 block">
+                      <div className="flex flex-wrap gap-1.5 mt-1 text-[10px] font-sans text-[#544131]/80">
+                        {item.size && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3]">
+                            Size: {item.size}
+                          </span>
+                        )}
+                        {item.dimensions && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3]">
+                            Dimensions: {item.dimensions}
+                          </span>
+                        )}
+                        {item.sku && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3] font-mono">
+                            SKU: {item.sku}
+                          </span>
+                        )}
+                        {item.dispatchTime && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3]">
+                            Dispatch: {item.dispatchTime}
+                          </span>
+                        )}
+                        {item.leadTime && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3]">
+                            Delivery: {item.leadTime}
+                          </span>
+                        )}
+                        {item.weaveTime && (
+                          <span className="bg-[#FAF7F0] px-1.5 py-0.5 rounded border border-[#DACDB3]">
+                            Weaving: {item.weaveTime}
+                          </span>
+                        )}
+                        {item.material && !item.dimensions && (
+                          <span className="text-[#544131]/70">
+                            {item.material}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-[#55694A] font-sans mt-1 block">
                         Qty: {item.quantity} &times; {formatINR(item.price)}
                       </span>
                     </div>

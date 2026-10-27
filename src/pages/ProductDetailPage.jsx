@@ -216,7 +216,55 @@ export default function ProductDetailPage({ onShowToast }) {
     ...(product.images || [])
   ].filter((img, idx, self) => Boolean(img) && self.indexOf(img) === idx);
 
-  const selectedSizeDescriptor = selectedVariant ? selectedVariant.size : product.dimensions || 'N/A';
+  // Size-specific dynamic attributes with strict isolation
+  const hasVariants = activeVariants.length > 0;
+
+  const formatVariantDims = (v) => {
+    if (!v) return '';
+    if (v.dimensions && v.dimensions.trim()) return v.dimensions.trim();
+    if (v.length && v.width) return `${v.length} × ${v.width} ${v.unit || 'cm'}`;
+    return v.size || '';
+  };
+
+  const formatProductDims = (p) => {
+    if (!p) return '';
+    if (p.dimensions && p.dimensions.trim()) return p.dimensions.trim();
+    if (p.length && p.width) return `${p.length} × ${p.width} ${p.unit || 'cm'}`;
+    return '';
+  };
+
+  let currentDimensions = 'Not specified';
+  let currentDispatchTime = 'Not specified';
+  let currentLeadTime = 'Not specified';
+  let currentWeaveTime = 'Not specified';
+  let currentSku = '';
+
+  if (hasVariants) {
+    if (selectedVariant) {
+      currentDimensions = formatVariantDims(selectedVariant) || 'Not specified';
+      currentDispatchTime = selectedVariant.dispatchTime?.trim() || 'Not specified';
+      currentLeadTime = selectedVariant.leadTime?.trim() || 'Not specified';
+      currentWeaveTime = selectedVariant.weaveTime?.trim() || 'Not specified';
+      currentSku = selectedVariant.sku || '';
+    } else {
+      currentDimensions = 'Select a size above';
+      currentDispatchTime = 'Select a size above';
+      currentLeadTime = 'Select a size above';
+      currentWeaveTime = 'Select a size above';
+      currentSku = '';
+    }
+  } else {
+    currentDimensions = formatProductDims(product) || 'Not specified';
+    currentDispatchTime = product.dispatchTime?.trim() || 'Not specified';
+    currentLeadTime = product.leadTime?.trim() || 'Not specified';
+    currentWeaveTime = product.weaveTime?.trim() || 'Not specified';
+    currentSku = product.sku || '';
+  }
+
+  const selectedSizeDescriptor = selectedVariant
+    ? `${selectedVariant.size}${selectedVariant.dimensions ? ` (${selectedVariant.dimensions})` : ''}`
+    : product.dimensions || 'Standard';
+
   const whatsappConciergeMsg = encodeURIComponent(
     `Hello House of Loom & Craft,\n\nI am inquiring about the piece: *${product.name}* (Selected Size: ${selectedSizeDescriptor}, Price: ${formatPrice(displayedPrice)}).\nCould you provide more details regarding custom weaving or delivery?`
   );
@@ -395,7 +443,15 @@ export default function ProductDetailPage({ onShowToast }) {
                     </span>
                   )}
                   <span className="text-[10px] text-[#4E3C2B]/80 block font-mono mt-0.5">
-                    {isOutOfStock ? 'Currently Unavailable' : (product.leadTime || 'Dispatches in 24-48 Hours')}
+                    {isOutOfStock
+                      ? 'Currently Unavailable'
+                      : hasVariants && !selectedVariant
+                      ? 'Select size for dispatch timeframe'
+                      : currentDispatchTime !== 'Not specified'
+                      ? `Dispatch: ${currentDispatchTime}`
+                      : currentLeadTime !== 'Not specified'
+                      ? `Delivery: ${currentLeadTime}`
+                      : 'Dispatch: Not specified'}
                   </span>
                 </div>
               </div>
@@ -436,6 +492,7 @@ export default function ProductDetailPage({ onShowToast }) {
                   {activeVariants.map((v) => {
                     const isSelected = selectedVariantId === v.id;
                     const isVarOutOfStock = typeof v.stock === 'number' && v.stock <= 0;
+                    const varDims = formatVariantDims(v);
 
                     return (
                       <button
@@ -460,6 +517,11 @@ export default function ProductDetailPage({ onShowToast }) {
                           </span>
                           {isSelected && <Check className="w-3.5 h-3.5 text-[#D4BC9F]" />}
                         </div>
+                        {varDims && varDims !== v.size && (
+                          <span className={`text-[10px] block mb-1 truncate ${isSelected ? 'text-[#FAF7F0]/80' : 'text-[#544131]/70'}`}>
+                            {varDims}
+                          </span>
+                        )}
                         <div className="flex items-baseline justify-between mt-1">
                           <span className={`text-xs font-bold ${isSelected ? 'text-[#D4BC9F]' : 'text-[#55694A]'}`}>
                             {formatPrice(v.price)}
@@ -476,39 +538,78 @@ export default function ProductDetailPage({ onShowToast }) {
                     );
                   })}
                 </div>
+
+                {selectedVariant && (
+                  <div className="mt-3 p-3 bg-[#FAF7F0] rounded-xl border border-[#DACDB3] text-[11px] font-sans text-[#4E3C2B] grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <span className="text-[#55694A] font-bold block text-[10px] uppercase tracking-wider">Preparation / Dispatch</span>
+                      <span className={selectedVariant.dispatchTime ? 'text-[#362B21] font-semibold' : 'italic text-[#4E3C2B]/60'}>
+                        {selectedVariant.dispatchTime || 'Not specified'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#55694A] font-bold block text-[10px] uppercase tracking-wider">Doorstep Delivery</span>
+                      <span className={selectedVariant.leadTime ? 'text-[#362B21] font-semibold' : 'italic text-[#4E3C2B]/60'}>
+                        {selectedVariant.leadTime || 'Not specified'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#55694A] font-bold block text-[10px] uppercase tracking-wider">Atelier Weave Time</span>
+                      <span className={selectedVariant.weaveTime ? 'text-[#362B21] font-semibold' : 'italic text-[#4E3C2B]/60'}>
+                        {selectedVariant.weaveTime || 'Not specified'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Specifications Matrix */}
             <div className="bg-[#FAF7F0] rounded-2xl border border-[#DACDB3] p-6 divide-y divide-[#DACDB3]/60 text-xs">
-              {(selectedVariant?.size || product.dimensions) && (
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-[#4E3C2B] font-medium">Dimensions</span>
-                  <span className="font-mono text-[#362B21] font-bold text-right">
-                    {selectedVariant ? selectedVariant.size : product.dimensions}
-                  </span>
+              <div className="py-2.5 flex justify-between items-center">
+                <span className="text-[#4E3C2B] font-medium">Selected Size / Dimensions</span>
+                <span className="font-mono text-[#362B21] font-bold text-right">
+                  {currentDimensions}
+                </span>
+              </div>
+              <div className="py-2.5 flex justify-between items-center">
+                <span className="text-[#4E3C2B] font-medium">Dispatch Time</span>
+                <span className={`text-right font-medium ${currentDispatchTime === 'Not specified' ? 'text-[#4E3C2B]/60 italic' : 'text-[#362B21] font-semibold'}`}>
+                  {currentDispatchTime}
+                </span>
+              </div>
+              <div className="py-2.5 flex justify-between items-center">
+                <span className="text-[#4E3C2B] font-medium">Estimated Delivery / Lead Time</span>
+                <span className={`text-right font-medium ${currentLeadTime === 'Not specified' ? 'text-[#4E3C2B]/60 italic' : 'text-[#362B21] font-semibold'}`}>
+                  {currentLeadTime}
+                </span>
+              </div>
+              <div className="py-2.5 flex justify-between items-center">
+                <span className="text-[#4E3C2B] font-medium">Weaving / Crafting Time</span>
+                <span className={`text-right font-medium ${currentWeaveTime === 'Not specified' ? 'text-[#4E3C2B]/60 italic' : 'text-[#362B21] font-semibold'}`}>
+                  {currentWeaveTime}
+                </span>
+              </div>
+              {currentSku && (
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="text-[#4E3C2B] font-medium">Variation SKU</span>
+                  <span className="font-mono text-[#544131] text-right font-semibold">{currentSku}</span>
                 </div>
               )}
               {product.material && (
-                <div className="py-2.5 flex justify-between">
+                <div className="py-2.5 flex justify-between items-center">
                   <span className="text-[#4E3C2B] font-medium">Material / Fiber</span>
                   <span className="text-[#362B21] font-medium text-right max-w-[65%]">{product.material}</span>
                 </div>
               )}
               {product.knotDensity && (
-                <div className="py-2.5 flex justify-between">
+                <div className="py-2.5 flex justify-between items-center">
                   <span className="text-[#4E3C2B] font-medium">Knot Density / Pile</span>
                   <span className="text-[#55694A] font-bold text-right">{product.knotDensity}</span>
                 </div>
               )}
-              {product.weaveTime && (
-                <div className="py-2.5 flex justify-between">
-                  <span className="text-[#4E3C2B] font-medium">Crafting Duration</span>
-                  <span className="text-[#362B21] text-right">{product.weaveTime}</span>
-                </div>
-              )}
               {product.origin && (
-                <div className="py-2.5 flex justify-between">
+                <div className="py-2.5 flex justify-between items-center">
                   <span className="text-[#4E3C2B] font-medium">Craft Origin</span>
                   <span className="text-[#362B21] text-right">{product.origin}</span>
                 </div>

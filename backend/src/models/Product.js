@@ -38,6 +38,54 @@ const variantSchema = new mongoose.Schema({
       message: 'Variant stock must be a finite, non-negative number.'
     }
   },
+  sku: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  length: {
+    type: Number,
+    default: null,
+    min: 0,
+    validate: {
+      validator: (v) => v === null || v === undefined || (Number.isFinite(v) && v >= 0),
+      message: 'Variant length must be a finite, non-negative number or null.'
+    }
+  },
+  width: {
+    type: Number,
+    default: null,
+    min: 0,
+    validate: {
+      validator: (v) => v === null || v === undefined || (Number.isFinite(v) && v >= 0),
+      message: 'Variant width must be a finite, non-negative number or null.'
+    }
+  },
+  unit: {
+    type: String,
+    default: 'cm',
+    trim: true
+  },
+  dimensions: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  dispatchTime: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  leadTime: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  weaveTime: {
+    type: String,
+    default: '',
+    trim: true
+  },
   active: {
     type: Boolean,
     default: true
@@ -59,6 +107,7 @@ const imageAssetSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  sku: { type: String, default: '', trim: true },
   description: { type: String, required: true },
   shortDescription: { type: String, default: '' },
   price: { type: Number, required: true, min: 0 },
@@ -74,6 +123,7 @@ const productSchema = new mongoose.Schema({
   origin: { type: String, default: 'Bhadohi, U.P. (India)' },
   manufacturer: { type: String, default: 'House of Loom & Craft (Manufacturer & Exporter)' },
   weaveTime: { type: String, default: '' },
+  dispatchTime: { type: String, default: '' },
   images: [{ type: String }],
   thumbnail: { type: String, default: '' },
   texture: { type: String, default: '' },
@@ -85,7 +135,7 @@ const productSchema = new mongoose.Schema({
   isArchived: { type: Boolean, default: false, index: true },
   archiveReason: { type: String, default: '' },
   details: [{ type: String }],
-  leadTime: { type: String, default: 'In Stock - Dispatches in 24-48 Hours' },
+  leadTime: { type: String, default: '', trim: true },
   seoTitle: { type: String, default: '' },
   seoDescription: { type: String, default: '' },
   seoKeywords: [{ type: String }]

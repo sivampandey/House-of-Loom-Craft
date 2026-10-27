@@ -121,9 +121,16 @@ function AppContent() {
     navigate('/checkout');
   };
 
-  const handleBuyNow = (product) => {
+  const handleBuyNow = (product, variant) => {
     setQuickViewProduct(null);
-    addToCart(product, 1);
+    addToCart(
+      product,
+      1,
+      variant ? variant.size : '',
+      variant ? variant.id : '',
+      variant ? variant.price : product.price,
+      variant ? variant.size : ''
+    );
     navigate('/checkout');
   };
 
@@ -437,11 +444,21 @@ function AppContent() {
             product={quickViewProduct}
             isOpen={!!quickViewProduct}
             onClose={() => setQuickViewProduct(null)}
-            onAddToCart={(p) => {
-              addToCart(p, 1);
-              showToast('cart', 'Added to Bag', `${p.name} placed in your shopping bag.`);
+            onAddToCart={(p, variant) => {
+              addToCart(
+                p,
+                1,
+                variant ? variant.size : '',
+                variant ? variant.id : '',
+                variant ? variant.price : p.price,
+                variant ? variant.size : ''
+              );
+              const sizeTag = variant ? ` (${variant.size})` : '';
+              showToast('cart', 'Added to Bag', `${p.name}${sizeTag} placed in your shopping bag.`);
             }}
-            onBuyNow={handleBuyNow}
+            onBuyNow={(p, variant) => {
+              handleBuyNow(p, variant);
+            }}
             onToggleWishlist={async (p) => {
               const res = await toggleWishlist(p);
               showToast('wishlist', res.saved ? 'Saved to Wishlist' : 'Removed from Wishlist', res.message);

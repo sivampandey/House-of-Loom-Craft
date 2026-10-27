@@ -577,6 +577,16 @@ export default function CheckoutPage({ onShowToast }) {
                           Size: {item.size || item.selectedVariant}
                         </p>
                       )}
+                      {item.dimensions && (
+                        <p className="text-[10px] text-[#4E3C2B]/80 font-mono">
+                          {item.dimensions}
+                        </p>
+                      )}
+                      {item.dispatchTime && (
+                        <p className="text-[10px] text-[#4E3C2B]/80 font-sans">
+                          Dispatches: {item.dispatchTime}
+                        </p>
+                      )}
                       <p className="text-[11px] text-[#4E3C2B]">Qty: {item.quantity || 1}</p>
                       <p className="text-xs font-bold font-sans text-[#55694A]">
                         {formatPrice((item.price || 0) * (item.quantity || 1))}

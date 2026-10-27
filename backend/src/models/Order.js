@@ -13,7 +13,14 @@ const orderItemSchema = new mongoose.Schema({
   material: { type: String, default: '' },
   variantId: { type: String, default: '' },
   size: { type: String, default: '' },
-  selectedVariant: { type: String, default: '' }
+  selectedVariant: { type: String, default: '' },
+  sku: { type: String, default: '' },
+  length: { type: Number, default: null },
+  width: { type: Number, default: null },
+  unit: { type: String, default: '' },
+  dispatchTime: { type: String, default: '' },
+  leadTime: { type: String, default: '' },
+  weaveTime: { type: String, default: '' }
 }, { _id: false });
 
 const orderAddressSchema = new mongoose.Schema({

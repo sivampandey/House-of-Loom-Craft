@@ -68,15 +68,36 @@ export function normalizeProduct(raw) {
   let defaultVariant = null;
 
   if (hasVariants) {
-    normalizedVariants = raw.variants.map((v, idx) => ({
-      id: v.id || `var_${idx}`,
-      size: (v.size || '').trim(),
-      price: Number(v.price) || 0,
-      compareAtPrice: v.compareAtPrice !== null && v.compareAtPrice !== undefined ? Number(v.compareAtPrice) : null,
-      stock: typeof v.stock === 'number' ? v.stock : 10,
-      active: v.active !== false,
-      isDefault: Boolean(v.isDefault)
-    }));
+    normalizedVariants = raw.variants.map((v, idx) => {
+      const vLength = v.length !== undefined && v.length !== null && v.length !== '' ? Number(v.length) : null;
+      const vWidth = v.width !== undefined && v.width !== null && v.width !== '' ? Number(v.width) : null;
+      const vUnit = v.unit || 'cm';
+      const vSize = (v.size || '').trim();
+      let vDimensions = (v.dimensions || '').trim();
+      if (!vDimensions && vLength !== null && vWidth !== null) {
+        vDimensions = `${vLength} × ${vWidth} ${vUnit}`;
+      } else if (!vDimensions) {
+        vDimensions = vSize;
+      }
+
+      return {
+        id: v.id || `var_${idx}`,
+        size: vSize,
+        sku: (v.sku || '').trim(),
+        price: Number(v.price) || 0,
+        compareAtPrice: v.compareAtPrice !== null && v.compareAtPrice !== undefined ? Number(v.compareAtPrice) : null,
+        stock: typeof v.stock === 'number' ? v.stock : 10,
+        length: vLength,
+        width: vWidth,
+        unit: vUnit,
+        dimensions: vDimensions,
+        dispatchTime: (v.dispatchTime || '').trim(),
+        leadTime: (v.leadTime || '').trim(),
+        weaveTime: (v.weaveTime || '').trim(),
+        active: v.active !== false,
+        isDefault: Boolean(v.isDefault)
+      };
+    });
 
     const activeVariants = normalizedVariants.filter(v => v.active !== false);
     if (activeVariants.length > 0) {
@@ -97,6 +118,7 @@ export function normalizeProduct(raw) {
     id: pId,
     _id: raw._id || pId,
     slug: raw.slug || pId,
+    sku: raw.sku || '',
     name: raw.name || 'Untitled Piece',
     price: basePrice,
     compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : null,
@@ -122,6 +144,7 @@ export function normalizeProduct(raw) {
     origin: raw.origin || 'Bhadohi, U.P. (India)',
     manufacturer: raw.manufacturer || 'House of Loom & Craft',
     weaveTime: raw.weaveTime || '',
+    dispatchTime: raw.dispatchTime || '',
     badge: raw.badge || '',
     shortDescription: raw.shortDescription || '',
     description: raw.description || '',

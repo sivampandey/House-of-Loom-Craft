@@ -162,7 +162,9 @@ export default function OrderDetailPage({ onShowToast }) {
               <tr key={i} className="border-b border-gray-300">
                 <td className="py-3">
                   <p className="font-bold font-serif text-sm">{item.name}</p>
-                  <p className="text-[10px] text-gray-600">{item.dimensions} · {item.material}</p>
+                  <p className="text-[10px] text-gray-600">
+                    {[item.size ? `Size: ${item.size}` : '', item.dimensions ? `Dimensions: ${item.dimensions}` : '', item.material].filter(Boolean).join(' · ')}
+                  </p>
                 </td>
                 <td className="py-3 text-center">{item.quantity}</td>
                 <td className="py-3 text-right">₹{item.price?.toLocaleString()}</td>
@@ -368,9 +370,29 @@ export default function OrderDetailPage({ onShowToast }) {
                             Size: {item.size}
                           </span>
                         )}
-                        {item.dimensions && !item.size && (
+                        {item.dimensions && (
                           <span className="bg-[#FAF7F0] px-2 py-0.5 rounded-md border border-[#DACDB3]">
                             Dimensions: {item.dimensions}
+                          </span>
+                        )}
+                        {item.dispatchTime && (
+                          <span className="bg-[#FAF7F0] px-2 py-0.5 rounded-md border border-[#DACDB3]">
+                            Dispatch: {item.dispatchTime}
+                          </span>
+                        )}
+                        {item.leadTime && (
+                          <span className="bg-[#FAF7F0] px-2 py-0.5 rounded-md border border-[#DACDB3]">
+                            Delivery: {item.leadTime}
+                          </span>
+                        )}
+                        {item.weaveTime && (
+                          <span className="bg-[#FAF7F0] px-2 py-0.5 rounded-md border border-[#DACDB3]">
+                            Weaving: {item.weaveTime}
+                          </span>
+                        )}
+                        {item.sku && (
+                          <span className="bg-[#FAF7F0] px-2 py-0.5 rounded-md border border-[#DACDB3] font-mono text-[10px]">
+                            SKU: {item.sku}
                           </span>
                         )}
                         {item.material && (

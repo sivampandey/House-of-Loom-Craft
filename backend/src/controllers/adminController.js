@@ -239,15 +239,55 @@ export const createProductAdmin = async (req, res, next) => {
           ? Number(v.compareAtPrice)
           : null;
 
+        const sku = typeof v.sku === 'string' ? v.sku.trim() : '';
+
+        const length = v.length !== undefined && v.length !== null && v.length !== ''
+          ? Number(v.length)
+          : null;
+        if (length !== null && (!Number.isFinite(length) || length < 0)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid length for size "${size}". Length must be a non-negative number.`
+          });
+        }
+
+        const width = v.width !== undefined && v.width !== null && v.width !== ''
+          ? Number(v.width)
+          : null;
+        if (width !== null && (!Number.isFinite(width) || width < 0)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid width for size "${size}". Width must be a non-negative number.`
+          });
+        }
+
+        const unit = (v.unit || 'cm').trim();
+        let dimensions = typeof v.dimensions === 'string' ? v.dimensions.trim() : '';
+        if (!dimensions && length !== null && width !== null) {
+          dimensions = `${length} × ${width} ${unit}`;
+        }
+
+        const dispatchTime = typeof v.dispatchTime === 'string' ? v.dispatchTime.trim() : '';
+        const leadTime = typeof v.leadTime === 'string' ? v.leadTime.trim() : '';
+        const weaveTime = typeof v.weaveTime === 'string' ? v.weaveTime.trim() : '';
+
         const isDefault = Boolean(v.isDefault);
         if (isDefault) defaultCount++;
 
         sanitizedVariants.push({
           id: v.id && String(v.id).trim() ? String(v.id).trim() : `var_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`,
           size,
+          sku,
           price,
           compareAtPrice,
           stock,
+          length,
+          width,
+          unit,
+          dimensions,
+          dispatchTime,
+          leadTime,
+          weaveTime,
           active: v.active !== false,
           isDefault
         });
@@ -394,15 +434,55 @@ export const updateProductAdmin = async (req, res, next) => {
           ? Number(v.compareAtPrice)
           : null;
 
+        const sku = typeof v.sku === 'string' ? v.sku.trim() : '';
+
+        const length = v.length !== undefined && v.length !== null && v.length !== ''
+          ? Number(v.length)
+          : null;
+        if (length !== null && (!Number.isFinite(length) || length < 0)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid length for size "${size}". Length must be a non-negative number.`
+          });
+        }
+
+        const width = v.width !== undefined && v.width !== null && v.width !== ''
+          ? Number(v.width)
+          : null;
+        if (width !== null && (!Number.isFinite(width) || width < 0)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid width for size "${size}". Width must be a non-negative number.`
+          });
+        }
+
+        const unit = (v.unit || 'cm').trim();
+        let dimensions = typeof v.dimensions === 'string' ? v.dimensions.trim() : '';
+        if (!dimensions && length !== null && width !== null) {
+          dimensions = `${length} × ${width} ${unit}`;
+        }
+
+        const dispatchTime = typeof v.dispatchTime === 'string' ? v.dispatchTime.trim() : '';
+        const leadTime = typeof v.leadTime === 'string' ? v.leadTime.trim() : '';
+        const weaveTime = typeof v.weaveTime === 'string' ? v.weaveTime.trim() : '';
+
         const isDefault = Boolean(v.isDefault);
         if (isDefault) defaultCount++;
 
         sanitizedVariants.push({
           id: v.id && String(v.id).trim() ? String(v.id).trim() : `var_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`,
           size,
+          sku,
           price,
           compareAtPrice,
           stock,
+          length,
+          width,
+          unit,
+          dimensions,
+          dispatchTime,
+          leadTime,
+          weaveTime,
           active: v.active !== false,
           isDefault
         });

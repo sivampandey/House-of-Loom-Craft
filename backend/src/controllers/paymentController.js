@@ -305,8 +305,8 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
       let availableStock = product.stock;
 
       // Authoritative variant price lookup
+      let matchedVariant = null;
       if (product.hasVariants && Array.isArray(product.variants) && product.variants.length > 0) {
-        let matchedVariant = null;
         if (item.variantId) {
           matchedVariant = product.variants.find(v => v.id === item.variantId);
         }
@@ -343,17 +343,37 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
 
       calculatedSubtotal += authoritativePrice * reqQty;
 
+      // Resolve immutable snapshot attributes
+      const itemDimensions = matchedVariant
+        ? (matchedVariant.dimensions || (matchedVariant.length && matchedVariant.width ? `${matchedVariant.length} × ${matchedVariant.width} ${matchedVariant.unit || 'cm'}` : matchedVariant.size))
+        : (product.dimensions || sizeLabel || '');
+
+      const itemLength = matchedVariant?.length ?? null;
+      const itemWidth = matchedVariant?.width ?? null;
+      const itemUnit = matchedVariant?.unit || (itemDimensions.toLowerCase().includes('in') ? 'inches' : 'cm');
+      const itemDispatchTime = matchedVariant?.dispatchTime || product.dispatchTime || product.leadTime || '';
+      const itemLeadTime = matchedVariant?.leadTime || product.leadTime || '';
+      const itemWeaveTime = matchedVariant?.weaveTime || product.weaveTime || '';
+      const itemSku = matchedVariant?.sku || product.sku || '';
+
       validatedItems.push({
         productId: product._id,
         name: product.name,
         image: product.thumbnail || (product.images && product.images[0]) || product.texture,
         price: authoritativePrice,
         quantity: reqQty,
-        dimensions: sizeLabel || product.dimensions,
+        dimensions: itemDimensions,
         material: product.material,
         variantId,
         size: sizeLabel,
-        selectedVariant: sizeLabel
+        selectedVariant: sizeLabel,
+        sku: itemSku,
+        length: itemLength,
+        width: itemWidth,
+        unit: itemUnit,
+        dispatchTime: itemDispatchTime,
+        leadTime: itemLeadTime,
+        weaveTime: itemWeaveTime
       });
     }
 

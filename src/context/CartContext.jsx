@@ -111,9 +111,15 @@ export function CartProvider({ children }) {
           );
         }
 
+        const matchedVar = (product.variants && Array.isArray(product.variants))
+          ? product.variants.find(v => v.id === targetVariantId || (v.size || '').trim().toLowerCase() === targetSize.trim().toLowerCase())
+          : null;
+
         const effectivePrice = (variantPrice !== null && variantPrice !== undefined)
           ? Number(variantPrice)
-          : (Number(product.price) || 0);
+          : (matchedVar?.price ?? (Number(product.price) || 0));
+
+        const itemDims = matchedVar?.dimensions || (matchedVar?.length && matchedVar?.width ? `${matchedVar.length} × ${matchedVar.width} ${matchedVar.unit || 'cm'}` : (targetSize || product.dimensions || ''));
 
         return [
           ...prev,
@@ -128,7 +134,14 @@ export function CartProvider({ children }) {
             selectedVariant: targetSize,
             cartItemId: itemKey,
             price: effectivePrice,
-            dimensions: targetSize || product.dimensions || ''
+            dimensions: itemDims,
+            sku: matchedVar?.sku || product.sku || '',
+            length: matchedVar?.length ?? null,
+            width: matchedVar?.width ?? null,
+            unit: matchedVar?.unit || 'cm',
+            dispatchTime: matchedVar?.dispatchTime || product.dispatchTime || product.leadTime || '',
+            leadTime: matchedVar?.leadTime || product.leadTime || '',
+            weaveTime: matchedVar?.weaveTime || product.weaveTime || ''
           }
         ];
       });

@@ -50,6 +50,17 @@ export const COMMON_SIZE_PRESETS = [
   'Round 6 ft'
 ];
 
+export const PRESET_DIMENSION_MAP = {
+  '4 × 6 ft': { length: 183, width: 122, unit: 'cm', dimensions: '4 × 6 ft (122 × 183 cm)' },
+  '5 × 8 ft': { length: 244, width: 152, unit: 'cm', dimensions: '5 × 8 ft (152 × 244 cm)' },
+  '6 × 9 ft': { length: 274, width: 183, unit: 'cm', dimensions: '6 × 9 ft (183 × 274 cm)' },
+  '8 × 10 ft': { length: 305, width: 244, unit: 'cm', dimensions: '8 × 10 ft (244 × 305 cm)' },
+  '9 × 12 ft': { length: 366, width: 274, unit: 'cm', dimensions: '9 × 12 ft (274 × 366 cm)' },
+  '10 × 14 ft': { length: 427, width: 305, unit: 'cm', dimensions: '10 × 14 ft (305 × 427 cm)' },
+  'Runner 2.5 × 10 ft': { length: 305, width: 76, unit: 'cm', dimensions: '2.5 × 10 ft (76 × 305 cm)' },
+  'Round 6 ft': { length: 183, width: 183, unit: 'cm', dimensions: 'Round 6 ft (183 × 183 cm)' }
+};
+
 export default function AdminProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -58,6 +69,7 @@ export default function AdminProductFormPage() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
+    sku: '',
     category: 'Hand Knotted Rugs',
     collection: 'hand-knotted',
     collectionName: 'Hand Knotted Rugs',
@@ -72,6 +84,7 @@ export default function AdminProductFormPage() {
     origin: 'Bhadohi, U.P. (India)',
     manufacturer: 'House of Loom & Craft (Manufacturer & Exporter)',
     weaveTime: '',
+    dispatchTime: 'Dispatches in 24-48 Hours',
     badge: '',
     shortDescription: '',
     description: '',
@@ -102,9 +115,17 @@ export default function AdminProductFormPage() {
               ? p.variants.map((v, i) => ({
                 id: v.id || v._id || `var_${Date.now()}_${i}`,
                 size: v.size || '',
+                sku: v.sku || '',
                 price: v.price !== undefined && v.price !== null ? v.price : '',
                 compareAtPrice: v.compareAtPrice !== undefined && v.compareAtPrice !== null ? v.compareAtPrice : '',
                 stock: v.stock !== undefined && v.stock !== null ? v.stock : 10,
+                length: v.length !== undefined && v.length !== null ? v.length : '',
+                width: v.width !== undefined && v.width !== null ? v.width : '',
+                unit: v.unit || 'cm',
+                dimensions: v.dimensions || '',
+                dispatchTime: v.dispatchTime || '',
+                leadTime: v.leadTime || '',
+                weaveTime: v.weaveTime || '',
                 active: v.active !== false,
                 isDefault: Boolean(v.isDefault)
               }))
@@ -115,6 +136,7 @@ export default function AdminProductFormPage() {
             setFormData({
               name: p.name || '',
               slug: p.slug || '',
+              sku: p.sku || '',
               category: p.category || 'Hand Knotted Rugs',
               collection: p.collection || 'hand-knotted',
               collectionName: p.collectionName || p.category || '',
@@ -129,6 +151,7 @@ export default function AdminProductFormPage() {
               origin: p.origin || 'Bhadohi, U.P. (India)',
               manufacturer: p.manufacturer || 'House of Loom & Craft',
               weaveTime: p.weaveTime || '',
+              dispatchTime: p.dispatchTime || '',
               badge: p.badge || '',
               shortDescription: p.shortDescription || '',
               description: p.description || '',
@@ -178,14 +201,21 @@ export default function AdminProductFormPage() {
     setFormData((prev) => {
       let currentVariants = [...prev.variants];
       if (enabled && currentVariants.length === 0) {
-        // Prepopulate with first variant based on current base price & dimension
         currentVariants = [
           {
             id: `var_${Date.now()}_1`,
             size: prev.dimensions || '5 × 8 ft',
+            sku: prev.sku || '',
             price: prev.price || '',
             compareAtPrice: prev.compareAtPrice || '',
             stock: prev.stock || 10,
+            length: '',
+            width: '',
+            unit: 'cm',
+            dimensions: prev.dimensions || '',
+            dispatchTime: prev.dispatchTime || prev.leadTime || 'Dispatches in 24-48 Hours',
+            leadTime: prev.leadTime || 'Delivery in 5-7 business days',
+            weaveTime: prev.weaveTime || '',
             active: true,
             isDefault: true
           }
@@ -203,12 +233,21 @@ export default function AdminProductFormPage() {
   const handleAddVariant = (presetSize = '') => {
     setFormData((prev) => {
       const isFirst = prev.variants.length === 0;
+      const presetInfo = PRESET_DIMENSION_MAP[presetSize] || {};
       const newVar = {
         id: `var_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         size: presetSize || '',
+        sku: '',
         price: prev.price || '',
         compareAtPrice: prev.compareAtPrice || '',
         stock: 10,
+        length: presetInfo.length !== undefined ? presetInfo.length : '',
+        width: presetInfo.width !== undefined ? presetInfo.width : '',
+        unit: presetInfo.unit || 'cm',
+        dimensions: presetInfo.dimensions || presetSize || '',
+        dispatchTime: prev.dispatchTime || prev.leadTime || 'Dispatches in 24-48 Hours',
+        leadTime: 'Delivery in 5-7 business days',
+        weaveTime: prev.weaveTime || '',
         active: true,
         isDefault: isFirst
       };
@@ -223,7 +262,6 @@ export default function AdminProductFormPage() {
   const handleRemoveVariant = (indexToRemove) => {
     setFormData((prev) => {
       const updated = prev.variants.filter((_, idx) => idx !== indexToRemove);
-      // If we removed the default variant, set first remaining active variant as default
       if (updated.length > 0 && !updated.some((v) => v.isDefault)) {
         const firstActive = updated.find((v) => v.active) || updated[0];
         firstActive.isDefault = true;
@@ -240,7 +278,19 @@ export default function AdminProductFormPage() {
     setFormData((prev) => {
       const updated = prev.variants.map((v, idx) => {
         if (idx === index) {
-          return { ...v, [field]: value };
+          const next = { ...v, [field]: value };
+          if ((field === 'length' || field === 'width' || field === 'unit') && !next.dimensionsManual) {
+            const l = field === 'length' ? value : next.length;
+            const w = field === 'width' ? value : next.width;
+            const u = field === 'unit' ? value : (next.unit || 'cm');
+            if (l && w) {
+              next.dimensions = `${l} × ${w} ${u}`;
+            }
+          }
+          if (field === 'dimensions') {
+            next.dimensionsManual = true;
+          }
+          return next;
         }
         return v;
       });
@@ -401,6 +451,26 @@ export default function AdminProductFormPage() {
             throw new Error(`Variant "${trimmedSize}" stock cannot be negative.`);
           }
 
+          const vLength = v.length !== '' && v.length !== null && v.length !== undefined
+            ? Number(v.length)
+            : null;
+          if (vLength !== null && (isNaN(vLength) || vLength < 0)) {
+            throw new Error(`Variant "${trimmedSize}" length must be a valid non-negative number.`);
+          }
+
+          const vWidth = v.width !== '' && v.width !== null && v.width !== undefined
+            ? Number(v.width)
+            : null;
+          if (vWidth !== null && (isNaN(vWidth) || vWidth < 0)) {
+            throw new Error(`Variant "${trimmedSize}" width must be a valid non-negative number.`);
+          }
+
+          const vUnit = (v.unit || 'cm').trim();
+          let vDimensions = (v.dimensions || '').trim();
+          if (!vDimensions && vLength !== null && vWidth !== null) {
+            vDimensions = `${vLength} × ${vWidth} ${vUnit}`;
+          }
+
           if (v.isDefault && v.active) {
             hasDefault = true;
           }
@@ -408,9 +478,17 @@ export default function AdminProductFormPage() {
           return {
             id: v.id || `var_${Date.now()}_${idx}`,
             size: trimmedSize,
+            sku: (v.sku || '').trim(),
             price: vPrice,
             compareAtPrice: vCompareAtPrice,
             stock: vStock,
+            length: vLength,
+            width: vWidth,
+            unit: vUnit,
+            dimensions: vDimensions,
+            dispatchTime: (v.dispatchTime || '').trim(),
+            leadTime: (v.leadTime || '').trim(),
+            weaveTime: (v.weaveTime || '').trim(),
             active: v.active !== false,
             isDefault: Boolean(v.isDefault)
           };
@@ -450,6 +528,8 @@ export default function AdminProductFormPage() {
 
       const payload = {
         ...formData,
+        sku: (formData.sku || '').trim(),
+        dispatchTime: (formData.dispatchTime || '').trim(),
         thumbnail: resolvedThumbnail,
         images: Array.isArray(formData.images) && formData.images.length > 0 ? formData.images : [resolvedThumbnail],
         hasVariants: Boolean(formData.hasVariants),
@@ -771,118 +851,289 @@ export default function AdminProductFormPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
-                    {formData.variants.map((variant, index) => (
-                      <div
-                        key={variant.id || index}
-                        className={`p-4 rounded-xl border transition-all ${variant.active
-                          ? variant.isDefault
-                            ? 'bg-[#FAF7F0] border-[#55694A] ring-1 ring-[#55694A]/30'
-                            : 'bg-[#FAF7F0] border-[#DACDB3]'
-                          : 'bg-[#FAF7F0]/60 border-[#DACDB3]/60 opacity-60'
+                  <div className="space-y-4">
+                    {formData.variants.map((variant, index) => {
+                      const isDefault = Boolean(variant.isDefault);
+                      const isActive = variant.active !== false;
+
+                      return (
+                        <div
+                          key={variant.id || index}
+                          className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-sm ${
+                            isActive
+                              ? isDefault
+                                ? 'bg-[#FAF7F0] border-[#55694A] ring-2 ring-[#55694A]/25'
+                                : 'bg-[#FAF7F0] border-[#DACDB3]'
+                              : 'bg-[#FAF7F0]/70 border-[#DACDB3]/70 opacity-75'
                           }`}
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                          {/* Size Label */}
-                          <div className="sm:col-span-3 space-y-1">
-                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
-                              Size Label *
-                            </label>
-                            <input
-                              type="text"
-                              value={variant.size}
-                              onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-                              placeholder="e.g. 5 × 8 ft"
-                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-semibold focus:outline-none focus:border-[#55694A]"
-                            />
-                          </div>
+                        >
+                          {/* Variation Header */}
+                          <div className="bg-[#EAE2D2]/60 px-5 py-3 border-b border-[#DACDB3] flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-6 h-6 rounded-full bg-[#55694A] text-[#FAF7F0] text-xs font-bold font-mono flex items-center justify-center">
+                                {index + 1}
+                              </span>
+                              <div>
+                                <h4 className="font-serif text-sm font-bold text-[#362B21]">
+                                  {variant.size || `Size Variation #${index + 1}`}
+                                </h4>
+                                {variant.sku && (
+                                  <span className="text-[10px] font-mono text-[#544131]/70 block">
+                                    SKU: {variant.sku}
+                                  </span>
+                                )}
+                              </div>
+                              {isDefault && (
+                                <span className="ml-1 px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold uppercase tracking-wider bg-[#55694A] text-[#FAF7F0] shadow-sm">
+                                  Default Size
+                                </span>
+                              )}
+                            </div>
 
-                          {/* Price */}
-                          <div className="sm:col-span-3 space-y-1">
-                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
-                              Price (INR ₹) *
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={variant.price}
-                              onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
-                              placeholder="24000"
-                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-bold focus:outline-none focus:border-[#55694A]"
-                            />
-                          </div>
+                            {/* Controls */}
+                            <div className="flex items-center gap-2 ml-auto">
+                              {!isDefault && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetDefaultVariant(index)}
+                                  className="text-xs font-sans font-medium px-2.5 py-1 rounded-lg border border-[#DACDB3] bg-[#FAF7F0] text-[#544131] hover:border-[#55694A] hover:text-[#362B21] transition-colors"
+                                >
+                                  Set as Default
+                                </button>
+                              )}
 
-                          {/* Compare At Price */}
-                          <div className="sm:col-span-2 space-y-1">
-                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
-                              Compare (₹)
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={variant.compareAtPrice}
-                              onChange={(e) => handleVariantChange(index, 'compareAtPrice', e.target.value)}
-                              placeholder="30000"
-                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#544131]/80 focus:outline-none focus:border-[#55694A]"
-                            />
-                          </div>
-
-                          {/* Stock */}
-                          <div className="sm:col-span-2 space-y-1">
-                            <label className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#4E3C2B]">
-                              Stock *
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={variant.stock}
-                              onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
-                              placeholder="5"
-                              className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-lg px-3 py-1.5 text-xs text-[#362B21] font-semibold focus:outline-none focus:border-[#55694A]"
-                            />
-                          </div>
-
-                          {/* Actions: Default, Active, Delete */}
-                          <div className="sm:col-span-2 flex items-center justify-end gap-2 pt-2 sm:pt-4">
-                            {/* Default Radio */}
-                            <button
-                              type="button"
-                              onClick={() => handleSetDefaultVariant(index)}
-                              title={variant.isDefault ? 'Default variant' : 'Click to make default'}
-                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${variant.isDefault
-                                ? 'bg-[#55694A] text-[#FAF7F0]'
-                                : 'border border-[#DACDB3] text-[#544131] hover:bg-[#EAE2D2]'
+                              <button
+                                type="button"
+                                onClick={() => handleToggleVariantActive(index)}
+                                className={`text-xs font-sans font-bold px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1.5 ${
+                                  isActive
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                    : 'bg-zinc-200 text-zinc-600 border border-zinc-300'
                                 }`}
-                            >
-                              {variant.isDefault ? 'Default' : 'Set Default'}
-                            </button>
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-600' : 'bg-zinc-400'}`} />
+                                {isActive ? 'Active' : 'Hidden'}
+                              </button>
 
-                            {/* Active Toggle */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleVariantActive(index)}
-                              title={variant.active ? 'Deactivate variant' : 'Activate variant'}
-                              className={`text-[10px] font-sans font-bold px-2 py-1 rounded transition-colors ${variant.active
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : 'bg-zinc-200 text-zinc-600 border border-zinc-300'
-                                }`}
-                            >
-                              {variant.active ? 'Active' : 'Off'}
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveVariant(index)}
+                                className="p-1.5 rounded-lg text-[#B24C40] hover:bg-[#B24C40]/10 border border-transparent hover:border-[#B24C40]/20 transition-colors"
+                                title="Delete this size variation"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
 
-                            {/* Delete */}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveVariant(index)}
-                              className="p-1 rounded text-[#B24C40] hover:bg-[#B24C40]/10 transition-colors"
-                              title="Delete variant"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                          <div className="p-5 space-y-5">
+                            {/* Row 1: Identification, Pricing & Stock */}
+                            <div>
+                              <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#55694A] block mb-2.5">
+                                1. Identity & Pricing
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                                {/* Size Name */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Size Name / Label *
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.size}
+                                    onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                                    placeholder="e.g. 5 × 8 ft, 8 × 10 ft"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] font-semibold focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* SKU */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Variation SKU
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.sku || ''}
+                                    onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
+                                    placeholder="e.g. HLC-5X8-01"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs font-mono text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* Price */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Selling Price (INR ₹) *
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={variant.price}
+                                    onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
+                                    placeholder="24000"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] font-bold focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* Compare At Price */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Compare-at Price (₹)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={variant.compareAtPrice}
+                                    onChange={(e) => handleVariantChange(index, 'compareAtPrice', e.target.value)}
+                                    placeholder="30000"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#544131]/80 focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* Stock */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Stock Quantity *
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={variant.stock}
+                                    onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
+                                    placeholder="5"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] font-bold focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Row 2: Physical Dimensions */}
+                            <div className="pt-3 border-t border-[#DACDB3]/70">
+                              <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#55694A] block mb-2.5">
+                                2. Dimensions & Measurements
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                                {/* Length */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Length
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    value={variant.length ?? ''}
+                                    onChange={(e) => handleVariantChange(index, 'length', e.target.value)}
+                                    placeholder="e.g. 240"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* Width */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Width
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    value={variant.width ?? ''}
+                                    onChange={(e) => handleVariantChange(index, 'width', e.target.value)}
+                                    placeholder="e.g. 150"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+
+                                {/* Unit */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Measurement Unit
+                                  </label>
+                                  <select
+                                    value={variant.unit || 'cm'}
+                                    onChange={(e) => handleVariantChange(index, 'unit', e.target.value)}
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  >
+                                    <option value="cm">Centimeters (cm)</option>
+                                    <option value="inches">Inches (in)</option>
+                                    <option value="ft">Feet (ft)</option>
+                                  </select>
+                                </div>
+
+                                {/* Formatted Dimensions */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Display Dimensions
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.dimensions || ''}
+                                    onChange={(e) => handleVariantChange(index, 'dimensions', e.target.value)}
+                                    placeholder="e.g. 5 × 8 ft (152 × 244 cm)"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Row 3: Timelines */}
+                            <div className="pt-3 border-t border-[#DACDB3]/70">
+                              <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#55694A] block mb-2.5">
+                                3. Fulfillment & Manufacturing Timeframes
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                {/* Dispatch Time */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Preparation / Dispatch Time
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.dispatchTime || ''}
+                                    onChange={(e) => handleVariantChange(index, 'dispatchTime', e.target.value)}
+                                    placeholder="e.g. Dispatches in 24-48 Hours"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                  <span className="text-[10px] text-[#544131]/60 block">Warehouse prep/dispatch timeframe</span>
+                                </div>
+
+                                {/* Estimated Lead/Delivery Time */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Estimated Delivery / Lead Time
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.leadTime || ''}
+                                    onChange={(e) => handleVariantChange(index, 'leadTime', e.target.value)}
+                                    placeholder="e.g. Delivery in 5-7 business days"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                  <span className="text-[10px] text-[#544131]/60 block">Transit & doorstep delivery timeline</span>
+                                </div>
+
+                                {/* Weaving Time */}
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-sans font-bold text-[#4E3C2B] block">
+                                    Weaving / Manufacturing Time
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={variant.weaveTime || ''}
+                                    onChange={(e) => handleVariantChange(index, 'weaveTime', e.target.value)}
+                                    placeholder="e.g. Ready in Stock or 8-12 weeks"
+                                    className="w-full bg-[#FFFFFF] border border-[#DACDB3] rounded-xl px-3 py-2 text-xs text-[#362B21] focus:outline-none focus:border-[#55694A]"
+                                  />
+                                  <span className="text-[10px] text-[#544131]/60 block">Artisan loom weaving duration</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -982,18 +1233,37 @@ export default function AdminProductFormPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
-                Dispatch / Lead Time
+                Dispatch Time (Single Price / Fallback)
+              </label>
+              <input
+                type="text"
+                name="dispatchTime"
+                value={formData.dispatchTime}
+                onChange={handleChange}
+                placeholder="Dispatches in 24-48 Hours"
+                className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2 text-xs text-[#362B21]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs uppercase tracking-wider font-sans font-bold text-[#4E3C2B] block">
+                Estimated Delivery Time (Single Price / Fallback)
               </label>
               <input
                 type="text"
                 name="leadTime"
                 value={formData.leadTime}
                 onChange={handleChange}
-                placeholder="In Stock - Dispatches in 24-48 Hours"
+                placeholder="Delivery in 5-7 business days"
                 className="w-full bg-[#FAF7F0] border border-[#DACDB3] rounded-xl px-4 py-2 text-xs text-[#362B21]"
               />
             </div>
           </div>
+          {formData.hasVariants && (
+            <p className="text-[11px] text-[#55694A] font-sans font-medium bg-[#55694A]/10 p-2.5 rounded-xl border border-[#55694A]/20">
+              Note: Multiple sizes are active above. Each individual size variation&apos;s configured dimensions, dispatch time, delivery time, and weaving time will be displayed to customers when that size is selected.
+            </p>
+          )}
         </div>
 
         {/* Section 4: Imagery Management */}
